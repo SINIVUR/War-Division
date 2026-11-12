@@ -1,0 +1,16 @@
+{
+  "name": "워 디비전 - WAR DIVISION",
+  "short_name": "워 디비전",
+  "description": "2차대전 × 스팀펑크 × 마법 모바일 RTS",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#14110c",
+  "theme_color": "#14110c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
