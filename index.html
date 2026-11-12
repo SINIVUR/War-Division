@@ -103,6 +103,28 @@ body.pc #joy,body.pc #groups{display:none!important}
 #tips .card{max-width:520px;border:1px solid #8a6d3a;border-radius:8px;background:rgba(20,16,10,.92);padding:12px 16px;font-size:12.5px;line-height:1.75;color:#eadfc4}
 #tips h3{color:#e8c56a;font-size:16px;margin-bottom:4px}
 .opt{display:flex;gap:6px;justify-content:center;margin:4px 0 8px;flex-wrap:wrap}
+
+/* ===== PC: 스타크래프트식 하단 콘솔 ===== */
+body.pc #top{height:30px;font-size:14px}
+body.pc #top .logo{font-size:13px}
+body.pc #top .ic{width:12px;height:12px}
+body.pc #bottom{height:212px;padding:8px 10px 8px 226px;gap:12px;align-items:stretch}
+body.pc #bottom.panel{background:linear-gradient(#3a3022,#1c160e);border-top:2px solid #8a6d3a;box-shadow:inset 0 2px 0 rgba(255,220,150,.15),0 -4px 14px rgba(0,0,0,.5);pointer-events:auto}
+body.pc #mini{left:10px;right:auto;top:auto;bottom:10px;width:204px;height:204px;z-index:7;border:2px solid #b08a3e;border-radius:4px;box-shadow:0 0 0 3px #2a2216,0 4px 14px rgba(0,0,0,.6)}
+body.pc #quick{top:34px}
+body.pc #info{flex:1 1 auto;max-height:none;height:auto;align-self:stretch;padding:10px 14px;font-size:13px;background:rgba(0,0,0,.35);border:1px solid #6b5530}
+body.pc #info:empty{display:block}
+body.pc #info .st{display:block!important;font-size:12px;margin-top:3px}
+body.pc #info .nm{font-size:16px}
+body.pc #info .hp{height:8px;max-width:320px}
+body.pc #info .sh{max-width:320px;height:4px}
+body.pc #info .chip{font-size:12px;padding:3px 7px}
+body.pc #info .q,body.pc #info .grid{flex-wrap:wrap!important}
+body.pc #cmd{align-self:center;grid-template-columns:repeat(3,76px);grid-template-rows:repeat(3,58px);gap:5px}
+body.pc #cmd .btn{font-size:13px;background:linear-gradient(#4a3d26,#2a2215)}
+body.pc #cmd .btn .s{font-size:10.5px}
+body.pc .btn .hk{font-size:11px;left:4px;top:2px}
+body.pc #desel{width:26px;height:24px;font-size:13px}
 #loading{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(10,8,6,.85);font-size:14px;color:#e8c56a}
 </style>
 </head>
@@ -196,7 +218,8 @@ body.pc #joy,body.pc #groups{display:none!important}
 // =====================================================================
 //  워 디비전 (WAR DIVISION) — 2차대전 × 스팀펑크 × 마법 모바일 RTS
 // =====================================================================
-const T=40,MW=96,MH=96,WW=MW*T,WH=MH*T,NN=MW*MH,TOPH=26,BOTH=20,TS=32;
+const T=40,MW=96,MH=96,WW=MW*T,WH=MH*T,NN=MW*MH,TOPH=26,TS=32;
+let BOTH=20;
 const $=id=>document.getElementById(id);
 const cvs=$('game'),ctx=cvs.getContext('2d');
 let dpr=1,VW=800,VH=360,rotated=false;
@@ -1924,7 +1947,7 @@ function keysPan(dt){joyPan(dt);edgePan(dt);const s=900*dt/cam.z;if(keys['arrowl
 
 // ======================== PC 조작 (스타크래프트 방식) ========================
 let PC=false;
-function setPC(on){PC=on;document.body.classList.toggle('pc',on);try{hudDirty=true;}catch(_){}}
+function setPC(on){PC=on;document.body.classList.toggle('pc',on);BOTH=on?212:20;try{hudDirty=true;}catch(_){}try{resize();}catch(_){}}
 if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!('ontouchstart' in window))setPC(true);
 addEventListener('touchstart',()=>{if(PC)setPC(false);},{passive:true});
 const mouse={x:-1,y:-1,in:false};
@@ -2048,7 +2071,7 @@ function renderHud(){
   if(e.type==='res'){html=`<div class="nm">${e.kind==='coal'?'석탄 광맥':'에테르 샘'}</div><div class="st">남은 양 ${e.amount}</div>`;}
   else{
    const d=e.type==='unit'?UD[e.kind]:BD[e.kind],f=clamp(e.hp/e.maxhp,0,1);
-   html=`<div class="nm">${e.team!==0?'<span style="color:#ff8a7a">적</span> ':''}${short(d.n)}</div><div class="hp"><i style="width:${f*100}%;background:${f>.6?'#5fd35f':f>.3?'#e0c040':'#e04a3a'}"></i></div>${e.maxsh?`<div class="sh"><i style="width:${clamp(e.sh/e.maxsh,0,1)*100}%"></i></div>`:''}<div class="st">${Math.ceil(e.hp)}/${e.maxhp}`;
+   html=`<div class="nm">${e.team!==0?'<span style="color:#ff8a7a">적</span> ':''}${PC?d.n:short(d.n)}${PC?`<span class="ds">${e.team!==0?FAC[P(e.team).fac].n:(d.desc||'')}</span>`:''}</div><div class="hp"><i style="width:${f*100}%;background:${f>.6?'#5fd35f':f>.3?'#e0c040':'#e04a3a'}"></i></div>${e.maxsh?`<div class="sh"><i style="width:${clamp(e.sh/e.maxsh,0,1)*100}%"></i></div>`:''}<div class="st">${Math.ceil(e.hp)}/${e.maxhp}`;
    if(e.type==='unit'){html+=` · ${e.morph>0?'변이 중':e.sgT>0?'모드 전환 중':e.sg?'포격 모드':(STATE_TXT[e.state]||'')}${e.carry?` · ${e.carryT==='ether'?'에테르':'석탄'} 운반`:''}${e.slowT>0?' · 빙결':''}`;}
    else if(!e.built)html+=` · 건설 ${Math.floor(e.prog*100)}%`;else if(e.moving)html+=' · 이동 중';else if(e.unpowered)html+=' · ⚡ 마법진 범위 밖';else if(BD[e.kind].sup)html+=` · 보급 +${BD[e.kind].sup}`;
    html+='</div>';
@@ -2059,7 +2082,7 @@ function renderHud(){
  }else if(s.length>1){
   const cnt={};for(const e of s)cnt[e.kind]=(cnt[e.kind]||0)+1;
   html=`<div class="nm">${s.length}기 선택</div><div class="grid">`+Object.entries(cnt).map(([k,n])=>`<span class="chip" data-k="${k}">${short((UD[k]||BD[k]).n)} ×${n}</span>`).join('')+'</div>';
- }else html='';
+ }else html=PC?`<div class="nm" style="color:${TCOL[0]}">${FAC[P(0).fac].n}</div><div class="st">${MAPS[G.cfg.map].n} · 상대 ${G.pl.filter(p=>!p.human&&p.alive).map(p=>FAC[p.fac].n).join(', ')}</div><div class="st" style="color:#8a7a5a">좌클릭 선택 · 드래그 범위 선택 · 우클릭 명령 · 화면 끝으로 마우스를 옮기면 스크롤</div>`:'';
  if(s.length)html+='<button id="desel">✕</button>';
  if(info._h!==html){info.innerHTML=html;info._h=html;}
  const list=cmdList();const key=JSON.stringify(list.map(b=>b&&[b.l,b.s,b.dis]));
