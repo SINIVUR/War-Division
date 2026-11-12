@@ -26,6 +26,10 @@ canvas#game{position:fixed;left:0;top:0;display:block}
 #top .sp{flex:1}
 #top .full{color:#ff7a6a}
 #top .opp{font-size:11px;color:#c9b88f;white-space:nowrap}
+#vcursor{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;will-change:transform}
+#vcursor svg{display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
+#lockBtn{display:none;background:none;border:1px solid #8a6d3a;color:#eadfc4;border-radius:4px;width:30px;height:20px;font-size:11px;line-height:1}
+body.pc #lockBtn{display:inline-block}
 #sndBtn{background:none;border:1px solid #8a6d3a;color:#eadfc4;border-radius:4px;width:30px;height:20px;font-size:11px;line-height:1}
 #pauseBtn{background:none;border:1px solid #8a6d3a;color:#eadfc4;border-radius:4px;width:30px;height:20px;font-size:11px}
 #bottom{position:fixed;left:0;right:0;bottom:0;height:98px;display:flex;gap:6px;align-items:center;padding:5px max(6px,env(safe-area-inset-right)) 5px max(6px,env(safe-area-inset-left));border-width:1px 0 0;z-index:5}
@@ -139,6 +143,7 @@ body.pc #desel{width:26px;height:24px;font-size:13px}
   <span class="sp"></span>
   <span class="opp" id="rInfo"></span>
   <span class="res" id="rTime">00:00</span>
+  <button id="lockBtn" class="tbtn" title="마우스 가두기">🔒</button>
   <button id="sndBtn" class="tbtn">🔊</button>
   <button id="pauseBtn">❚❚</button>
 </div>
@@ -152,6 +157,7 @@ body.pc #desel{width:26px;height:24px;font-size:13px}
 <div id="quick" class="hidden">
   <div class="btn warn hidden" id="qWarn">⚠<br>공격</div>
 </div>
+<div id="vcursor" class="hidden"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M2 2 L2 21 L7 16.5 L10.5 24 L14 22.4 L10.6 15 L17.5 15 Z" fill="#f0d488" stroke="#1a140b" stroke-width="2" stroke-linejoin="round"/></svg></div>
 <div id="hint"></div>
 <div id="toast"></div>
 
@@ -1895,6 +1901,7 @@ cvs.addEventListener('pointerdown',e=>{
  sfxInit();
  if(!G||G.over)return;e.preventDefault();try{cvs.setPointerCapture(e.pointerId);}catch(_){}
  if(e.pointerType==='mouse'&&!PC)setPC(true);
+ if(e.isTrusted&&e.pointerType==='mouse'&&!LOCK.active)tryLock(e.clientX,e.clientY);
  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(e.pointerType==='mouse'&&e.button===2){
   ptrs.delete(e.pointerId);
@@ -1952,7 +1959,7 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!('ontouchstart' in w
 addEventListener('touchstart',()=>{if(PC)setPC(false);},{passive:true});
 const mouse={x:-1,y:-1,in:false};
 addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&!PC)setPC(true);},{passive:true});
-addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;mouse.in=true;if(G&&(G.placing||(G.pending&&G.pending.t==='reloc'))&&!ptrs.size){const w=s2w(e.clientX,e.clientY);ghostFor(w[0],w[1]);}});
+addEventListener('mousemove',e=>{if(LOCK.active)return;mouse.x=e.clientX;mouse.y=e.clientY;mouse.in=true;if(G&&(G.placing||(G.pending&&G.pending.t==='reloc'))&&!ptrs.size){const w=s2w(e.clientX,e.clientY);ghostFor(w[0],w[1]);}});
 // 커서가 창 밖으로 나가면, 나간 쪽 가장자리에 머문 것으로 보고 계속 스크롤 (스타크래프트처럼)
 document.documentElement.addEventListener('mouseleave',e=>{
  const x=e.clientX,y=e.clientY,dl=x,dr=VW-1-x,dt=y,db=VH-1-y,mn=Math.min(dl,dr,dt,db);
@@ -2012,6 +2019,51 @@ addEventListener('keydown',e=>{
  const list=cmdList().filter(Boolean);const b=list.find(b=>b.k===K);
  if(b){e.preventDefault();if(!b.dis||b.l==='건설'||b.l==='뒤로')b.f();else b.f();hudDirty=true;renderHud();}
 });
+
+// ======================== 마우스 가두기 (Pointer Lock) ========================
+// 게임 중에는 커서를 창 안에 가둬서, 화면 밖으로 나가 바탕화면·작업표시줄이 눌리지 않게 함
+const LOCK={on:true,active:false,x:0,y:0,down:null};
+try{LOCK.on=localStorage.getItem('wd_lock')!=='0';}catch(_){}
+const vcur=$('vcursor');
+function wantLock(){return PC&&LOCK.on&&!!G&&!G.paused&&!G.over&&!document.hidden;}
+function tryLock(x,y){
+ if(!wantLock()||document.pointerLockElement)return;
+ LOCK.x=clamp(x,0,VW-1);LOCK.y=clamp(y,0,VH-1);
+ try{const p=document.body.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(_){}
+}
+function placeCur(){vcur.style.transform=`translate(${LOCK.x-2}px,${LOCK.y-2}px)`;}
+document.addEventListener('pointerlockchange',()=>{
+ LOCK.active=document.pointerLockElement===document.body;
+ vcur.classList.toggle('hidden',!LOCK.active);
+ if(LOCK.active){mouse.in=true;mouse.x=LOCK.x;mouse.y=LOCK.y;placeCur();}
+ else{LOCK.down=null;}
+ lockUpd();
+});
+document.addEventListener('pointerlockerror',()=>{LOCK.active=false;vcur.classList.add('hidden');});
+function lockHit(){const el=document.elementFromPoint(LOCK.x,LOCK.y);return el&&el!==document.body&&el!==document.documentElement?el:cvs;}
+function lockSend(type,e,tgt){
+ const ev=new PointerEvent(type,{bubbles:true,cancelable:true,composed:true,clientX:LOCK.x,clientY:LOCK.y,screenX:LOCK.x,screenY:LOCK.y,button:e.button,buttons:e.buttons,pointerId:1,pointerType:'mouse',isPrimary:true,shiftKey:e.shiftKey,ctrlKey:e.ctrlKey,metaKey:e.metaKey,altKey:e.altKey});
+ tgt.dispatchEvent(ev);
+}
+document.addEventListener('pointermove',e=>{
+ if(!LOCK.active||!e.isTrusted)return;e.stopImmediatePropagation();
+ LOCK.x=clamp(LOCK.x+(e.movementX||0),0,VW-1);LOCK.y=clamp(LOCK.y+(e.movementY||0),0,VH-1);placeCur();
+ mouse.x=LOCK.x;mouse.y=LOCK.y;mouse.in=true;
+ lockSend('pointermove',e,LOCK.down||lockHit());
+ if(G&&(G.placing||(G.pending&&G.pending.t==='reloc'))&&!ptrs.size){const w=s2w(LOCK.x,LOCK.y);ghostFor(w[0],w[1]);}
+},true);
+document.addEventListener('pointerdown',e=>{
+ if(!LOCK.active||!e.isTrusted)return;e.stopImmediatePropagation();e.preventDefault();
+ const t=lockHit();LOCK.down=t;lockSend('pointerdown',e,t);
+},true);
+document.addEventListener('pointerup',e=>{
+ if(!LOCK.active||!e.isTrusted)return;e.stopImmediatePropagation();
+ const t=LOCK.down||lockHit();LOCK.down=null;lockSend('pointerup',e,t);
+ const t2=lockHit();if(e.button===0&&t2!==cvs&&(t2===t||t.contains(t2)||t2.contains(t))){const c=t2.closest('button,.btn,[data-q],[data-k],[data-rs]')||t2;if(c.tagName==='BUTTON')c.click();}
+},true);
+document.addEventListener('contextmenu',e=>{if(LOCK.active)e.preventDefault();},true);
+document.addEventListener('wheel',e=>{if(!LOCK.active)return;e.preventDefault();if(G)zoomAt(LOCK.x,LOCK.y,cam.z*(e.deltaY<0?1.1:0.9));},{passive:false,capture:true});
+function lockUpd(){const b=$('lockBtn');if(b){b.textContent=LOCK.on?'🔒':'🔓';b.title=LOCK.on?'마우스 가두기 켜짐 (Esc로 잠시 풀기)':'마우스 가두기 꺼짐';}}
 // ======================== HUD ========================
 let hudDirty=true,hudKey='';
 function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.opacity=0,1700);}
@@ -2271,10 +2323,11 @@ $('againBtn').addEventListener('click',start);
 $('restartBtn').addEventListener('click',start);
 const toTitle=()=>{G=null;showGame(false);$('end').classList.add('hidden');$('pause').classList.add('hidden');$('title').classList.remove('hidden');$('hint').style.display='none';drawPreview();};
 $('quitBtn').addEventListener('click',toTitle);$('end2title').addEventListener('click',toTitle);
+$('lockBtn').addEventListener('click',()=>{LOCK.on=!LOCK.on;try{localStorage.setItem('wd_lock',LOCK.on?'1':'0');}catch(_){}lockUpd();if(!LOCK.on){try{document.exitPointerLock();}catch(_){}toast('마우스 가두기 꺼짐');}else toast('마우스 가두기 켜짐 — 게임 화면을 클릭하면 잠겨요');});
 const sndUpd=()=>{$('sndBtn').textContent=SFX.on?'🔊':'🔇';};sndUpd();
 $('sndBtn').addEventListener('click',()=>{SFX.on=!SFX.on;sndUpd();try{localStorage.setItem('wd_snd',SFX.on?'1':'0');}catch(_){}sfxInit();if(SFX.on)play('select');});
 $('pauseBtn').addEventListener('click',()=>{if(G){G.paused=true;$('pause').classList.remove('hidden');}});
-$('resumeBtn').addEventListener('click',()=>{sfxInit();if(G)G.paused=false;$('pause').classList.add('hidden');});
+$('resumeBtn').addEventListener('click',e=>{sfxInit();if(G){G.paused=false;tryLock(e.clientX||VW/2,e.clientY||VH/2);}if(G)G.paused=false;$('pause').classList.add('hidden');});
 function endGame(win){
  if(G.over)return;G.over=true;play(win?'win':'lose');
  const t=Math.floor(G.time);
@@ -2287,6 +2340,7 @@ function frame(now){
  const dt=Math.min(0.05,(now-last)/1000);last=now;
  if(G){
   if(!G.paused&&!rotated&&!G.over)update(dt);else if(G.over)updFx(dt);
+  if(LOCK.active&&!wantLock()){try{document.exitPointerLock();}catch(_){}}
   keysPan(dt);render();
   miniT-=dt;if(miniT<=0){miniT=0.12;renderMini();}
   hudT-=dt;if(hudT<=0||hudDirty){hudT=0.15;renderHud();$('qWarn').classList.toggle('hidden',!(G.warnPos&&G.time-G.warnPos[2]<12));}
