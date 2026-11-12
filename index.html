@@ -53,6 +53,8 @@ canvas#game{position:fixed;left:0;top:0;display:block}
 .btn{background:linear-gradient(#4a3d26,#2a2215);border:1px solid #8a6d3a;border-radius:4px;color:#f1e3c0;font-size:11.5px;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1px;white-space:nowrap;overflow:hidden;font-weight:600}
 .btn .s{font-size:9px;color:#d9b45a;font-weight:500;margin-top:1px}
 .btn.dis{opacity:.38}
+.btn .hk{position:absolute;left:3px;top:1px;font-style:normal;font-size:9px;color:#ffe08a;font-weight:800}
+body.pc #joy,body.pc #groups{display:none!important}
 .btn.empty{visibility:hidden}
 .btn:active{filter:brightness(1.4)}
 #groups{position:fixed;left:max(6px,env(safe-area-inset-left));top:32px;display:flex;flex-direction:column;gap:4px;z-index:5}
@@ -165,7 +167,8 @@ canvas#game{position:fixed;left:0;top:0;display:block}
     · <b>한 손가락 드래그</b>: 범위 선택 (병력이 있으면 일꾼은 빠짐)<br>
     · <b>조이스틱</b>(왼쪽 아래), <b>두 손가락</b>, <b>미니맵</b>(오른쪽 위): 화면 이동 · 벌려서 확대/축소<br>
     · <b>유닛 두 번 탭</b>: 화면 안 같은 종류 전체 선택<br>
-    · <b>1·2·3 길게 누르기</b>: 부대 지정 · 짧게: 부대 선택 · 두 번: 그곳으로 이동
+    · <b>1·2·3 길게 누르기</b>: 부대 지정 · 짧게: 부대 선택 · 두 번: 그곳으로 이동<br>
+    · <b>PC</b>: 좌클릭 선택 · 드래그 범위 · 우클릭 이동/공격 · Shift 추가·대기열 · Ctrl/더블클릭 같은 종류 · A 공격 M 이동 S 정지 H 사수 P 정찰 · B 건설 · Ctrl+숫자 부대 · 화면 끝 마우스 스크롤 · Space 경보 위치 · F2~F4 화면 저장(Shift)·이동
   </div>
   <div class="seg"><button id="resumeBtn" class="on">계속</button><button id="restartBtn">다시 시작</button><button id="quitBtn">타이틀로</button></div>
 </div>
@@ -325,6 +328,9 @@ const FAC={
  fr:{n:'프랑스',hq:'fr_hq',worker:'fr_sapeur',sup:'fr_entrepot',gas:'fr_raffinerie',mode:'team',build:['fr_entrepot','fr_raffinerie','fr_caserne','fr_arsenal','fr_aerodrome','fr_naval','fr_maginot','fr_hq']},
  uk:{n:'영국',hq:'uk_hq',worker:'uk_sapper',sup:'uk_depot',gas:'uk_refinery',mode:'stay',build:['uk_depot','uk_refinery','uk_barracks','uk_tankworks','uk_airfield','uk_naval','uk_battery','uk_hq']},
 };
+const UHK={"engineer": "S", "rifle": "M", "medic": "C", "radio": "R", "tank": "T", "bomber": "B", "destroyer": "D", "laborer": "D", "conscript": "Z", "commissar": "C", "shaman": "H", "balloon": "O", "icebreaker": "I", "technician": "P", "grenadier": "Z", "walker": "W", "jet": "J", "observer": "O", "sub": "S", "mage": "M", "it_artigiano": "A", "it_bersagliere": "B", "it_mortaio": "M", "it_alchimista": "L", "it_autoblinda": "V", "it_autogiro": "G", "it_mas": "T", "fr_sapeur": "S", "fr_poilu": "P", "fr_flamme": "F", "fr_mecano": "E", "fr_char": "C", "fr_biplan": "B", "fr_cuirasse": "U", "uk_sapper": "S", "uk_tommy": "T", "uk_commando": "C", "uk_signal": "R", "uk_landship": "L", "uk_fighter": "F", "uk_dread": "D"};
+const BHK={"depot": "S", "refinery": "R", "barracks": "B", "factory": "F", "airfield": "A", "shipyard": "Y", "bunker": "U", "hq_us": "C", "ration": "V", "extractor": "E", "hall": "H", "lab": "L", "hangar": "G", "icedock": "I", "pillbox": "P", "hq_su": "C", "rune": "P", "refinery_de": "A", "kaserne": "G", "armory": "R", "airbase": "S", "uboat": "U", "academy": "T", "turret": "C", "citadel": "N", "it_magazzino": "S", "it_distilleria": "R", "it_caserma": "B", "it_officina": "F", "it_aeroporto": "A", "it_cantiere": "Y", "it_torretta": "T", "it_palazzo": "C", "fr_entrepot": "S", "fr_raffinerie": "R", "fr_caserne": "B", "fr_arsenal": "F", "fr_aerodrome": "A", "fr_naval": "Y", "fr_maginot": "M", "fr_hq": "C", "uk_depot": "S", "uk_refinery": "R", "uk_barracks": "B", "uk_tankworks": "F", "uk_airfield": "A", "uk_naval": "Y", "uk_battery": "T", "uk_hq": "C"};
+const ABHK={strike:'T',frost:'F',shield:'E',overdrive:'R',flare:'L'};
 const isStay=f=>FAC[f].mode==='stay'||FAC[f].mode==='team';
 const PLAN={
  us:{order:['barracks','refinery','barracks','factory','shipyard','bunker','airfield','factory','barracks'],army:{barracks:['rifle','rifle','rifle','medic','rifle','radio'],factory:['tank'],airfield:['bomber'],shipyard:['destroyer']}},
@@ -479,7 +485,7 @@ function newGame(cfg){
   const fac=t===0?cfg.fac:facs[Math.floor(Math.random()*3)];
   pl.push({id:t,fac,human:t===0,coal:50,ether:0,alive:true,spawn:spots[t],ai:{nextWave:AIP[cfg.diff].first+rnd(-20,20),waveSize:AIP[cfg.diff].size,thinkT:1+t*0.37,alert:null,ord:0}});
  }
- G={time:0,cfg,diff:cfg.diff,pl,sp,lay,sel:[],groups:[[],[],[]],placing:null,ghost:null,pending:null,buildMenu:false,buildPage:0,box:null,
+ G={time:0,cfg,diff:cfg.diff,pl,sp,lay,sel:[],groups:[[],[],[],[],[],[],[],[],[],[]],cams:[null,null,null],placing:null,ghost:null,pending:null,buildMenu:false,buildPage:0,box:null,
   marks:[],parts:[],tracers:[],shells:[],strikes:[],rings:[],flares:[],over:false,paused:false,stats:{made:0,kills:0,lost:0},speed:1,qp:null,autoT:0,warnT:0,warnPos:null,lastTap:{t:0,id:0},endT:0};
  for(const p of pl){
   const s=sp[p.spawn],L=lay[p.spawn],F=FAC[p.fac];
@@ -636,11 +642,11 @@ function isPowered(b){return P(b.team).fac!=='de'||BD[b.kind].nopow||powered(b.t
 const immov=u=>u.sg||u.sgT>0||u.morph>0;
 // 건설하러 가던 일꾼이 다른 명령을 받거나 죽으면 비용 전액 환불
 function cancelSite(u){if(u.state==='site'&&u.site){const d=BD[u.site.kind],p=P(u.team);p.coal+=d.cost[0];p.ether+=d.cost[1];u.site=null;if(p.human)toast(d.n+' 건설 취소 — 비용을 돌려받았어요');}}
-function orderMove(u,x,y,am){if(immov(u))return;cancelSite(u);u.target=0;u.healing=0;u.cast=null;u.state=am?'amove':'move';u.amove=am?[x,y]:null;u.repathT=0;pathTo(u,x,y);}
-function orderAttack(u,t){if(u.morph>0||u.sgT>0)return;cancelSite(u);const d=UD[u.kind];if(!d.dmg||!canHit(d.tg,t)){if(!u.sg)orderMove(u,t.x,t.y);return;}u.state='attack';u.target=t.id;u.amove=null;u.cast=null;u.path=null;u.repathT=0;}
-function orderGather(u,r){if(!r)return;cancelSite(u);u.state='gather';u.res=r.id;u.phase=u.carry?'back':'to';u.path=null;u.repathT=0;u.target=0;}
-function orderStop(u){if(u.morph>0)return;cancelSite(u);u.state='idle';u.path=null;u.target=0;u.amove=null;u.cast=null;}
-function resume(u){u.target=0;if(u.amove){u.state='amove';pathTo(u,u.amove[0],u.amove[1]);}else{u.state='idle';u.path=null;}}
+function orderMove(u,x,y,am,keep){if(immov(u))return;cancelSite(u);u.hold=false;if(!keep){u.patrol=null;u.wq=null;}u.target=0;u.healing=0;u.cast=null;u.state=am?'amove':'move';u.amove=am?[x,y]:null;u.repathT=0;pathTo(u,x,y);}
+function orderAttack(u,t){if(u.morph>0||u.sgT>0)return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;const d=UD[u.kind];if(!d.dmg||!canHit(d.tg,t)){if(!u.sg)orderMove(u,t.x,t.y);return;}u.state='attack';u.target=t.id;u.amove=null;u.cast=null;u.path=null;u.repathT=0;}
+function orderGather(u,r){if(!r)return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='gather';u.res=r.id;u.phase=u.carry?'back':'to';u.path=null;u.repathT=0;u.target=0;}
+function orderStop(u){if(u.morph>0)return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='idle';u.path=null;u.target=0;u.amove=null;u.cast=null;}
+function resume(u){u.target=0;if(u.hold){u.state='idle';u.path=null;return;}if(u.amove){u.state='amove';pathTo(u,u.amove[0],u.amove[1]);}else{u.state='idle';u.path=null;}}
 function orderSite(u,kind,tx,ty){
  const d=BD[kind];
  u.state='site';u.site={type:'site',kind,tx,ty,w:d.w,h:d.h,x:(tx+d.w/2)*T,y:(ty+d.h/2)*T};u.path=null;u.repathT=0;u.target=0;
@@ -665,7 +671,7 @@ function updUnit(u,dt){
  if(d.heal&&u.state!=='move'&&medicTick(u,dt))return;
  switch(u.state){
   case 'idle':idleTick(u,dt);break;
-  case 'move':if(followPath(u,dt))u.state='idle';break;
+  case 'move':if(followPath(u,dt)){u.state='idle';nextWay(u);}break;
   case 'amove':amoveTick(u,dt);break;
   case 'attack':attackTick(u,dt);break;
   case 'gather':gatherTick(u,dt);break;
@@ -680,13 +686,17 @@ function acqRange(u){const d=UD[u.kind];return u.sg?d.sg.rng:Math.max(d.rng,d.la
 function idleTick(u,dt){
  const d=UD[u.kind];if(d.worker||!d.dmg)return;
  u.scanT-=dt;if(u.scanT>0)return;u.scanT=0.3;
- const t=u.sg?findTarget(u,d.sg.rng,d.sg.min):findTarget(u,acqRange(u),d.minr||0);
+ const t=u.sg?findTarget(u,d.sg.rng,d.sg.min):findTarget(u,u.hold?d.rng+u.r:acqRange(u),d.minr||0);
  if(t){u.target=t.id;u.state='attack';u.amove=null;}
 }
 function amoveTick(u,dt){
  const d=UD[u.kind];
  if(d.dmg){u.scanT-=dt;if(u.scanT<=0){u.scanT=0.25;const t=findTarget(u,d.worker?120:acqRange(u),d.minr||0);if(t){u.target=t.id;u.state='attack';u.path=null;return;}}}
- if(followPath(u,dt)){u.state='idle';u.amove=null;}
+ if(followPath(u,dt)){u.state='idle';u.amove=null;nextWay(u);}
+}
+function nextWay(u){
+ if(u.wq&&u.wq.length){const w=u.wq.shift(),q=u.wq;orderMove(u,w[0],w[1],w[2],true);u.wq=q;return;}
+ if(u.patrol){const p=u.patrol;orderMove(u,p.a[0],p.a[1],true,true);u.patrol={a:p.b,b:p.a};}
 }
 function attackTick(u,dt){
  const d=UD[u.kind],t=byId.get(u.target);
@@ -695,7 +705,7 @@ function attackTick(u,dt){
  if(u.sg&&gap<d.sg.min){resume(u);return;}
  if(d.minr&&gap<d.minr){resume(u);return;}
  if(gap<=rng){u.path=null;const ta=Math.atan2(t.y-u.y,t.x-u.x);u.face=d.layer?turn(u.face,ta,6*dt):ta;if(u.cd<=0)fire(u,t);if(d.layer==='a'&&gap<rng*0.5&&u.kind!=='balloon')stepDirect(u,u.x+Math.cos(u.face)*30,u.y+Math.sin(u.face)*30,dt*0.4);return;}
- if(u.sg){resume(u);return;}
+ if(u.sg||u.hold){u.target=0;u.state='idle';u.path=null;return;}
  u.repathT-=dt;if(u.repathT<=0||!u.path){u.repathT=layerOf(u)==='a'?0.2:0.6;const p=approachPoint(t,u);pathTo(u,p[0],p[1]);}
  followPath(u,dt);
 }
@@ -850,6 +860,7 @@ function damage(t,amt,src){
  retaliate(t,src);
 }
 function retaliate(t,src){
+ if(t.hold)return;
  if(t.type==='unit'&&src&&!src.dead&&enemy(src.team,t.team)&&t.state==='idle'&&UD[t.kind].dmg&&!t.sg&&!t.morph&&canHit(UD[t.kind].tg,src)){t.target=src.id;t.state='attack';}
 }
 function kill(e,src){
@@ -1614,20 +1625,22 @@ const ownUnits=()=>selEnts().filter(e=>e.type==='unit'&&e.team===0);
 const ownBlds=()=>selEnts().filter(e=>e.type==='bld'&&e.team===0);
 function setSel(arr){G.sel=arr.map(e=>e.id);G.buildMenu=false;G.buildPage=0;G.pending=null;hudDirty=true;}
 function mark(x,y,col){G.marks.push({x,y,t:0,col});}
-function commandAt(wx,wy,am){
+function commandAt(wx,wy,am,auto){
+ const mv=am||!!auto;
  const us=ownUnits(),hit=pick(wx,wy);
  if(us.length){buzz(8);play('cmd');
   const workers=us.filter(u=>UD[u.kind].worker);
-  if(hit&&enemy(0,hit.team)){let any=false;for(const u of us){if(UD[u.kind].dmg&&canHit(UD[u.kind].tg,hit)){orderAttack(u,hit);any=true;}else orderMove(u,hit.x,hit.y,true);}if(!any)toast('선택한 유닛은 그 대상을 공격할 수 없어요');mark(hit.x,hit.y,'#ff5a4a');return;}
+  if(hit&&enemy(0,hit.team)){let any=false;for(const u of us){if(UD[u.kind].dmg&&canHit(UD[u.kind].tg,hit)){orderAttack(u,hit);any=true;}else orderMove(u,hit.x,hit.y,mv);}if(!any)toast('선택한 유닛은 그 대상을 공격할 수 없어요');mark(hit.x,hit.y,'#ff5a4a');return;}
   if(hit&&hit.type==='res'&&!am&&workers.length){
    for(const u of workers)orderGather(u,hit);
-   moveGroup(us.filter(u=>!UD[u.kind].worker),wx,wy,true);mark(hit.x,hit.y,'#ffe070');return;}
+   moveGroup(us.filter(u=>!UD[u.kind].worker),wx,wy,mv);mark(hit.x,hit.y,'#ffe070');return;}
   if(hit&&hit.type==='bld'&&hit.team===0&&workers.length&&!am){
    if(!hit.built&&isStay(P(0).fac)){const ws2=P(0).fac==='fr'?workers:[workers[0]];for(const w of ws2){cancelSite(w);w.state='build';w.target=hit.id;w.path=null;w.repathT=0;}const ob=byId.get(hit.builder);if(!ob||ob.dead||ob.state!=='build'||P(0).fac!=='fr')hit.builder=ws2[0].id;mark(hit.x,hit.y,'#ffe070');return;}
    if(BD[hit.kind].geyser&&hit.built){for(const u of workers)orderGather(u,hit);mark(hit.x,hit.y,'#5ff0ff');return;}
    if(BD[hit.kind].drop){for(const u of workers){if(u.carry){u.state='gather';u.phase='back';u.drop=hit.id;u.path=null;u.repathT=0;}else orderMove(u,wx,wy);}mark(hit.x,hit.y,'#6cff6c');return;}
   }
-  moveGroup(us,wx,wy,true);mark(wx,wy,'#6cff6c');return;
+  if(G.shiftQ){for(const u of us){if((u.state==='move'||u.state==='amove')&&u.path){(u.wq=u.wq||[]).push([wx,wy,mv]);}else orderMove(u,wx,wy,mv);}mark(wx,wy,'#6cff6c');return;}
+  moveGroup(us,wx,wy,mv);mark(wx,wy,mv&&am?'#ff5a4a':'#6cff6c');return;
  }
  const bs=ownBlds().filter(b=>BD[b.kind].train);
  if(bs.length){for(const b of bs)b.rally=hit&&hit.type==='res'?{res:hit.id}:{x:wx,y:wy};mark(wx,wy,'#6cff6c');}
@@ -1678,6 +1691,7 @@ function handleTap(sx,sy){
   const p=G.pending;G.pending=null;hudDirty=true;
   if(p.t==='amove'){commandAt(wx,wy,true);return;}
   if(p.t==='move'){commandAt(wx,wy,false);return;}
+  if(p.t==='patrol'){const us=ownUnits();for(const u of us){const ax=u.x,ay=u.y;orderMove(u,wx,wy,true);u.patrol={a:[ax,ay],b:[wx,wy]};}play('cmd');mark(wx,wy,'#ffe070');return;}
   if(p.t==='gather'){const h=pick(wx,wy);const tgt=h&&((h.type==='res'&&!h.hidden)||(h.type==='bld'&&h.team===0&&BD[h.kind].geyser&&h.built))?h:null;for(const u of ownUnits())if(UD[u.kind].worker){const c=tgt||nearestCoal(u.x,u.y);if(c)orderGather(u,c);}mark(wx,wy,'#ffe070');return;}
   if(p.t==='rally'){commandAt(wx,wy,false);return;}
   if(p.t==='ability'){const cs=ownUnits().filter(u=>UD[u.kind].abil===p.ab&&u.abCd<=0);if(!cs.length){toast('준비된 유닛이 없어요');return;}const c=cs.sort((a,b)=>dist(a.x,a.y,wx,wy)-dist(b.x,b.y,wx,wy))[0];c.state='cast';c.cast={ab:p.ab,x:wx,y:wy};c.path=null;c.repathT=0;mark(wx,wy,'#bff4ff');return;}
@@ -1695,16 +1709,16 @@ function handleTap(sx,sy){
   }else setSel([hit]);
   play('select');G.lastTap={t:now,id:hit.id};return;
  }
- if(hit&&enemy(0,hit.team)){if(us.length)commandAt(wx,wy,false);else setSel([hit]);return;}
- if(hit&&hit.type==='res'){if(us.length||ownBlds().length)commandAt(wx,wy,false);else setSel([hit]);return;}
+ if(hit&&enemy(0,hit.team)){if(us.length)commandAt(wx,wy,false,true);else setSel([hit]);return;}
+ if(hit&&hit.type==='res'){if(us.length||ownBlds().length)commandAt(wx,wy,false,true);else setSel([hit]);return;}
  // 빈 땅 탭: 선택한 유닛 이동 (이동 중 적을 만나면 자동 교전) / 건물이면 집결지
- if(us.length||ownBlds().length)commandAt(wx,wy,false);
+ if(us.length||ownBlds().length)commandAt(wx,wy,false,true);
 }
-function boxSelect(b){
+function boxSelect(b,add){
  const a=s2w(Math.min(b.x0,b.x1),Math.min(b.y0,b.y1)),c=s2w(Math.max(b.x0,b.x1),Math.max(b.y0,b.y1));
  let us=ents.filter(e=>!e.dead&&e.type==='unit'&&e.team===0&&e.x>=a[0]-e.r&&e.x<=c[0]+e.r&&e.y>=a[1]-e.r&&e.y<=c[1]+e.r);
  const army=us.filter(u=>!UD[u.kind].worker);if(army.length)us=army;
- if(us.length){setSel(us);play('select');return;}
+ if(us.length){if(add){const ids=new Set(G.sel);us=selEnts().filter(e=>e.type==='unit'&&e.team===0).concat(us.filter(u=>!ids.has(u.id)));}setSel(us);play('select');return;}
  const bl=ents.find(e=>!e.dead&&e.type==='bld'&&e.team===0&&e.x>=a[0]&&e.x<=c[0]&&e.y>=a[1]&&e.y<=c[1]);
  if(bl)setSel([bl]);
 }
@@ -1713,12 +1727,14 @@ cvs.addEventListener('contextmenu',e=>e.preventDefault());
 cvs.addEventListener('pointerdown',e=>{
  sfxInit();
  if(!G||G.over)return;e.preventDefault();try{cvs.setPointerCapture(e.pointerId);}catch(_){}
+ if(e.pointerType==='mouse'&&!PC)setPC(true);
  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(e.pointerType==='mouse'&&e.button===2){
-  if(G.placing||G.pending){G.placing=null;G.pending=null;G.ghost=null;hudDirty=true;ptrs.delete(e.pointerId);return;}
-  const w=s2w(e.clientX,e.clientY);commandAt(w[0],w[1],false);ptrs.delete(e.pointerId);return;}
+  ptrs.delete(e.pointerId);
+  if(G.placing||G.pending){G.placing=null;G.pending=null;G.ghost=null;hudDirty=true;return;}
+  const w=s2w(e.clientX,e.clientY);G.shiftQ=e.shiftKey;commandAt(w[0],w[1],false,false);G.shiftQ=false;return;}
  if(e.pointerType==='mouse'&&e.button===1){gest={mode:'mpan',x:e.clientX,y:e.clientY};return;}
- if(ptrs.size===1){gest={mode:'tap',sx:e.clientX,sy:e.clientY};const g0=gest;clearTimeout(lpTimer);lpTimer=setTimeout(()=>{if(gest!==g0||g0.mode!=='tap'||G.placing||G.pending)return;const w=s2w(g0.sx,g0.sy),h=pick(w[0],w[1]);if(h&&h.team===0&&h.type==='unit'){const vx1=cam.x+VW/cam.z,vy1=cam.y+VH/cam.z;setSel(ents.filter(x=>!x.dead&&x.type==='unit'&&x.team===0&&x.kind===h.kind&&x.x>cam.x&&x.x<vx1&&x.y>cam.y&&x.y<vy1));g0.mode='dead';buzz(25);toast(`${short(UD[h.kind].n)} ${G.sel.length}기 선택`);}},450);if(G.placing||(G.pending&&G.pending.t==='reloc')){const w=s2w(e.clientX,e.clientY);ghostFor(w[0],w[1]);}}
+ if(ptrs.size===1){gest={mode:'tap',sx:e.clientX,sy:e.clientY,mouse:e.pointerType==='mouse',shift:e.shiftKey,ctrl:e.ctrlKey||e.metaKey};const g0=gest;clearTimeout(lpTimer);if(g0.mouse){if(G.placing||(G.pending&&G.pending.t==='reloc')){const w=s2w(e.clientX,e.clientY);ghostFor(w[0],w[1]);}return;}lpTimer=setTimeout(()=>{if(gest!==g0||g0.mode!=='tap'||G.placing||G.pending)return;const w=s2w(g0.sx,g0.sy),h=pick(w[0],w[1]);if(h&&h.team===0&&h.type==='unit'){const vx1=cam.x+VW/cam.z,vy1=cam.y+VH/cam.z;setSel(ents.filter(x=>!x.dead&&x.type==='unit'&&x.team===0&&x.kind===h.kind&&x.x>cam.x&&x.x<vx1&&x.y>cam.y&&x.y<vy1));g0.mode='dead';buzz(25);toast(`${short(UD[h.kind].n)} ${G.sel.length}기 선택`);}},450);if(G.placing||(G.pending&&G.pending.t==='reloc')){const w=s2w(e.clientX,e.clientY);ghostFor(w[0],w[1]);}}
  else if(ptrs.size===2){const p=[...ptrs.values()];gest={mode:'pan',mx:(p[0].x+p[1].x)/2,my:(p[0].y+p[1].y)/2,d:dist(p[0].x,p[0].y,p[1].x,p[1].y)};G.box=null;}
 });
 cvs.addEventListener('pointermove',e=>{
@@ -1737,9 +1753,9 @@ function ptrEnd(e,cancel){
  if(!G||!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);
  if(!gest)return;
  if(!cancel){
-  if(gest.mode==='tap')handleTap(e.clientX,e.clientY);
+  if(gest.mode==='tap'){if(gest.mouse&&!G.placing&&!G.pending)mouseSelect(e.clientX,e.clientY,gest.shift,gest.ctrl);else handleTap(e.clientX,e.clientY);}
   else if(gest.mode==='ghost'){if(G.placing)tryPlace();else if(G.pending&&G.pending.t==='reloc')handleTap(e.clientX,e.clientY);}
-  else if(gest.mode==='box'&&G.box)boxSelect(G.box);
+  else if(gest.mode==='box'&&G.box)boxSelect(G.box,gest.shift);
  }
  G.box=null;
  if(gest.mode==='pan'){gest=ptrs.size===0?null:{mode:'dead'};}else if(ptrs.size===0)gest=null;
@@ -1748,10 +1764,7 @@ cvs.addEventListener('pointerup',e=>ptrEnd(e,false));
 cvs.addEventListener('pointercancel',e=>ptrEnd(e,true));
 cvs.addEventListener('wheel',e=>{if(!G)return;e.preventDefault();zoomAt(e.clientX,e.clientY,cam.z*(e.deltaY<0?1.1:0.9));},{passive:false});
 const keys={};
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(!G)return;
- if(e.key==='Escape'){G.placing=null;G.pending=null;G.buildMenu=false;G.ghost=null;hudDirty=true;}
- if(e.key==='s')ownUnits().forEach(orderStop);
-});
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 // ---- 화면 이동 조이스틱
 const joyEl=$('joy'),joyKnob=joyEl.querySelector('i');const joy={id:null,x:0,y:0};
@@ -1762,8 +1775,66 @@ joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)joySet(e);});
 joyEl.addEventListener('pointerup',e=>{if(e.pointerId===joy.id)joyEnd();});
 joyEl.addEventListener('pointercancel',e=>{if(e.pointerId===joy.id)joyEnd();});
 function joyPan(dt){if(!joy.x&&!joy.y)return;const m=Math.hypot(joy.x,joy.y),k=(m<0.15?0:Math.pow(m,1.5))*950*dt/cam.z/m;cam.x+=joy.x*k;cam.y+=joy.y*k;clampCam();}
-function keysPan(dt){joyPan(dt);const s=700*dt/cam.z;if(keys['arrowleft'])cam.x-=s;if(keys['arrowright'])cam.x+=s;if(keys['arrowup']||keys['w'])cam.y-=s;if(keys['arrowdown'])cam.y+=s;clampCam();}
+function keysPan(dt){joyPan(dt);edgePan(dt);const s=900*dt/cam.z;if(keys['arrowleft'])cam.x-=s;if(keys['arrowright'])cam.x+=s;if(keys['arrowup'])cam.y-=s;if(keys['arrowdown'])cam.y+=s;clampCam();}
 
+
+// ======================== PC 조작 (스타크래프트 방식) ========================
+let PC=false;
+function setPC(on){PC=on;document.body.classList.toggle('pc',on);try{hudDirty=true;}catch(_){}}
+if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!('ontouchstart' in window))setPC(true);
+addEventListener('touchstart',()=>{if(PC)setPC(false);},{passive:true});
+const mouse={x:-1,y:-1,in:false};
+addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;mouse.in=true;if(G&&(G.placing||(G.pending&&G.pending.t==='reloc'))&&!ptrs.size){const w=s2w(e.clientX,e.clientY);ghostFor(w[0],w[1]);}});
+document.addEventListener('mouseleave',()=>{mouse.in=false;});
+addEventListener('blur',()=>{mouse.in=false;for(const k in keys)keys[k]=false;});
+function edgePan(dt){
+ if(!PC||!mouse.in||!G||G.paused||ptrs.size)return;const m=6,s=1000*dt/cam.z;let moved=false;
+ if(mouse.x<=m){cam.x-=s;moved=true;}else if(mouse.x>=VW-1-m){cam.x+=s;moved=true;}
+ if(mouse.y<=m){cam.y-=s;moved=true;}else if(mouse.y>=VH-1-m){cam.y+=s;moved=true;}
+ if(moved)clampCam();
+}
+function mouseSelect(sx,sy,shift,ctrl){
+ const [wx,wy]=s2w(sx,sy),hit=pick(wx,wy),now=performance.now();
+ if(!hit){if(!shift)setSel([]);return;}
+ if(hit.team===0&&hit.type==='unit'&&(ctrl||(G.lastTap.id===hit.id&&now-G.lastTap.t<350))){
+  const vx1=cam.x+VW/cam.z,vy1=cam.y+VH/cam.z;let list=ents.filter(e=>!e.dead&&e.type==='unit'&&e.team===0&&e.kind===hit.kind&&e.x>cam.x&&e.x<vx1&&e.y>cam.y&&e.y<vy1);
+  if(shift){const ids=new Set(G.sel);list=selEnts().concat(list.filter(e=>!ids.has(e.id)));}
+  setSel(list);
+ }else if(shift&&hit.team===0&&hit.type==='unit'){
+  const cur=selEnts().filter(e=>e.type==='unit'&&e.team===0);
+  setSel(cur.some(e=>e.id===hit.id)?cur.filter(e=>e.id!==hit.id):cur.concat([hit]));
+ }else setSel([hit]);
+ play('select');G.lastTap={t:now,id:hit.id};
+}
+function selectGroup(i,add){
+ const list=G.groups[i].map(id=>byId.get(id)).filter(e=>e&&!e.dead);if(!list.length)return;
+ const now=performance.now();
+ if(G._lastGrp===i&&now-G._lastGrpT<400){const cx=list.reduce((s,e)=>s+e.x,0)/list.length,cy=list.reduce((s,e)=>s+e.y,0)/list.length;centerOn(cx,cy);}
+ G._lastGrp=i;G._lastGrpT=now;
+ if(add){const ids=new Set(G.sel);setSel(selEnts().concat(list.filter(e=>!ids.has(e.id))));}else setSel(list);
+ play('select');
+}
+addEventListener('keydown',e=>{
+ if(!G||G.over)return;
+ if(e.target&&e.target.tagName==='INPUT')return;
+ const k=e.key,K=k.length===1?k.toUpperCase():k;
+ // 숫자: 부대
+ if(/^Digit[0-9]$/.test(e.code)){const i=+e.code.slice(5);
+  if(e.ctrlKey||e.metaKey){e.preventDefault();G.groups[i]=selEnts().filter(x=>x.team===0).map(x=>x.id);toast(`${i}번 부대 지정 (${G.groups[i].length})`);return;}
+  if(e.shiftKey){e.preventDefault();const ids=new Set(G.groups[i]);for(const x of selEnts())if(x.team===0)ids.add(x.id);G.groups[i]=[...ids];toast(`${i}번 부대에 추가 (${G.groups[i].length})`);return;}
+  selectGroup(i,false);return;}
+ if(k==='F10'){e.preventDefault();G.paused=true;$('pause').classList.remove('hidden');return;}
+ if(/^F[2-4]$/.test(k)){e.preventDefault();const i=+k[1]-2;if(e.shiftKey){G.cams[i]={x:cam.x,y:cam.y};toast(`화면 위치 ${k} 저장`);}else if(G.cams[i]){cam.x=G.cams[i].x;cam.y=G.cams[i].y;clampCam();}return;}
+ if(k===' '){e.preventDefault();if(G.warnPos)centerOn(G.warnPos[0],G.warnPos[1]);return;}
+ if(k==='Backspace'){e.preventDefault();const hs=ents.filter(x=>!x.dead&&x.team===0&&x.type==='bld'&&BD[x.kind].drop);if(hs.length){G._hqi=((G._hqi||0)+1)%hs.length;const h=hs[G._hqi];centerOn(h.x,h.y);setSel([h]);}return;}
+ if(k==='Escape'){G.placing=null;G.pending=null;G.buildMenu=false;G.buildPage=0;G.ghost=null;hudDirty=true;return;}
+ if(k==='Tab'){e.preventDefault();return;}
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ // 건설 메뉴: 모든 건물 단축키 (페이지와 상관없이)
+ if(G.buildMenu&&G._buildAll){const it=G._buildAll.find(b=>b.k===K);if(it){it.f();hudDirty=true;return;}}
+ const list=cmdList().filter(Boolean);const b=list.find(b=>b.k===K);
+ if(b){e.preventDefault();if(!b.dis||b.l==='건설'||b.l==='뒤로')b.f();else b.f();hudDirty=true;renderHud();}
+});
 // ======================== HUD ========================
 let hudDirty=true,hudKey='';
 function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.opacity=0,1700);}
@@ -1771,36 +1842,38 @@ function costTxt(c){return c[1]?`${c[0]}·<span style="color:#7ff6ff">${c[1]}</s
 const short=n=>n.replace('GI ','').replace('에테르 ','').replace('증기 ','');
 function cmdList(){
  const s=selEnts(),tm=P(0),F=FAC[tm.fac];
- if(G.placing||G.pending)return [{l:'취소',f:()=>{G.placing=null;G.pending=null;G.ghost=null;}}];
+ if(G.placing||G.pending)return [{k:'Escape',l:'취소',f:()=>{G.placing=null;G.pending=null;G.ghost=null;}}];
  if(!s.length||s[0].team!==0)return [];
  const e=s[0];
  if(e.type==='bld'){
   const d=BD[e.kind];
   if(!e.built)return [{l:'건설 취소',s:'전액 환불',f:()=>{tm.coal+=d.cost[0];tm.ether+=d.cost[1];e.silent=true;e.dead=true;setOcc(e,0);if(e.geyser){const g=byId.get(e.geyser);if(g){g.hidden=false;setOcc(g,g.id);}}toast(d.n+' 건설 취소 — 비용을 돌려받았어요');}}];
   const out=[];
-  for(const k of d.train||[]){const u=UD[k];out.push({l:short(u.n),s:costTxt(u.cost),dis:tm.coal<u.cost[0]||tm.ether<u.cost[1]||!!e.moving,f:()=>{for(const b of ownBlds())if(b.kind===e.kind)if(tryTrain(b,k,b!==e))break;}});}
+  for(const k of d.train||[]){const u=UD[k];out.push({k:UHK[k],l:short(u.n),s:costTxt(u.cost),dis:tm.coal<u.cost[0]||tm.ether<u.cost[1]||!!e.moving,f:()=>{for(const b of ownBlds())if(b.kind===e.kind)if(tryTrain(b,k,b!==e))break;}});}
   while(out.length%3)out.push(null);
-  if(d.train)out.push({l:'집결지',f:()=>{G.pending={t:'rally'};}});
-  if(d.move)out.push({l:e.moving?'이동 중…':'건물 이동',dis:!!e.moving,f:()=>{if(!e.moving&&s.length===1)G.pending={t:'reloc',id:e.id};}});
+  if(d.train)out.push({k:'Y',l:'집결지',f:()=>{G.pending={t:'rally'};}});
+  if(d.move)out.push({k:'L',l:e.moving?'이동 중…':'건물 이동',dis:!!e.moving,f:()=>{if(!e.moving&&s.length===1)G.pending={t:'reloc',id:e.id};}});
   return out;
  }
  const us=s.filter(u=>u.type==='unit'),workers=us.filter(u=>UD[u.kind].worker);
  if(G.buildMenu&&workers.length){
-  const all=F.build.map(k=>{const d=BD[k],ok=reqMet(0,k);return {l:short(d.n),s:ok?costTxt(d.cost):BD[d.req].n+' 필요',dis:!ok||tm.coal<d.cost[0]||tm.ether<d.cost[1],f:()=>{if(!ok){toast('먼저 '+BD[d.req].n+'을(를) 지으세요');return;}if(tm.coal<d.cost[0]||tm.ether<d.cost[1]){toast('자원이 부족해요');return;}startPlacing(k);}};});
+  const all=F.build.map(k=>{const d=BD[k],ok=reqMet(0,k);return {k:BHK[k],l:short(d.n),s:ok?costTxt(d.cost):BD[d.req].n+' 필요',dis:!ok||tm.coal<d.cost[0]||tm.ether<d.cost[1],f:()=>{if(!ok){toast('먼저 '+BD[d.req].n+'을(를) 지으세요');return;}if(tm.coal<d.cost[0]||tm.ether<d.cost[1]){toast('자원이 부족해요');return;}startPlacing(k);}};});
   let out;
   if(all.length<=8){out=all.slice();while(out.length<8)out.push(null);}
-  else{const pg=G.buildPage||0;out=pg===0?all.slice(0,7):all.slice(7);while(out.length<7)out.push(null);out.push({l:pg===0?'더보기 ▶':'◀ 앞으로',f:()=>{G.buildPage=pg?0:1;}});}
-  out.push({l:'뒤로',f:()=>{G.buildMenu=false;G.buildPage=0;}});return out;
+  else{G._buildAll=all;const pg=G.buildPage||0;out=pg===0?all.slice(0,7):all.slice(7);while(out.length<7)out.push(null);out.push({l:pg===0?'더보기 ▶':'◀ 앞으로',f:()=>{G.buildPage=pg?0:1;}});}
+  out.push({k:'Escape',l:'뒤로',f:()=>{G.buildMenu=false;G.buildPage=0;}});return out;
  }
- const out=[{l:'정지',f:()=>ownUnits().forEach(orderStop)}];
- if(workers.length){out.push({l:'채집',f:()=>{G.pending={t:'gather'};}});out.push({l:'건설',f:()=>{G.buildMenu=true;G.buildPage=0;}});}
+ const out=[{k:'S',l:'정지',f:()=>ownUnits().forEach(orderStop)}];
+ if(PC)out.unshift({k:'M',l:'이동',f:()=>{G.pending={t:'move'};}},{k:'A',l:'공격',f:()=>{G.pending={t:'amove'};}});
+ if(PC)out.push({k:'H',l:'위치 사수',f:()=>{for(const u of ownUnits()){orderStop(u);u.hold=true;}}},{k:'P',l:'정찰',f:()=>{G.pending={t:'patrol'};}});
+ if(workers.length){out.push({k:'G',l:'채집',f:()=>{G.pending={t:'gather'};}});out.push({k:'B',l:'건설',f:()=>{G.buildMenu=true;G.buildPage=0;}});}
  const tanks=us.filter(u=>u.kind==='tank');
- if(tanks.length){const want=tanks.some(t=>!(t.sg||t.sgWant));out.push({l:want?'포격 모드':'이동 모드',f:()=>{for(const t of ownUnits())if(t.kind==='tank'&&t.sgT<=0&&(t.sg?1:0)===(want?0:1)){t.sgWant=want?1:0;t.sgT=1.6;play('clank',t.x,t.y);t.state='idle';t.path=null;t.target=0;t.amove=null;}}});}
+ if(tanks.length){const want=tanks.some(t=>!(t.sg||t.sgWant));out.push({k:'O',l:want?'포격 모드':'이동 모드',f:()=>{for(const t of ownUnits())if(t.kind==='tank'&&t.sgT<=0&&(t.sg?1:0)===(want?0:1)){t.sgWant=want?1:0;t.sgT=1.6;play('clank',t.x,t.y);t.state='idle';t.path=null;t.target=0;t.amove=null;}}});}
  const abs=[...new Set(us.map(u=>UD[u.kind].abil).filter(Boolean))];
  for(const ab of abs){const cs=us.filter(u=>UD[u.kind].abil===ab),rd=cs.filter(u=>u.abCd<=0),cdMin=Math.ceil(Math.min(...cs.map(u=>Math.max(0,u.abCd))));
-  out.push({l:AB[ab].n,s:rd.length?'준비됨':cdMin+'초',dis:!rd.length,f:()=>{if(!rd.length){toast('재사용 대기 중');return;}if(ab==='shield'||ab==='overdrive'){for(const u of rd)doCast(u,ab,u.x,u.y);}else G.pending={t:'ability',ab};}});}
+  out.push({k:ABHK[ab],l:AB[ab].n,s:rd.length?'준비됨':cdMin+'초',dis:!rd.length,f:()=>{if(!rd.length){toast('재사용 대기 중');return;}if(ab==='shield'||ab==='overdrive'){for(const u of rd)doCast(u,ab,u.x,u.y);}else G.pending={t:'ability',ab};}});}
  const cons=us.filter(u=>u.kind==='conscript'&&!u.morph);
- if(cons.length&&tm.fac==='su'){const lab=reqMet(0,'lab')&&ents.some(e=>e.team===0&&e.kind==='lab'&&e.built&&!e.dead);out.push({l:'변이',s:lab?costTxt(UD.shock.cost):'실험실 필요',dis:!lab||tm.coal<50||tm.ether<50,f:()=>{if(!lab){toast('변이 실험실이 필요해요');return;}let n=0;for(const u of ownUnits())if(u.kind==='conscript'&&!u.morph){const sp=supplyOf(0);if(tm.coal<50||tm.ether<50){toast('자원이 부족해요');break;}if(sp.used+1.5>sp.cap){toast('보급이 부족해요');break;}tm.coal-=50;tm.ether-=50;u.morph=UD.shock.t;u.state='idle';u.path=null;n++;play('morph',u.x,u.y);}}});}
+ if(cons.length&&tm.fac==='su'){const lab=reqMet(0,'lab')&&ents.some(e=>e.team===0&&e.kind==='lab'&&e.built&&!e.dead);out.push({k:'U',l:'변이',s:lab?costTxt(UD.shock.cost):'실험실 필요',dis:!lab||tm.coal<50||tm.ether<50,f:()=>{if(!lab){toast('변이 실험실이 필요해요');return;}let n=0;for(const u of ownUnits())if(u.kind==='conscript'&&!u.morph){const sp=supplyOf(0);if(tm.coal<50||tm.ether<50){toast('자원이 부족해요');break;}if(sp.used+1.5>sp.cap){toast('보급이 부족해요');break;}tm.coal-=50;tm.ether-=50;u.morph=UD.shock.t;u.state='idle';u.path=null;n++;play('morph',u.x,u.y);}}});}
  return out.slice(0,9);
 }
 const STATE_TXT={idle:'대기',move:'이동 중',amove:'이동 중',attack:'교전 중',gather:'채집 중',build:'건설 중',site:'건설하러 가는 중',cast:'스킬 시전 이동 중'};
@@ -1837,7 +1910,7 @@ function renderHud(){
   const cmd=$('cmd');cmd.innerHTML='';
   for(let i=0;i<9;i++){const b=list[i],el=document.createElement('div');
    if(!b){el.className='btn empty';cmd.appendChild(el);continue;}
-   el.className='btn'+(b.dis?' dis':'');el.innerHTML=`<span>${b.l}</span>${b.s?`<span class="s">${b.s}</span>`:''}`;
+   el.className='btn'+(b.dis?' dis':'');el.innerHTML=`<span>${b.l}</span>${b.s?`<span class="s">${b.s}</span>`:''}${PC&&b.k&&b.k.length===1?`<i class="hk">${b.k}</i>`:''}`;el.style.position='relative';
    el.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();b.f();hudDirty=true;renderHud();});
    cmd.appendChild(el);}
  }
@@ -1897,7 +1970,8 @@ function renderMini(){
 }
 let miniDrag=false;
 function miniMove(e){const r=mini.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;centerOn(x,y);}
-mini.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();miniDrag=true;try{mini.setPointerCapture(e.pointerId);}catch(_){}miniMove(e);});
+mini.addEventListener('contextmenu',e=>e.preventDefault());
+mini.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(e.button===2){const r=mini.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;G.shiftQ=e.shiftKey;commandAt(x,y,false,false);G.shiftQ=false;return;}if(G&&G.pending&&e.button===0){const r=mini.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;const p=G.pending;G.pending=null;hudDirty=true;if(p.t==='amove')commandAt(x,y,true);else if(p.t==='move')commandAt(x,y,false);return;}miniDrag=true;try{mini.setPointerCapture(e.pointerId);}catch(_){}miniMove(e);});
 mini.addEventListener('pointermove',e=>{if(miniDrag)miniMove(e);});
 mini.addEventListener('pointerup',()=>miniDrag=false);mini.addEventListener('pointercancel',()=>miniDrag=false);
 // ======================== 효과음 (Web Audio 합성) ========================
