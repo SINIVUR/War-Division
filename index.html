@@ -29,7 +29,7 @@ canvas#game{position:fixed;left:0;top:0;display:block}
 #pauseBtn{background:none;border:1px solid #8a6d3a;color:#eadfc4;border-radius:4px;width:30px;height:20px;font-size:11px}
 #bottom{position:fixed;left:0;right:0;bottom:0;height:104px;display:flex;gap:6px;align-items:center;padding:5px max(6px,env(safe-area-inset-right)) 5px max(6px,env(safe-area-inset-left));border-width:1px 0 0;z-index:5}
 #mini{width:92px;height:92px;border:1px solid #8a6d3a;background:#000;flex:none;touch-action:none}
-#info{flex:1;min-width:0;height:92px;position:relative;padding:6px 9px;font-size:12px;overflow:hidden;background:rgba(0,0,0,.28);border:1px solid #3d3120;border-radius:4px}
+#info{flex:0 1 300px;min-width:0;height:92px;position:relative;padding:6px 9px;font-size:12px;overflow:hidden;background:rgba(0,0,0,.28);border:1px solid #3d3120;border-radius:4px}
 #info .nm{font-weight:800;font-size:13px;color:#f3e2b5}
 #info .ds{font-size:10.5px;color:#a8987a;margin-left:6px;font-weight:400}
 #info .hp{height:6px;background:#000;border:1px solid #444;margin:5px 0 2px;width:70%;max-width:220px;position:relative}
@@ -42,7 +42,7 @@ canvas#game{position:fixed;left:0;top:0;display:block}
 #info .chip b{position:absolute;left:0;bottom:0;height:2px;background:#5ff0ff}
 #info .grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 #desel{position:absolute;right:4px;top:3px;width:24px;height:22px;border:1px solid #6b5530;background:#2c2416;color:#eadfc4;border-radius:4px;font-size:12px}
-#cmd{flex:none;display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,28px);gap:3px}
+#cmd{flex:none;margin-left:auto;display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,28px);gap:3px}
 .btn{background:linear-gradient(#4a3d26,#2a2215);border:1px solid #8a6d3a;border-radius:4px;color:#f1e3c0;font-size:10.5px;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1px;white-space:nowrap;overflow:hidden;font-weight:600}
 .btn .s{font-size:9px;color:#d9b45a;font-weight:500;margin-top:1px}
 .btn.dis{opacity:.38}
@@ -79,6 +79,10 @@ canvas#game{position:fixed;left:0;top:0;display:block}
 #rotate{z-index:40;font-size:15px;gap:10px;text-align:center}
 #rotate .ph{width:34px;height:56px;border:3px solid #e8c56a;border-radius:7px;animation:rot 1.8s ease-in-out infinite}
 @keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+#joy{position:relative;flex:none;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle,rgba(60,48,30,.5),rgba(20,16,10,.8));border:2px solid rgba(201,161,74,.6);touch-action:none}
+#joy i{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#f0d488,#8a6a2e);border:1px solid #f0d080;box-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:none}
+#joy b{position:absolute;inset:0;pointer-events:none;color:rgba(240,208,128,.5);font-size:9px;font-weight:400}
+#joy b span{position:absolute}
 #loading{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(10,8,6,.85);font-size:14px;color:#e8c56a}
 </style>
 </head>
@@ -97,6 +101,7 @@ canvas#game{position:fixed;left:0;top:0;display:block}
 </div>
 <div id="groups" class="hidden"></div>
 <div id="bottom" class="panel hidden">
+  <div id="joy"><b><span style="left:39px;top:1px">▲</span><span style="left:39px;bottom:1px">▼</span><span style="left:3px;top:36px">◀</span><span style="right:3px;top:36px">▶</span></b><i></i></div>
   <canvas id="mini"></canvas>
   <div id="info"></div>
   <div id="cmd"></div>
@@ -131,9 +136,9 @@ canvas#game{position:fixed;left:0;top:0;display:block}
 <div id="pause" class="overlay hidden">
   <h3>일시 정지</h3>
   <div class="help">
-    · <b>탭</b>: 선택 / 선택한 상태에서 땅·적·자원 탭 = 명령<br>
+    · <b>탭</b>: 선택 / 유닛을 고른 뒤 땅 탭 = 이동 (가는 길에 적을 만나면 자동 교전)<br>
     · <b>한 손가락 드래그</b>: 범위 선택 (병력이 있으면 일꾼은 빠짐)<br>
-    · <b>두 손가락</b>: 화면 이동 · 벌려서 확대/축소 · <b>미니맵</b> 탭: 이동<br>
+    · <b>조이스틱</b>(왼쪽 아래) 또는 <b>두 손가락</b>: 화면 이동 · 벌려서 확대/축소 · <b>미니맵</b> 탭: 이동<br>
     · <b>유닛 두 번 탭</b>: 화면 안 같은 종류 전체 선택<br>
     · <b>1·2·3 길게 누르기</b>: 부대 지정 · 짧게: 부대 선택 · 두 번: 그곳으로 이동
   </div>
@@ -166,6 +171,7 @@ function hash(x,y){let h=(Math.imul(x|0,374761393)+Math.imul(y|0,668265263))|0;h
 function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const s=t=>t*t*(3-2*t);const a=hash(xi,yi),b=hash(xi+1,yi),c=hash(xi,yi+1),d=hash(xi+1,yi+1);const u=s(xf),v=s(yf);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
 
 const TCOL=['#4f86d9','#d6453a','#e3b43c','#4fbf6a'],TDARK=['#2c4f86','#7e2620','#8a6a18','#2a7a40'];
+const SZ=1.35; // 유닛 크기 배율
 const PAL={us:{wall:'#6a6b4c',roof:'#4c5836'},su:{wall:'#6e4a3c',roof:'#5c2f2a'},de:{wall:'#6c7076',roof:'#43474d'}};
 
 // ======================== 유닛 정의 ========================
@@ -255,74 +261,67 @@ const inB=(tx,ty)=>tx>=0&&ty>=0&&tx<MW&&ty<MH;
 function disc(cx,cy,r,v,pred){for(let y=Math.floor(cy-r);y<=Math.ceil(cy+r);y++)for(let x=Math.floor(cx-r);x<=Math.ceil(cx+r);x++){if(!inB(x,y))continue;if((x+.5-cx)**2+(y+.5-cy)**2<=r*r){const i=y*MW+x;if(!pred||pred(terr[i]))terr[i]=v;}}}
 function stroke(pts,w,v,pred){for(let k=0;k<pts.length-1;k++){const [x0,y0]=pts[k],[x1,y1]=pts[k+1],n=Math.ceil(Math.hypot(x1-x0,y1-y0)*2);for(let i=0;i<=n;i++){const q=i/n;disc(x0+(x1-x0)*q,y0+(y1-y0)*q,w/2,v,pred);}}}
 function meander(x0,y0,x1,y1,amp,freq,seed){const pts=[],n=24,dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy),px=-dy/l,py=dx/l;for(let i=0;i<=n;i++){const k=i/n,o=Math.sin(k*Math.PI*freq+seed)*amp*Math.sin(k*Math.PI);pts.push([x0+dx*k+px*o,y0+dy*k+py*o]);}return pts;}
+const C0=48;
+const atA=(a,r)=>[C0+Math.sin(a)*r,C0-Math.cos(a)*r];
+function spawns(name){
+ const sp=[];
+ for(let i=0;i<12;i++){const a=i*Math.PI/6,o=[Math.sin(a),-Math.cos(a)],p=[Math.cos(a),Math.sin(a)],cx=C0+o[0]*37,cy=C0+o[1]*37;
+  const s={i,a,o,p,cx,cy};
+  // 오션: 물웅덩이가 기지 안쪽(중앙 바다 쪽), 포레스트·시티: 기지 옆(바깥 바다 쪽)
+  s.pool=name==='ocean'?[cx-o[0]*7.5,cy-o[1]*7.5]:[cx-p[0]*7+o[0]*2,cy-p[1]*7+o[1]*2];
+  sp.push(s);}
+ return sp;
+}
+// 기지 정리 전에 그리는 물
+function preWater(name){
+ if(name==='forest'){for(let k=0;k<6;k++){const a=(k*60+15)*Math.PI/180;const s=atA(a,24),e=atA(a,54);stroke(meander(s[0],s[1],e[0],e[1],2.2,3,k),3.2,1);}}
+ else if(name==='ocean'){
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const r=Math.hypot(x+.5-C0,y+.5-C0);if(r>49+vnoise(x/4,y/4)*3)terr[y*MW+x]=1;}
+  disc(C0,C0,21,1);
+  for(let k=0;k<12;k++){const a=(k*30+15)*Math.PI/180,c=atA(a,38);disc(c[0],c[1],4.4,1);const c2=atA(a,30);disc(c2[0],c2[1],2.4,1);}
+  for(let k=0;k<4;k++){const a=(k*90+45)*Math.PI/180,c=atA(a,12);disc(c[0],c[1],2.6,0);}
+ }else{
+  for(let k=0;k<12;k++){const a=(k*30+15)*Math.PI/180,s=atA(a,30),e=atA(a,54);stroke([s,e],3,1);}
+ }
+}
+// 기지 정리 후에 그리는 물 (외곽 바다·물길)
+function postWater(name,sp){
+ if(name==='ocean'){
+  for(const s of sp){const [px,py]=s.pool,e=atA(s.a,15);stroke([[px,py],e],4.2,1);disc(px,py,2.9,1);}
+  return;
+ }
+ const edge=44.5;
+ for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const r=Math.hypot(x+.5-C0,y+.5-C0);if(r>edge+vnoise(x/5+9,y/5)*1.5)terr[y*MW+x]=1;}
+ for(const s of sp){const [px,py]=s.pool,e=[px+s.o[0]*14,py+s.o[1]*14];
+  if(name==='forest')stroke(meander(px,py,e[0],e[1],1,2,s.i),3.2,1);else stroke([[px,py],e],3.4,1);
+  disc(px,py,2.9,1);}
+}
 function genMap(name){
  terr.fill(0);occ.fill(0);iceT.fill(0);iceSet=new Set();
- const C=48,R=37,sp=[];
- for(let i=0;i<12;i++){const a=i*Math.PI/6,o=[Math.sin(a),-Math.cos(a)],p=[Math.cos(a),Math.sin(a)];sp.push({i,a,o,p,cx:C+o[0]*R,cy:C+o[1]*R});}
- const at=(a,r)=>[C+Math.sin(a)*r,C-Math.cos(a)*r];
- let chW=2.4,chEnd=6,baseT=0;
+ const sp=spawns(name);let baseT=0;
  if(name==='forest'){
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const n=vnoise(x/5,y/5)*0.75+vnoise(x/2.1+30,y/2.1)*0.35;if(n>0.66)terr[y*MW+x]=4;else if(hash(x,y)>0.988)terr[y*MW+x]=3;}
-  disc(C,C,12.5,1);
-  for(let k=0;k<6;k++){const a=(k*60+15)*Math.PI/180;const s=at(a,8),e=at(a,52);stroke(meander(s[0],s[1],e[0],e[1],2.2,3,k),3.2,1);}
-  chW=3.2;chEnd=9;
+  for(let k=0;k<4;k++){const a=(k*90+45)*Math.PI/180,c=atA(a,10);disc(c[0],c[1],3,0);}
  }else if(name==='ocean'){
-  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const r=Math.hypot(x+.5-C,y+.5-C);if(r>49+vnoise(x/4,y/4)*3)terr[y*MW+x]=1;else if(hash(x,y)>0.985)terr[y*MW+x]=3;}
-  disc(C,C,21,1);
-  for(let k=0;k<12;k++){const a=(k*30+15)*Math.PI/180,c=at(a,38);disc(c[0],c[1],4.4,1);const c2=at(a,30);disc(c2[0],c2[1],2.4,1);}
-  for(let k=0;k<4;k++){const a=(k*90+45)*Math.PI/180,c=at(a,12);disc(c[0],c[1],2.6,0);}
-  chW=4.2;chEnd=15;
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if(hash(x,y)>0.985)terr[y*MW+x]=3;
  }else{
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)terr[y*MW+x]=(x%7<4&&y%7<4)?(hash(x,y)>0.9?3:5):6;
-  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const c=Math.max(Math.abs(x+.5-C),Math.abs(y+.5-C));
-   if(c<13)terr[y*MW+x]=1;else if(c>=19&&c<22)terr[y*MW+x]=(x%7>=4||y%7>=4)?2:1;}
-  chW=3.6;chEnd=11;baseT=6;
+  disc(C0,C0,6,6);baseT=6;
  }
+ preWater(name);
  for(const s of sp)disc(s.cx,s.cy,9.5,baseT);
- for(const s of sp){
-  const px=s.cx-s.o[0]*7.5,py=s.cy-s.o[1]*7.5;s.pool=[px,py];
-  const e=at(s.a,chEnd);
-  if(name==='forest')stroke(meander(px,py,e[0],e[1],1.6,2,s.i),chW,1);else stroke([[px,py],e],chW,1);
-  disc(px,py,2.9,1);
- }
- // 기지 사이 연결로 (물은 다리로)
- for(let i=0;i<12;i++){const a=sp[i],b=sp[(i+1)%12];stroke([[a.cx,a.cy],[b.cx,b.cy]],3,99);}
- for(let i=0;i<NN;i++)if(terr[i]===99){terr[i]=0;}
- // 다리 처리: 연결로가 지나간 물 → 다리
- for(let i=0;i<12;i++){const a=sp[i],b=sp[(i+1)%12];
-  const n=60;for(let k=0;k<=n;k++){const q=k/n,x=a.cx+(b.cx-a.cx)*q,y=a.cy+(b.cy-a.cy)*q;
-   for(let dy=-1.5;dy<=1.5;dy+=0.5)for(let dx=-1.5;dx<=1.5;dx+=0.5){if(dx*dx+dy*dy>2.3)continue;const tx=Math.floor(x+dx),ty=Math.floor(y+dy);if(!inB(tx,ty))continue;const j=ty*MW+tx;
-    if(terr[j]===4||terr[j]===5||terr[j]===3)terr[j]=baseT;}}}
- // 물 위 연결로를 다리로 (원래 물이었던 곳은 위 stroke가 0으로 덮었으므로 다시 계산)
+ postWater(name,sp);
+ // 기지 사이 연결로: 장애물 제거
+ for(let i=0;i<12;i++){const a=sp[i],b=sp[(i+1)%12];stroke([[a.cx,a.cy],[b.cx,b.cy]],3,baseT,t=>t===3||t===4||t===5);}
  return sp;
 }
-// 맵 생성 래퍼: 물 → 연결로 → 다리 를 순서대로 처리
+// 맵 생성 래퍼: 연결로가 지나가는 물은 다리로
 function buildMap(name){
  const sp=genMap(name);
- // genMap의 연결로가 물을 덮었으므로, 물 지형을 다시 계산하고 연결로 위는 다리로 표시
- const water=new Uint8Array(NN);
- regenWater(name,sp,water);
  const road=new Uint8Array(NN);
  for(let i=0;i<12;i++){const a=sp[i],b=sp[(i+1)%12];const n=80;for(let k=0;k<=n;k++){const q=k/n,x=a.cx+(b.cx-a.cx)*q,y=a.cy+(b.cy-a.cy)*q;for(let dy=-1.5;dy<=1.5;dy+=0.5)for(let dx=-1.5;dx<=1.5;dx+=0.5){if(dx*dx+dy*dy>2.3)continue;const tx=Math.floor(x+dx),ty=Math.floor(y+dy);if(inB(tx,ty))road[ty*MW+tx]=1;}}}
- for(let i=0;i<NN;i++){if(water[i]){terr[i]=road[i]?2:(terr[i]===2?2:1);}}
+ for(let i=0;i<NN;i++)if(terr[i]===1&&road[i])terr[i]=2;
  return sp;
-}
-function regenWater(name,sp,water){
- // genMap과 같은 규칙으로 물 마스크만 다시 계산
- const save=terr.slice();
- const C=48;const at=(a,r)=>[C+Math.sin(a)*r,C-Math.cos(a)*r];
- terr.fill(0);
- if(name==='forest'){disc(C,C,12.5,1);for(let k=0;k<6;k++){const a=(k*60+15)*Math.PI/180;const s=at(a,8),e=at(a,52);stroke(meander(s[0],s[1],e[0],e[1],2.2,3,k),3.2,1);}}
- else if(name==='ocean'){for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const r=Math.hypot(x+.5-C,y+.5-C);if(r>49+vnoise(x/4,y/4)*3)terr[y*MW+x]=1;}disc(C,C,21,1);for(let k=0;k<12;k++){const a=(k*30+15)*Math.PI/180,c=at(a,38);disc(c[0],c[1],4.4,1);const c2=at(a,30);disc(c2[0],c2[1],2.4,1);}for(let k=0;k<4;k++){const a=(k*90+45)*Math.PI/180,c=at(a,12);disc(c[0],c[1],2.6,0);}}
- else{for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const c=Math.max(Math.abs(x+.5-C),Math.abs(y+.5-C));if(c<13)terr[y*MW+x]=1;else if(c>=19&&c<22&&!(x%7>=4||y%7>=4))terr[y*MW+x]=1;}}
- // 기지 구역은 마른 땅
- for(const s of sp)disc(s.cx,s.cy,9.5,0);
- const chW=name==='ocean'?4.2:name==='city'?3.6:3.2,chEnd=name==='ocean'?15:name==='city'?11:9;
- for(const s of sp){const [px,py]=s.pool,e=at(s.a,chEnd);if(name==='forest')stroke(meander(px,py,e[0],e[1],1.6,2,s.i),chW,1);else stroke([[px,py],e],chW,1);disc(px,py,2.9,1);}
- for(let i=0;i<NN;i++)water[i]=terr[i]===1?1:0;
- terr.set(save);
- // 도시 운하 다리 유지
- if(name==='city'){for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const c=Math.max(Math.abs(x+.5-C),Math.abs(y+.5-C));if(c>=19&&c<22&&(x%7>=4||y%7>=4)&&!water[y*MW+x])terr[y*MW+x]=2;}}
 }
 function baseLayout(s){
  const hq=[Math.round(s.cx-1.5),Math.round(s.cy-1.5)];
@@ -368,7 +367,7 @@ function addBuilding(kind,team,tx,ty,built){
 }
 function addUnit(kind,team,x,y){
  const d=UD[kind];
- return addEnt({type:'unit',kind,team,x,y,r:d.r,hp:d.hp,maxhp:d.hp,sh:d.sh||0,maxsh:d.sh||0,shT:9,state:'idle',path:null,pi:0,target:0,cd:Math.random()*0.5,face:Math.random()*6.28,carry:0,carryT:null,res:0,phase:null,timer:0,sg:0,sgT:0,sgWant:0,scanT:Math.random()*0.3,repathT:0,anim:Math.random()*10,morph:0,flash:0,abCd:0,slowT:0,revealT:0});
+ return addEnt({type:'unit',kind,team,x,y,r:d.r*SZ,hp:d.hp,maxhp:d.hp,sh:d.sh||0,maxsh:d.sh||0,shT:9,state:'idle',path:null,pi:0,target:0,cd:Math.random()*0.5,face:Math.random()*6.28,carry:0,carryT:null,res:0,phase:null,timer:0,sg:0,sgT:0,sgWant:0,scanT:Math.random()*0.3,repathT:0,anim:Math.random()*10,morph:0,flash:0,abCd:0,slowT:0,revealT:0});
 }
 const P=t=>G.pl[t];
 const enemy=(a,b)=>a>=0&&b>=0&&a!==b;
@@ -692,7 +691,7 @@ function siteTick(u,dt){
  if(u.path)followPath(u,dt);
 }
 function finishMorph(u){
- const d=UD.shock;u.kind='shock';u.r=d.r;u.maxhp=d.hp;u.hp=d.hp;u.morph=0;u.state='idle';
+ const d=UD.shock;u.kind='shock';u.r=d.r*SZ;u.maxhp=d.hp;u.hp=d.hp;u.morph=0;u.state='idle';
  for(let i=0;i<14;i++)part(u.x,u.y,rnd(-60,60),rnd(-60,60),0.5,2.5,'#7ff6ff');
 }
 // ---- 스킬
@@ -818,7 +817,7 @@ function spawnFrom(b,kind){
  for(let i=0;i<n;i++){
   const u=addUnit(kind,b.team,(best[0]+.5)*T+(i?10:0),(best[1]+.5)*T+(i?6:0));
   if(b.team===0)G.stats.made++;
-  if(b.rally){if(rr&&!rr.dead&&d.worker)orderGather(u,rr);else if(!b.rally.res)orderMove(u,b.rally.x+(i?14:0),b.rally.y);}
+  if(b.rally){if(rr&&!rr.dead&&d.worker)orderGather(u,rr);else if(!b.rally.res)orderMove(u,b.rally.x+(i?14:0),b.rally.y,true);}
   else if(d.worker&&P(b.team).human){const c=nearestCoal(u.x,u.y);if(c)orderGather(u,c);}
  }
 }
@@ -855,6 +854,30 @@ function placeWhy(kind,tx,ty,team){
 }
 function reqMet(team,kind){const r=BD[kind].req;return !r||ents.some(e=>e.type==='bld'&&!e.dead&&e.team===team&&e.kind===r&&e.built);}
 
+
+// ---- 건설 가능 위치 표시 (초록 칸)
+let placeMask=null,placeMaskT=-1,placeMaskKind=null;
+function computePlaceMask(kind){
+ const d=BD[kind],m=new Uint8Array(NN);
+ if(d.geyser){for(const e of ents)if(e.type==='res'&&e.kind==='geyser'&&!e.hidden&&!e.dead)for(let y=e.ty;y<e.ty+2;y++)for(let x=e.tx;x<e.tx+2;x++)m[y*MW+x]=1;return m;}
+ const bm=new Uint8Array(NN);for(let i=0;i<NN;i++)bm[i]=(terr[i]===0||terr[i]===6)&&occ[i]===0?1:0;
+ const needPow=P(0).fac==='de'&&!d.nopow,runes=needPow?ents.filter(e=>!e.dead&&e.team===0&&e.kind==='rune'&&e.built):[];
+ for(let ty=0;ty<=MH-d.h;ty++)for(let tx=0;tx<=MW-d.w;tx++){
+  let ok=true;for(let y=ty;y<ty+d.h&&ok;y++)for(let x=tx;x<tx+d.w;x++)if(!bm[y*MW+x]){ok=false;break;}
+  if(!ok)continue;
+  if(d.shore&&!shoreOk(tx,ty,d.w,d.h))continue;
+  if(needPow){const cx=(tx+d.w/2)*T,cy=(ty+d.h/2)*T;if(!runes.some(r=>dist(r.x,r.y,cx,cy)<=6.5*T))continue;}
+  for(let y=ty;y<ty+d.h;y++)for(let x=tx;x<tx+d.w;x++)m[y*MW+x]=1;
+ }
+ return m;
+}
+function refreshPlaceMask(){if(!G.placing){placeMask=null;return;}if(placeMaskKind!==G.placing||G.time-placeMaskT>0.5||placeMaskT>G.time){placeMask=computePlaceMask(G.placing);placeMaskKind=G.placing;placeMaskT=G.time;}}
+function suggestGhost(kind){
+ const d=BD[kind],c=s2w(VW/2,(VH-BOTH+TOPH)/2),cx=Math.floor(c[0]/T),cy=Math.floor(c[1]/T);
+ if(d.geyser){let best=null,bd=1e9;for(const e of ents)if(e.type==='res'&&e.kind==='geyser'&&!e.hidden&&!e.dead){const dd=dist(e.x,e.y,c[0],c[1]);if(dd<bd){bd=dd;best=e;}}return best?{tx:best.tx,ty:best.ty}:null;}
+ for(let r=0;r<30;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const tx=cx+dx-(d.w>>1),ty=cy+dy-(d.h>>1);if(inB(tx,ty)&&canPlace(kind,tx,ty,0))return {tx,ty};}
+ return null;
+}
 // ======================== AI ========================
 function findSpot(team,kind,cx,cy){
  const d=BD[kind],w=d.w,h=d.h,fac=P(team).fac;
@@ -1141,8 +1164,8 @@ function drawBld(b){
 }
 function drawUnit(u){
  const d=UD[u.kind],tc=TCOL[u.team],td=TDARK[u.team],L=d.layer||'g';
- const cl=d.cloak&&u.revealT<=0;
- ctx.save();ctx.translate(u.x,u.y);
+ const cl=d.cloak&&u.revealT<=0,realR=u.r;
+ ctx.save();ctx.translate(u.x,u.y);ctx.scale(SZ,SZ);u.r=d.r;
  if(cl)ctx.globalAlpha=0.4;
  if(L==='a'){ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(10,18,u.r*1.1,u.r*0.6,0,0,7);ctx.fill();const bob=Math.sin(u.anim*2)*1.5;ctx.translate(0,bob-4);}
  else if(L==='g'){ctx.fillStyle='rgba(0,0,0,.32)';ctx.beginPath();ctx.ellipse(2,3,u.r*1.15,u.r*0.75,0,0,7);ctx.fill();}
@@ -1212,7 +1235,7 @@ function drawUnit(u){
  if(u.slowT>0){ctx.strokeStyle='rgba(220,250,255,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,u.r+2,0,7);ctx.stroke();}
  if(u.morph>0){ctx.strokeStyle='#7ff6ff';ctx.lineWidth=2;for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,0,u.r+4+i*3,u.anim*3+i*2,u.anim*3+i*2+2);ctx.stroke();}}
  if(u.flash>0&&!(u.maxsh&&u.sh>0)){ctx.globalAlpha=0.5;circ(0,0,u.r,'#fff');}
- ctx.restore();
+ ctx.restore();u.r=realR;
 }
 function hpBar(e){
  const air=e.type==='unit'&&UD[e.kind].layer==='a',w=e.type==='unit'?Math.max(18,e.r*2.6):e.w*T*0.7,x=e.x-w/2,y=e.type==='unit'?e.y-e.r-(air?14:9):e.y-e.h*T/2-8,f=clamp(e.hp/e.maxhp,0,1);
@@ -1232,6 +1255,14 @@ function render(){
  for(let ty=ty0;ty<ty1;ty++)for(let tx=tx0;tx<tx1;tx++){if(terr[ty*MW+tx]!==1)continue;const ph=(G.time*0.6+hash(tx,ty))%1;const x=tx*T+8+hash(ty,tx)*16,y=ty*T+ph*T;ctx.moveTo(x,y);ctx.lineTo(x+10,y);}
  ctx.stroke();
  if(iceSet.size){for(const i of iceSet){const tx=i%MW,ty=(i/MW)|0;if(tx<tx0-1||tx>tx1||ty<ty0-1||ty>ty1)continue;ctx.fillStyle=`rgba(225,245,255,${Math.min(0.85,iceT[i]/6)})`;ctx.fillRect(tx*T,ty*T,T,T);}}
+
+ if(G.placing){refreshPlaceMask();if(placeMask){
+  ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.beginPath();
+  for(let tx=tx0;tx<=tx1;tx++){ctx.moveTo(tx*T,ty0*T);ctx.lineTo(tx*T,ty1*T);}for(let ty=ty0;ty<=ty1;ty++){ctx.moveTo(tx0*T,ty*T);ctx.lineTo(tx1*T,ty*T);}ctx.stroke();
+  const pulse=0.2+0.08*Math.sin(G.time*4);
+  ctx.fillStyle=`rgba(76,255,106,${pulse})`;ctx.strokeStyle='rgba(140,255,160,.55)';ctx.lineWidth=1.2;
+  for(let ty=ty0;ty<ty1;ty++)for(let tx=tx0;tx<tx1;tx++)if(placeMask[ty*MW+tx]){ctx.fillRect(tx*T+2,ty*T+2,T-4,T-4);ctx.strokeRect(tx*T+2,ty*T+2,T-4,T-4);}
+ }}
  const vis=ents.filter(e=>!e.dead&&e.x>vx0-150&&e.x<vx1+150&&e.y>vy0-150&&e.y<vy1+150&&(e.type!=='unit'||seen(e,0)||e.team===0));
  const selSet=new Set(G.sel);
  // 독일 마법진 범위
@@ -1301,16 +1332,16 @@ function commandAt(wx,wy,am){
  const us=ownUnits(),hit=pick(wx,wy);
  if(us.length){
   const workers=us.filter(u=>UD[u.kind].worker);
-  if(hit&&enemy(0,hit.team)){let any=false;for(const u of us){if(UD[u.kind].dmg&&canHit(UD[u.kind].tg,hit)){orderAttack(u,hit);any=true;}else orderMove(u,hit.x,hit.y);}if(!any)toast('선택한 유닛은 그 대상을 공격할 수 없어요');mark(hit.x,hit.y,'#ff5a4a');return;}
+  if(hit&&enemy(0,hit.team)){let any=false;for(const u of us){if(UD[u.kind].dmg&&canHit(UD[u.kind].tg,hit)){orderAttack(u,hit);any=true;}else orderMove(u,hit.x,hit.y,true);}if(!any)toast('선택한 유닛은 그 대상을 공격할 수 없어요');mark(hit.x,hit.y,'#ff5a4a');return;}
   if(hit&&hit.type==='res'&&!am&&workers.length){
    for(const u of workers)orderGather(u,hit);
-   moveGroup(us.filter(u=>!UD[u.kind].worker),wx,wy,false);mark(hit.x,hit.y,'#ffe070');return;}
+   moveGroup(us.filter(u=>!UD[u.kind].worker),wx,wy,true);mark(hit.x,hit.y,'#ffe070');return;}
   if(hit&&hit.type==='bld'&&hit.team===0&&workers.length&&!am){
    if(!hit.built&&FAC[P(0).fac].mode==='stay'){const w=workers[0];w.state='build';w.target=hit.id;hit.builder=w.id;w.path=null;w.repathT=0;mark(hit.x,hit.y,'#ffe070');return;}
    if(BD[hit.kind].geyser&&hit.built){for(const u of workers)orderGather(u,hit);mark(hit.x,hit.y,'#5ff0ff');return;}
    if(BD[hit.kind].drop){for(const u of workers){if(u.carry){u.state='gather';u.phase='back';u.drop=hit.id;u.path=null;u.repathT=0;}else orderMove(u,wx,wy);}mark(hit.x,hit.y,'#6cff6c');return;}
   }
-  moveGroup(us,wx,wy,am);mark(wx,wy,am?'#ff5a4a':'#6cff6c');return;
+  moveGroup(us,wx,wy,true);mark(wx,wy,'#6cff6c');return;
  }
  const bs=ownBlds().filter(b=>BD[b.kind].train);
  if(bs.length){for(const b of bs)b.rally=hit&&hit.type==='res'?{res:hit.id}:{x:wx,y:wy};mark(wx,wy,'#6cff6c');}
@@ -1319,7 +1350,7 @@ function moveGroup(us,wx,wy,am){
  const mv=us.filter(u=>!immov(u));if(!mv.length)return;
  const groups={};for(const u of mv){const L=layerOf(u);(groups[L]=groups[L]||[]).push(u);}
  for(const L in groups){
-  const g=groups[L],n=g.length,slots=[];let r=0;const sp=L==='n'?34:L==='a'?24:20;
+  const g=groups[L],n=g.length,slots=[];let r=0;const sp=(L==='n'?34:L==='a'?24:20)*SZ;
   while(slots.length<n){if(r===0)slots.push([0,0]);else{const c=Math.max(6,Math.round(r*6.3));for(let i=0;i<c&&slots.length<n;i++){const a=i/c*Math.PI*2;slots.push([Math.cos(a)*r*sp,Math.sin(a)*r*sp]);}}r++;}
   const cx=g.reduce((s,u)=>s+u.x,0)/n,cy=g.reduce((s,u)=>s+u.y,0)/n,ang=Math.atan2(wy-cy,wx-cx);
   const sorted=g.slice().sort((a,b)=>((b.x-cx)*Math.cos(ang)+(b.y-cy)*Math.sin(ang))-((a.x-cx)*Math.cos(ang)+(a.y-cy)*Math.sin(ang)));
@@ -1359,6 +1390,8 @@ function handleTap(sx,sy){
  if(G.pending){
   const p=G.pending;G.pending=null;hudDirty=true;
   if(p.t==='amove'){commandAt(wx,wy,true);return;}
+  if(p.t==='move'){commandAt(wx,wy,false);return;}
+  if(p.t==='gather'){const h=pick(wx,wy);const tgt=h&&((h.type==='res'&&!h.hidden)||(h.type==='bld'&&h.team===0&&BD[h.kind].geyser&&h.built))?h:null;for(const u of ownUnits())if(UD[u.kind].worker){const c=tgt||nearestCoal(u.x,u.y);if(c)orderGather(u,c);}mark(wx,wy,'#ffe070');return;}
   if(p.t==='rally'){commandAt(wx,wy,false);return;}
   if(p.t==='ability'){const cs=ownUnits().filter(u=>UD[u.kind].abil===p.ab&&u.abCd<=0);if(!cs.length){toast('준비된 유닛이 없어요');return;}const c=cs.sort((a,b)=>dist(a.x,a.y,wx,wy)-dist(b.x,b.y,wx,wy))[0];c.state='cast';c.cast={ab:p.ab,x:wx,y:wy};c.path=null;c.repathT=0;mark(wx,wy,'#bff4ff');return;}
   if(p.t==='reloc'){const b=byId.get(p.id);if(!b)return;ghostFor(wx,wy);const g=G.ghost;G.ghost=null;
@@ -1377,6 +1410,7 @@ function handleTap(sx,sy){
  }
  if(hit&&enemy(0,hit.team)){if(us.length)commandAt(wx,wy,false);else setSel([hit]);return;}
  if(hit&&hit.type==='res'){if(us.length||ownBlds().length)commandAt(wx,wy,false);else setSel([hit]);return;}
+ // 빈 땅 탭: 선택한 유닛 이동 (이동 중 적을 만나면 자동 교전) / 건물이면 집결지
  if(us.length||ownBlds().length)commandAt(wx,wy,false);
 }
 function boxSelect(b){
@@ -1428,11 +1462,19 @@ cvs.addEventListener('wheel',e=>{if(!G)return;e.preventDefault();zoomAt(e.client
 const keys={};
 addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(!G)return;
  if(e.key==='Escape'){G.placing=null;G.pending=null;G.buildMenu=false;G.ghost=null;hudDirty=true;}
- if(e.key==='a'&&ownUnits().length){G.pending={t:'amove'};hudDirty=true;}
  if(e.key==='s')ownUnits().forEach(orderStop);
 });
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
-function keysPan(dt){const s=700*dt/cam.z;if(keys['arrowleft'])cam.x-=s;if(keys['arrowright'])cam.x+=s;if(keys['arrowup']||keys['w'])cam.y-=s;if(keys['arrowdown'])cam.y+=s;clampCam();}
+// ---- 화면 이동 조이스틱
+const joyEl=$('joy'),joyKnob=joyEl.querySelector('i');const joy={id:null,x:0,y:0};
+function joySet(e){const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const l=Math.hypot(dx,dy),R=30;if(l>R){dx=dx/l*R;dy=dy/l*R;}joy.x=dx/R;joy.y=dy/R;joyKnob.style.transform=`translate(${dx}px,${dy}px)`;}
+function joyEnd(){joy.id=null;joy.x=0;joy.y=0;joyKnob.style.transform='';}
+joyEl.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();joy.id=e.pointerId;try{joyEl.setPointerCapture(e.pointerId);}catch(_){}joySet(e);});
+joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)joySet(e);});
+joyEl.addEventListener('pointerup',e=>{if(e.pointerId===joy.id)joyEnd();});
+joyEl.addEventListener('pointercancel',e=>{if(e.pointerId===joy.id)joyEnd();});
+function joyPan(dt){if(!joy.x&&!joy.y)return;const m=Math.hypot(joy.x,joy.y),k=(m<0.15?0:Math.pow(m,1.5))*950*dt/cam.z/m;cam.x+=joy.x*k;cam.y+=joy.y*k;clampCam();}
+function keysPan(dt){joyPan(dt);const s=700*dt/cam.z;if(keys['arrowleft'])cam.x-=s;if(keys['arrowright'])cam.x+=s;if(keys['arrowup']||keys['w'])cam.y-=s;if(keys['arrowdown'])cam.y+=s;clampCam();}
 let miniDrag=false;
 function miniMove(e){const r=mini.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;cam.x=x-VW/cam.z/2;cam.y=y-VH/cam.z/2;clampCam();}
 mini.addEventListener('pointerdown',e=>{e.preventDefault();miniDrag=true;try{mini.setPointerCapture(e.pointerId);}catch(_){}miniMove(e);});
@@ -1461,14 +1503,14 @@ function cmdList(){
  }
  const us=s.filter(u=>u.type==='unit'),workers=us.filter(u=>UD[u.kind].worker);
  if(G.buildMenu&&workers.length){
-  const all=F.build.map(k=>{const d=BD[k],ok=reqMet(0,k);return {l:short(d.n),s:ok?costTxt(d.cost):BD[d.req].n+' 필요',dis:!ok||tm.coal<d.cost[0]||tm.ether<d.cost[1],f:()=>{if(!ok){toast('먼저 '+BD[d.req].n+'을(를) 지으세요');return;}if(tm.coal<d.cost[0]||tm.ether<d.cost[1]){toast('자원이 부족해요');return;}G.placing=k;G.buildMenu=false;G.ghost=null;}};});
+  const all=F.build.map(k=>{const d=BD[k],ok=reqMet(0,k);return {l:short(d.n),s:ok?costTxt(d.cost):BD[d.req].n+' 필요',dis:!ok||tm.coal<d.cost[0]||tm.ether<d.cost[1],f:()=>{if(!ok){toast('먼저 '+BD[d.req].n+'을(를) 지으세요');return;}if(tm.coal<d.cost[0]||tm.ether<d.cost[1]){toast('자원이 부족해요');return;}G.placing=k;G.buildMenu=false;placeMaskT=-1;G.ghost=suggestGhost(k);if(!G.ghost)toast('지금 지을 수 있는 자리가 화면 근처에 없어요');}};});
   let out;
   if(all.length<=8){out=all.slice();while(out.length<8)out.push(null);}
   else{const pg=G.buildPage||0;out=pg===0?all.slice(0,7):all.slice(7);while(out.length<7)out.push(null);out.push({l:pg===0?'더보기 ▶':'◀ 앞으로',f:()=>{G.buildPage=pg?0:1;}});}
   out.push({l:'뒤로',f:()=>{G.buildMenu=false;G.buildPage=0;}});return out;
  }
- const out=[{l:'정지',f:()=>ownUnits().forEach(orderStop)},{l:'공격 이동',f:()=>{G.pending={t:'amove'};}}];
- if(workers.length){out.push({l:'채집',f:()=>{for(const u of ownUnits())if(UD[u.kind].worker){const c=nearestCoal(u.x,u.y);if(c)orderGather(u,c);}}});out.push({l:'건설',f:()=>{G.buildMenu=true;G.buildPage=0;}});}
+ const out=[{l:'정지',f:()=>ownUnits().forEach(orderStop)}];
+ if(workers.length){out.push({l:'채집',f:()=>{G.pending={t:'gather'};}});out.push({l:'건설',f:()=>{G.buildMenu=true;G.buildPage=0;}});}
  const tanks=us.filter(u=>u.kind==='tank');
  if(tanks.length){const want=tanks.some(t=>!(t.sg||t.sgWant));out.push({l:want?'포격 모드':'이동 모드',f:()=>{for(const t of ownUnits())if(t.kind==='tank'&&t.sgT<=0&&(t.sg?1:0)===(want?0:1)){t.sgWant=want?1:0;t.sgT=1.6;t.state='idle';t.path=null;t.target=0;t.amove=null;}}});}
  const abs=[...new Set(us.map(u=>UD[u.kind].abil).filter(Boolean))];
@@ -1478,7 +1520,7 @@ function cmdList(){
  if(cons.length&&tm.fac==='su'){const lab=reqMet(0,'lab')&&ents.some(e=>e.team===0&&e.kind==='lab'&&e.built&&!e.dead);out.push({l:'변이',s:lab?costTxt(UD.shock.cost):'실험실 필요',dis:!lab||tm.coal<50||tm.ether<50,f:()=>{if(!lab){toast('변이 실험실이 필요해요');return;}let n=0;for(const u of ownUnits())if(u.kind==='conscript'&&!u.morph){const sp=supplyOf(0);if(tm.coal<50||tm.ether<50){toast('자원이 부족해요');break;}if(sp.used+1.5>sp.cap){toast('보급이 부족해요');break;}tm.coal-=50;tm.ether-=50;u.morph=UD.shock.t;u.state='idle';u.path=null;n++;}}});}
  return out.slice(0,9);
 }
-const STATE_TXT={idle:'대기',move:'이동 중',amove:'공격 이동 중',attack:'교전 중',gather:'채집 중',build:'건설 중',site:'건설하러 가는 중',cast:'스킬 시전 이동 중'};
+const STATE_TXT={idle:'대기',move:'이동 중',amove:'이동 중',attack:'교전 중',gather:'채집 중',build:'건설 중',site:'건설하러 가는 중',cast:'스킬 시전 이동 중'};
 function renderHud(){
  const tm=P(0),sp=supplyOf(0);
  $('rCoal').textContent=Math.floor(tm.coal);$('rEth').textContent=Math.floor(tm.ether);
@@ -1486,8 +1528,8 @@ function renderHud(){
  const t=Math.floor(G.time);$('rTime').textContent=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
  $('rInfo').innerHTML=G.pl.filter(p=>!p.human).map(p=>`<span style="color:${TCOL[p.id]};${p.alive?'':'text-decoration:line-through;opacity:.5'}">■${FAC[p.fac].n}</span>`).join(' ');
  const h=$('hint');let ht='';
- if(G.placing)ht=`${BD[G.placing].n} — 지을 곳을 탭하거나 끌어서 놓으세요`;
- else if(G.pending)ht={amove:'공격 이동할 곳을 탭하세요',rally:'집결지를 탭하세요',reloc:'옮길 위치를 탭하세요',ability:'스킬을 쓸 곳을 탭하세요'}[G.pending.t];
+ if(G.placing)ht=`${BD[G.placing].n} — 초록색 칸을 탭하거나 끌어서 놓으세요`;
+ else if(G.pending)ht={gather:'채집할 광맥이나 정제소를 탭하세요 (빈 땅이면 가까운 광맥)',rally:'집결지를 탭하세요',reloc:'옮길 위치를 탭하세요',ability:'스킬을 쓸 곳을 탭하세요'}[G.pending.t];
  h.textContent=ht;h.style.display=ht?'block':'none';
  const s=selEnts(),info=$('info');let html='';
  if(s.length===1){
@@ -1504,7 +1546,7 @@ function renderHud(){
  }else if(s.length>1){
   const cnt={};for(const e of s)cnt[e.kind]=(cnt[e.kind]||0)+1;
   html=`<div class="nm">${s.length}개 선택</div><div class="grid">`+Object.entries(cnt).map(([k,n])=>`<span class="chip" data-k="${k}">${short((UD[k]||BD[k]).n)} ×${n}</span>`).join('')+'</div>';
- }else html=`<div class="st" style="margin-top:2px;line-height:1.6"><b style="color:${TCOL[0]}">${FAC[P(0).fac].n}</b> · ${MAPS[G.cfg.map].n}<br>유닛이나 건물을 탭하세요<br><span style="color:#8a7a5a">드래그로 범위 선택 · 두 손가락으로 화면 이동</span></div>`;
+ }else html=`<div class="st" style="margin-top:2px;line-height:1.6"><b style="color:${TCOL[0]}">${FAC[P(0).fac].n}</b> · ${MAPS[G.cfg.map].n}<br>유닛이나 건물을 탭하세요<br><span style="color:#8a7a5a">드래그: 범위 선택 · 조이스틱·두 손가락: 화면 이동</span></div>`;
  if(s.length)html+='<button id="desel">✕</button>';
  if(info._h!==html){info.innerHTML=html;info._h=html;}
  const list=cmdList();const key=JSON.stringify(list.map(b=>b&&[b.l,b.s,b.dis]));
