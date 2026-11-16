@@ -658,28 +658,37 @@ function makeHills(sp,road,name){
    let ok=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){if(!inB(x+dx,y+dy))continue;const j=(y+dy)*MW+x+dx;if(low[j]===big)ok=true;}if(!ok)continue;
    let da=Math.abs(Math.atan2(y+.5-s.cy,x+.5-s.cx)-a0);if(da>Math.PI)da=2*Math.PI-da;cand.push([da+(road[i]?-0.15:0),x,y]);}
   cand.sort((a,b)=>a[0]-b[0]);
+  const carve=(bx,by)=>{const ux=bx+.5-s.cx,uy=by+.5-s.cy,L=Math.hypot(ux,uy)||1,nx=ux/L,ny=uy/L,changed=[];
+   for(let y=Math.floor(s.cy-13);y<=s.cy+13;y++)for(let x=Math.floor(s.cx-13);x<=s.cx+13;x++){if(!inB(x,y))continue;const i=y*MW+x;if(!cliff[i]||owner[i]!==k)continue;
+    const rx=x+.5-s.cx,ry=y+.5-s.cy,along=rx*nx+ry*ny,perp=Math.abs(-rx*ny+ry*nx);if(along>L-3&&along<L+2.5&&perp<=1.6){cliff[i]=0;rampT[i]=1;changed.push(i);}}return changed;};
+  const angOf=(x,y)=>Math.atan2(y+.5-s.cy,x+.5-s.cx),adiff=(a,b)=>{let d=Math.abs(a-b)%(2*Math.PI);return d>Math.PI?2*Math.PI-d:d;};
+  const made=[],rp=[];const far=(x,y)=>rp.every(([px,py])=>(px-x)**2+(py-y)**2>=49);const keepRp=ch=>{for(const i of ch)rp.push([i%MW,(i/MW)|0]);};
   for(const [,bx,by] of cand.slice(0,40)){
-   const ux=bx+.5-s.cx,uy=by+.5-s.cy,L=Math.hypot(ux,uy)||1,nx=ux/L,ny=uy/L,changed=[];
-   for(let y=Math.floor(s.cy-13);y<=s.cy+13;y++)for(let x=Math.floor(s.cx-13);x<=s.cx+13;x++){if(!inB(x,y))continue;const i=y*MW+x;if(!cliff[i])continue;
-    const rx=x+.5-s.cx,ry=y+.5-s.cy,along=rx*nx+ry*ny,perp=Math.abs(-rx*ny+ry*nx);if(along>L-3&&along<L+2.5&&perp<=1.6){cliff[i]=0;rampT[i]=1;changed.push(i);}}
-   if(reachBig(Math.floor(s.cx),Math.floor(s.cy)))break;
+   const changed=carve(bx,by);
+   if(reachBig(Math.floor(s.cx),Math.floor(s.cy))){made.push(angOf(bx,by));keepRp(changed);break;}
    for(const i of changed){cliff[i]=1;rampT[i]=0;}
   }
-  // 그래도 갇힌 본진(물로 둘러싸인 낮은 땅): 최단 경로로 경사로 + 다리를 놓음
-  if(!reachBig(Math.floor(s.cx),Math.floor(s.cy))){
-   const cost=i=>{const t=terr[i];if(hgt[i]){if(owner[i]!==k)return 0;return cliff[i]?3:1;}if(gp(i))return 1;if(t===1)return 3;if(t===3||t===5)return 4;return 0;};
+  // 두 번째 길목: 첫 길목과 50~130도 떨어진 곳 중 중앙에 가장 가까운 쪽 (중앙 평지로 내려가는 언덕길)
+  if(made.length){for(const [da,bx,by] of cand){if(da>1.45||!far(bx,by))continue;const ch=carve(bx,by);if(ch.length){made.push(angOf(bx,by));keepRp(ch);break;}}}
+  // 경사로 + 다리로 큰 낮은 땅까지 길을 냄 (avoid: 이미 만든 길목 방향은 피함)
+  const pathOut=(avoid,maxCost)=>{
+   const okAng=(x,y)=>far(x,y);
+   const cost=i=>{const t=terr[i],x=i%MW,y=(i/MW)|0;if(rp.length&&!far(x,y))return 0;if(hgt[i]){if(owner[i]!==k)return 0;if(rampT[i]&&rp.length)return 0;if(cliff[i])return okAng(x,y)?3:0;return 1;}if(gp(i))return 1;if(t===1)return 3;if(t===3||t===5)return 4;return 0;};
    const D=new Float32Array(NN).fill(1e9),prev=new Int32Array(NN).fill(-1),st=Math.floor(s.cy)*MW+Math.floor(s.cx);D[st]=0;const open=[st];let goal=-1;
-   while(open.length){let bi=0;for(let q=1;q<open.length;q++)if(D[open[q]]<D[open[bi]])bi=q;const c=open[bi];open[bi]=open[open.length-1];open.pop();
-    if(low[c]===big&&!hgt[c]){goal=c;break;}const x=c%MW,y=(c/MW)|0;
+   while(open.length){let bi=0;for(let q=1;q<open.length;q++)if(D[open[q]]<D[open[bi]])bi=q;const c=open[bi];open[bi]=open[open.length-1];open.pop();if(D[c]>maxCost)break;
+    if(low[c]===big&&!hgt[c]&&(!pathOut.inward||Math.hypot(c%MW-MW/2,((c/MW)|0)-MH/2)<Math.hypot(s.cx-MW/2,s.cy-MH/2)-2)){goal=c;break;}const x=c%MW,y=(c/MW)|0;
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;const j=ny*MW+nx,w=cost(j);if(!w)continue;const nd=D[c]+w;if(nd<D[j]){if(D[j]>=1e9)open.push(j);D[j]=nd;prev[j]=c;}}}
-   for(let c=goal;c>=0;c=prev[c]){const x=c%MW,y=(c/MW)|0;
+   if(goal<0)return false;let ra=null;const pth=[];
+   for(let c=goal;c>=0;c=prev[c]){const x=c%MW,y=(c/MW)|0;if(!hgt[c]||cliff[c]||!hgt[prev[c]>=0?prev[c]:c])pth.push(c);
     for(let yy=y-1;yy<=y+1;yy++)for(let xx=x-1;xx<=x+1;xx++){if(!inB(xx,yy))continue;const i=yy*MW+xx,t=terr[i];const core=xx===x&&yy===y;
-     if(hgt[i]&&cliff[i]&&owner[i]===k){cliff[i]=0;rampT[i]=1;}
+     if(hgt[i]&&cliff[i]&&owner[i]===k){cliff[i]=0;rampT[i]=1;if(ra==null)ra=angOf(xx,yy);}
      else if(!hgt[i]&&t===1&&(core||Math.abs(xx-x)+Math.abs(yy-y)===1))terr[i]=2;
      else if(!hgt[i]&&(t===3||t===5)&&core)terr[i]=0;}}
-  }
+   keepRp(pth);if(ra!=null)made.push(ra);else made.push(0);return true;};
+  if(!made.length&&!reachBig(Math.floor(s.cx),Math.floor(s.cy)))pathOut([],1e8);
+  for(let tries=0;tries<3&&made.length<2;tries++){pathOut.inward=made.length>0;if(!pathOut(made.slice(),made.length?180:1e8)){if(!pathOut.inward)break;pathOut.inward=false;if(!pathOut(made.slice(),180))break;}}pathOut.inward=false;
  });
- for(const c of centers.slice(sp.length)){const [cx,cy,r]=c;let made=0;for(let a0=hash(cx|0,cy|0)*6.28,k=0;k<2;k++){const a=a0+k*Math.PI,x=Math.round(cx+Math.cos(a)*r),y=Math.round(cy+Math.sin(a)*r);
+ for(const c of centers.slice(sp.length)){const [cx,cy,r]=c;let made=0;for(let a0=hash(cx|0,cy|0)*6.28,k=0;k<3;k++){const a=a0+k*Math.PI*2/3,x=Math.round(cx+Math.cos(a)*r),y=Math.round(cy+Math.sin(a)*r);
    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const tx=x+dx,ty=y+dy;if(!inB(tx,ty))continue;const i=ty*MW+tx;if(cliff[i]&&Math.abs(dx)+Math.abs(dy)<=2){cliff[i]=0;rampT[i]=1;made++;}}}}
  // 경사로가 없는 본진(섬 등)은 가장 가까운 이웃 쪽으로 하나 뚫음
  sp.forEach((s,k)=>{let has=false;for(let y=Math.floor(s.cy-12);y<=s.cy+12&&!has;y++)for(let x=Math.floor(s.cx-12);x<=s.cx+12;x++)if(inB(x,y)&&rampT[y*MW+x]){has=true;break;}
@@ -690,8 +699,12 @@ function makeHills(sp,road,name){
  for(let i0=0;i0<NN;i0++){const t0=terr[i0];if(gc[i0]>=0||!(t0===0||t0===6))continue;const q=[i0];gc[i0]=ng;while(q.length){const c=q.pop();const x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx,t=terr[j];if(gc[j]<0&&(t===0||t===6)){gc[j]=ng;q.push(j);}}}ng++;}
  const bs=new Uint8Array(NN);
  for(let i0=0;i0<NN;i0++){if(bs[i0]||terr[i0]!==2)continue;const seg=[i0],q=[i0];bs[i0]=1;const touch=new Set();
-  while(q.length){const c=q.pop();const x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;if(terr[j]===2&&!bs[j]){bs[j]=1;q.push(j);seg.push(j);}else if(gc[j]>=0)touch.add(gc[j]);}}
-  if(touch.size<2)for(const j of seg)terr[j]=1;}
+  while(q.length){const c=q.pop();const x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;if(terr[j]===2&&!bs[j]){bs[j]=1;q.push(j);seg.push(j);}else if(gc[j]>=0)touch.add(j);}}
+  // 양쪽 끝이 모두 땅에 닿은 다리만 남김 (닿은 땅이 서로 떨어진 두 무리 이상)
+  let cl=0;const vt=new Set();for(const t0 of touch){if(vt.has(t0))continue;cl++;const qq=[t0];vt.add(t0);while(qq.length){const c=qq.pop();const x=c%MW,y=(c/MW)|0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const j=(y+dy)*MW+x+dx;if(touch.has(j)&&!vt.has(j)){vt.add(j);qq.push(j);}}}}
+  if(cl<2)for(const j of seg)terr[j]=1;}
+ // 언덕 가장자리가 다리와 바로 맞닿은 곳은 경사로로 표시
+ for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){const i=y*MW+x;if(!hgt[i]||terr[i]===7||rampT[i])continue;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(terr[(y+dy)*MW+x+dx]===2){rampT[i]=1;break;}}
 }
 const hAt=(x,y)=>{const tx=clamp(Math.floor(x/T),0,MW-1),ty=clamp(Math.floor(y/T),0,MH-1);return hgt[ty*MW+tx];};
 function hOf(e){if(e.type==='unit'&&UD[e.kind].layer==='a')return 9;return hAt(e.x,e.y);}
