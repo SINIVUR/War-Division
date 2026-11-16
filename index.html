@@ -431,7 +431,7 @@ body.pc #bottom.panel{background:linear-gradient(180deg,#4a3f2d 0%,#2b2419 30%,#
 <div id="tips" class="overlay hidden"><div class="card"><h3>처음 하시나요? 이것만 기억하세요</h3>
 <div class="pcx">· 스타크래프트와 똑같아요: <b>좌클릭</b> 선택, <b>드래그</b> 범위 선택(최대 12기), <b>우클릭</b> 이동·공격·채집.<br>
 · <b>Shift</b> 추가 선택·명령 예약, <b>Ctrl+클릭/더블클릭</b> 같은 종류, <b>Shift+건물 더블클릭</b> 맵 전체 같은 건물, <b>Ctrl+숫자</b> 부대 지정, 숫자 두 번 누르면 이동.<br>
-· 일꾼: <b>B</b> 기본 건설, <b>V</b> 고급 건설. 명령: <b>M A S H P G</b>, 건물 집결지 <b>R</b>, <b>Esc</b> 취소, <b>Space</b> 마지막 경보, <b>F2~F4</b> 화면 위치.<br>
+· 일꾼: <b>B</b> 기본 건설, <b>V</b> 고급 건설. 명령: <b>M A S H P G</b>, 건물 집결지 <b>R</b>, <b>Esc</b> 취소·메뉴, <b>Space</b> 마지막 경보, <b>F2~F4</b> 화면 위치.<br>
 · 게임 중에는 <b>전체화면</b>으로 고정되고 마우스가 창 밖으로 나가지 않아요. <b>Esc를 길게</b> 누르면 전체화면이 풀리고 일시정지돼요.</div><div class="mo">
 · 유닛을 <b>탭</b>해서 고르고, <b>땅을 한 번 탭</b>하면 이동(적 무시), <b>두 번 탭</b>하면 어택땅(가는 길의 적과 싸우며 이동)이에요. 적을 직접 탭하면 공격해요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
 · <b>길게 누르면</b> 화면 안 같은 종류 유닛이 모두 선택돼요. 한 손가락 <b>드래그</b>는 범위 선택이에요.<br>
@@ -2167,9 +2167,9 @@ function aiHuman(p,c){
  }
  // --- 확장: 비어 있는 출발지에 두 번째·세 번째 본진
  const hqs=blds.filter(b=>BD[b.kind].drop);
- const maxB=1+(D>=2?1:0)+(D>=4?1:0);
- if(G.time>(420-D*50)&&hqs.length<maxB&&!pending(F.hq)&&p.coal>=BD[F.hq].cost[0]+60&&wk.length>=12){
-  const used=new Set(G.pl.map(q=>q.spawn));let best=-1,bd=1e9;
+ const maxB=2+(D>=2?1:0)+(D>=4?1:0);
+ if(G.time>(Math.max(150,380-D*45)+(hqs.length-1)*150)&&hqs.length<maxB&&!pending(F.hq)&&p.coal>=BD[F.hq].cost[0]+60&&wk.length>=12){
+  const used=new Set(G.pl.filter(q=>q.alive).map(q=>q.spawn));let best=-1,bd=1e9;
   for(let i=0;i<12;i++){if(used.has(i))continue;const L=G.lay[i],x=(L.hq[0]+1.5)*T,y=(L.hq[1]+1.5)*T;
    let blocked=false;for(const e of ents)if(!e.dead&&e.type==='bld'&&dist(e.x,e.y,x,y)<300){blocked=true;break;}if(blocked)continue;
    let danger=false;for(const e of ents)if(!e.dead&&e.type==='bld'&&enemy(p.id,e.team)&&dist(e.x,e.y,x,y)<900){danger=true;break;}if(danger)continue;
@@ -4317,7 +4317,9 @@ addEventListener('keydown',e=>{
   const s=selEnts();if(s.length===1&&s[0].team===0){const e1=s[0];
    if(e1.type==='bld'&&!e1.built){const it=cmdList().find(b=>b&&b.l==='건설 취소');if(it){it.f();hudDirty=true;renderHud();}return;}
    if(e1.type==='bld'&&e1.queue.length){cancelQueue(e1,e1.queue.length-1);toast('생산 취소 — 비용을 돌려받았어요');hudDirty=true;return;}}
-  for(const u of s)if(u.type==='unit'&&u.team===0&&u.state==='site'){cancelSite(u);u.state='idle';}
+  let did=false;for(const u of s)if(u.type==='unit'&&u.team===0&&u.state==='site'){cancelSite(u);u.state='idle';did=true;}
+  // 취소할 것이 없으면 메뉴(일시정지) 열기
+  if(!did){if(!$('pause').classList.contains('hidden')){$('resumeBtn').click();}else{G.paused=true;try{renderSpd();}catch(_){}$('pause').classList.remove('hidden');}}
   hudDirty=true;return;}
  if(k==='Tab'){e.preventDefault();return;}
  if(e.ctrlKey||e.metaKey||e.altKey)return;
