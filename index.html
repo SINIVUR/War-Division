@@ -468,6 +468,11 @@ let BOTH=20;
 const $=id=>document.getElementById(id);
 const cvs=$('game'),ctx=cvs.getContext('2d');
 let dpr=1,VW=800,VH=360,rotated=false;
+// 자동 화질 조절: 대규모 전투에서 프레임이 무거우면 해상도·이펙트를 단계적으로 낮춤
+let PQ=0,pqAcc=0,pqN=0,pqT=0,pqGood=0,pqUps=0;const QDPR=[2,1.5,1.2],QPART=[600,320,160];
+function pqTick(work,dt){pqAcc+=work;pqN++;pqT+=dt;if(pqT<1.5)return;const avg=pqAcc/pqN;pqAcc=pqN=pqT=0;
+ if(avg>(PC?24:18)&&PQ<2){PQ++;pqUps++;pqGood=0;resize();}
+ else if(avg<(PC?9:7)&&PQ>0){if(++pqGood>=Math.min(20,4*pqUps)){PQ--;pqGood=0;resize();}}else pqGood=0;}
 const cam={x:0,y:0,z:0.62};
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const dist=(ax,ay,bx,by)=>Math.hypot(ax-bx,ay-by);
@@ -990,7 +995,7 @@ const tgtLayer=e=>e.type==='bld'?'g':(UD[e.kind].layer||'g');
 // ======================== 상태 ========================
 let G=null,ents=[],byId=new Map(),nextId=1;
 function addEnt(e){e.id=nextId++;ents.push(e);byId.set(e.id,e);return e;}
-function setOcc(e,v){for(let dy=0;dy<e.h;dy++)for(let dx=0;dx<e.w;dx++){const tx=e.tx+dx,ty=e.ty+dy;if(inB(tx,ty))occ[ty*MW+tx]=v;}}
+function setOcc(e,v){compV++;for(let dy=0;dy<e.h;dy++)for(let dx=0;dx<e.w;dx++){const tx=e.tx+dx,ty=e.ty+dy;if(inB(tx,ty))occ[ty*MW+tx]=v;}}
 function addRes(kind,tx,ty){
  const w=kind==='coal'?1:2;
  const r={type:'res',kind,team:-1,tx,ty,w,h:w,x:(tx+w/2)*T,y:(ty+w/2)*T,amount:kind==='coal'?3000:5000,hp:1,maxhp:1,pts:[]};
@@ -1009,7 +1014,9 @@ function addUnit(kind,team,x,y){
  return addEnt({type:'unit',kind,team,x,y,r:d.r*SZ,hp:d.hp,maxhp:d.hp,sh:d.sh||0,maxsh:d.sh||0,shT:9,state:'idle',path:null,pi:0,target:0,cd:Math.random()*0.5,face:Math.random()*6.28,carry:0,carryT:null,res:0,phase:null,timer:0,sg:0,sgT:0,sgWant:0,scanT:Math.random()*0.3,repathT:0,anim:Math.random()*10,morph:0,flash:0,abCd:0,slowT:0,revealT:0});
 }
 const P=t=>G.pl[t];
-const enemy=(a,b)=>a>=0&&b>=0&&a!==b&&!(G&&G.ally&&G.ally[a]!=null&&G.ally[a]===G.ally[b]);
+const ENM=new Uint8Array(1024);let EG=undefined;
+function mkEnm(){EG=G;const al=G&&G.ally;for(let a=0;a<32;a++)for(let b=0;b<32;b++)ENM[a*32+b]=a!==b&&!(al&&al[a]!=null&&al[a]===al[b])?1:0;}
+const enemy=(a,b)=>{if(a<0||b<0||a===b)return false;if(EG!==G)mkEnm();return ENM[(a&31)*32+(b&31)]===1;};
 const friend0=t=>t===0||(G&&G.ally&&G.ally[t]!=null&&G.ally[t]===G.ally[0]);
 
 // ======================== 게임 시작 ========================
@@ -1069,6 +1076,14 @@ function nearestPass(L,gx,gy,px,py,maxR){
   if(best)return best;}
  return null;
 }
+// 연결 구역 라벨 (막힌 목표로 A*가 맵 전체를 헤매지 않게)
+let compV=1;const compC={};
+function compOf(L){let c=compC[L];if(c&&c.v===compV&&c.g===G)return c.lab;
+ const lab=c&&c.lab||new Int32Array(NN);lab.fill(0);let n=0;const q=new Int32Array(NN);
+ for(let s=0;s<NN;s++){if(lab[s]||!pass(L,s%MW,(s/MW)|0))continue;n++;let h=0,t=0;q[t++]=s;lab[s]=n;
+  while(h<t){const i=q[h++],x=i%MW,y=(i/MW)|0;for(let k=0;k<8;k++){const dx=DIRS[k][0],dy=DIRS[k][1],nx=x+dx,ny=y+dy;if(!pass(L,nx,ny))continue;if(dx&&dy&&(!pass(L,x+dx,y)||!pass(L,x,y+dy)))continue;const j=ny*MW+nx;if(!lab[j]){lab[j]=n;q[t++]=j;}}}}
+ compC[L]={v:compV,g:G,lab};return lab;}
+function nearInComp(lab,c,gx,gy){let best=-1,bd=1e18;for(let i=0;i<NN;i++){if(lab[i]!==c)continue;const dx=i%MW-gx,dy=((i/MW)|0)-gy,d=dx*dx+dy*dy;if(d<bd){bd=d;best=i;}}return best;}
 function astar(L,sx,sy,gx,gy){
  curS++;hN.length=0;hF.length=0;
  const start=sy*MW+sx,goal=gy*MW+gx;
@@ -1104,6 +1119,7 @@ function rawPath(L,fx,fy,wx,wy){
  let gx=clamp(Math.floor(wx/T),0,MW-1),gy=clamp(Math.floor(wy/T),0,MH-1),exact=true;
  if(!pass(L,gx,gy)){const n=nearestPass(L,gx,gy,sx,sy,20);if(!n)return null;gx=n[0];gy=n[1];exact=false;}
  let ssx=sx,ssy=sy;if(!pass(L,sx,sy)){const n=nearestPass(L,sx,sy,sx,sy,4);if(n){ssx=n[0];ssy=n[1];}}
+ if(pass(L,ssx,ssy)){const lab=compOf(L),cs=lab[ssy*MW+ssx];if(cs&&lab[gy*MW+gx]!==cs){const b=nearInComp(lab,cs,gx,gy);if(b>=0){gx=b%MW;gy=(b/MW)|0;exact=false;}}}
  const tiles=astar(L,ssx,ssy,gx,gy);
  const pts=tiles.map(i=>[(i%MW+0.5)*T,(((i/MW)|0)+0.5)*T]);
  if(pts.length>1)pts.shift();
@@ -1167,7 +1183,17 @@ function stepDirect(u,tx,ty,dt){
 
 // ======================== 공간 해시 ========================
 const HC=80,hcols=Math.ceil(WW/HC);const hgrid=new Map();
-function buildHash(){hgrid.clear();for(const e of ents){if(e.type!=='unit'||e.dead)continue;const k=((e.y/HC)|0)*hcols+((e.x/HC)|0);let a=hgrid.get(k);if(!a){a=[];hgrid.set(k,a);}a.push(e);}}
+const bgrid=new Map(),powL=[];
+function buildHash(){hgrid.clear();bgrid.clear();powL.length=0;for(const e of ents){if(e.dead)continue;
+ if(e.type==='unit'){const k=((e.y/HC)|0)*hcols+((e.x/HC)|0);let a=hgrid.get(k);if(!a){a=[];hgrid.set(k,a);}a.push(e);}
+ else if(e.type==='bld'){if(BD[e.kind].power)powL.push(e);const hw=e.w*T/2,hh=e.h*T/2,x0=Math.max(0,((e.x-hw)/HC)|0),x1=Math.min(hcols-1,((e.x+hw)/HC)|0),y0=Math.max(0,((e.y-hh)/HC)|0),y1=((e.y+hh)/HC)|0;
+  for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++){const k=cy*hcols+cx;let a=bgrid.get(k);if(!a){a=[];bgrid.set(k,a);}a.push(e);}}}}
+// 범위 안 건물 (한 건물은 한 번만)
+let bnStamp=1;
+function bldsNear(x,y,r,fn){bnStamp++;
+ const x0=Math.max(0,((x-r)/HC)|0),x1=Math.min(hcols-1,((x+r)/HC)|0),y0=Math.max(0,((y-r)/HC)|0),y1=((y+r)/HC)|0;
+ for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++){const a=bgrid.get(cy*hcols+cx);if(a)for(const b of a)if(!b.dead&&b._bn!==bnStamp){b._bn=bnStamp;fn(b);}}
+}
 function unitsNear(x,y,r,fn){
  const x0=Math.max(0,((x-r)/HC)|0),x1=Math.min(hcols-1,((x+r)/HC)|0),y0=Math.max(0,((y-r)/HC)|0),y1=((y+r)/HC)|0;
  for(let cy=y0;cy<=y1;cy++)for(let cx=x0;cx<=x1;cx++){const a=hgrid.get(cy*hcols+cx);if(a)for(const u of a)if(!u.dead)fn(u);}
@@ -1194,7 +1220,7 @@ function seen(v,team){
  return false;
 }
 function canHit(tg,e){return !!tg&&tg.includes(tgtLayer(e));}
-function powered(team,x,y){for(const e of ents)if(!e.dead&&e.team===team&&BD[e.kind]&&BD[e.kind].power&&e.type==='bld'&&e.built&&dist(e.x,e.y,x,y)<=6.5*T)return true;return false;}
+function powered(team,x,y){const L=G&&G._inUpd?powL:ents;for(const e of L)if(!e.dead&&e.team===team&&e.type==='bld'&&BD[e.kind]&&BD[e.kind].power&&e.built&&dist(e.x,e.y,x,y)<=6.5*T)return true;return false;}
 function isPowered(b){return !POWF.has(P(b.team).fac)||BD[b.kind].nopow||BD[b.kind].shore||powered(b.team,b.x,b.y);}
 // ======================== 영토(크립)·동력장 ========================
 const POWF=new Set(['de','au','uk']),CREEPF=new Set(['cn','jp','in']);
@@ -1250,7 +1276,7 @@ function orderSite(u,kind,tx,ty){if(buildLock(u))return;
 function findTarget(u,range,minR,tgOverride){
  const d=UD[u.kind],tg=tgOverride||d.tg;let best=null,bs=1e9;minR=minR||0;
  unitsNear(u.x,u.y,range+24,v=>{if(!enemy(u.team,v.team)||!canHit(tg,v)||!seen(v,u.team))return;const dd=dist(u.x,u.y,v.x,v.y)-v.r;if(dd>range||dd<minR)return;const vd=UD[v.kind];let s=dd+(vd.worker?(u.raid?-90:60):0)+(vd.dmg?0:45)-(1-v.hp/v.maxhp)*45;if(vd.dmg&&canHit(vd.tg,u))s-=25;if(d.aa&&tgtLayer(v)==='a')s-=40;if(d.antiArmor&&vd.mech)s-=30;if(d.antiBio&&vd.bio)s-=30;if(dd<=d.rng)s-=40;if(s<bs){bs=s;best=v;}});
- if(!best&&tg.includes('g'))for(const b of ents)if(b.type==='bld'&&!b.dead&&enemy(u.team,b.team)){const dd=edgeDist(b,u.x,u.y);if(dd<=range&&dd>=minR){const s=dd+(BD[b.kind].atk?50:150);if(s<bs){bs=s;best=b;}}}
+ if(!best&&tg.includes('g'))bldsNear(u.x,u.y,range+4,b=>{if(!enemy(u.team,b.team))return;const dd=edgeDist(b,u.x,u.y);if(dd<=range&&dd>=minR){const s=dd+(BD[b.kind].atk?50:150);if(s<bs){bs=s;best=b;}}});
  return best;
 }
 function updUnit(u,dt){
@@ -1266,7 +1292,7 @@ function updUnit(u,dt){
  if(u.burnT>0){u.burnT-=dt;u.burnAcc=(u.burnAcc||0)+dt;if(u.burnAcc>=0.5){u.burnAcc=0;damage(u,3,byId.get(u.burnSrc));if(Math.random()<0.6)part(u.x+rnd(-6,6),u.y-u.r,0,-20,0.4,2,'#ff8a2a');}if(u.dead)return;}
  if(u.morph>0){u.morph-=dt;if(u.morph<=0)finishMorph(u);return;}
  if(u.sgT>0){u.sgT-=dt;if(u.sgT<=0)u.sg=u.sgWant;return;}
- if(d.ice){const cx=Math.floor(u.x/T),cy=Math.floor(u.y/T);for(let y=cy-1;y<=cy+1;y++)for(let x=cx-1;x<=cx+1;x++)if(inB(x,y)&&terr[y*MW+x]===1){iceT[y*MW+x]=25;iceSet.add(y*MW+x);}}
+ if(d.ice){const cx=Math.floor(u.x/T),cy=Math.floor(u.y/T);for(let y=cy-1;y<=cy+1;y++)for(let x=cx-1;x<=cx+1;x++)if(inB(x,y)&&terr[y*MW+x]===1){if(!(iceT[y*MW+x]>0))compV++;iceT[y*MW+x]=25;iceSet.add(y*MW+x);}}
  if(d.pas)pasTick(u,d,dt);
  if(d.heal&&u.state!=='move'&&medicTick(u,dt))return;
  switch(u.state){
@@ -1643,7 +1669,7 @@ Object.assign(UD,{
  fi_brewster:{f:'fi',n:'버팔로 전투기',layer:'a',hp:130,ar:1,sp:118,r:12,dmg:10,rng:135,cd:.6,tg:'ga',cost:[125,50],t:24,sup:2,mech:1,desc:'특수: 핀란드의 다이아몬드 — 튼튼한 전투기'},
  fi_blenheim:{f:'fi',n:'블레넘 폭격기',layer:'a',hp:190,ar:1,sp:86,r:14,dmg:24,rng:40,cd:2,spl:40,tg:'gn',cost:[150,100],t:32,sup:3,mech:1,desc:'쌍발 폭격기'},
  fi_fokker:{f:'fi',n:'포커 정찰기',layer:'a',hp:85,sp:100,r:11,dmg:6,rng:120,cd:.8,tg:'gn',det:1,cost:[75,50],t:18,sup:1,mech:1,desc:'특수: 정찰 — 탐지'},
- fi_vaina:{f:'fi',n:'해방전함 바이내뫼이넨',layer:'n',hp:420,ar:4,sp:38,r:19,dmg:34,rng:260,cd:2.8,spl:32,tg:'gn',det:1,cost:[275,150],t:50,sup:5,mech:1,desc:'특수: 해안 방어 전함 · 탐지'},
+ fi_vaina:{f:'fi',n:'전함 바이내',layer:'n',hp:420,ar:4,sp:38,r:19,dmg:34,rng:260,cd:2.8,spl:32,tg:'gn',det:1,cost:[275,150],t:50,sup:5,mech:1,desc:'특수: 해안 방어 전함 · 탐지'},
  fi_sub:{f:'fi',n:'베테히넨 잠수함',layer:'n',hp:190,sp:54,r:13,dmg:28,rng:150,cd:2.2,tg:'n',cloak:1,cost:[125,75],t:28,sup:3,mech:1,desc:'특수: 은신 잠수함'},
  fi_ice:{f:'fi',n:'쇄빙 포함',layer:'n',hp:300,ar:2,sp:50,r:16,dmg:14,rng:170,cd:1.2,tg:'gn',ice:1,cost:[150,50],t:30,sup:3,mech:1,desc:'특수: 지나간 물길을 얼려 육로를 만듦'},
  // ---- 폴란드: 날개 기병, 갈매기 날개, 암호
@@ -1700,7 +1726,7 @@ Object.assign(FTRAIT,{
  for(const k in BD){const d=BD[k];if(d.f==='hu'&&d.atk)d.atk.dmg=Math.round(d.atk.dmg*1.2);}
 })();
 // ===== 진영 밸런스 보정 (AI 대전 시뮬레이션으로 조정) — 전투력 배율: 체력·공격력에 각각 √배율 =====
-const FBAL={us:1.14,su:1.662,de:0.916,it:0.924,fr:1.111,uk:1.092,jp:1.111,cn:0.937,au:0.743,za:0.644,br:0.919,in:1.103,ko:1.113,hu:1.128,fi:0.906,pl:0.986};
+const FBAL={us:1,su:1,de:1,it:1,fr:1,uk:1,jp:1,cn:1,au:1,za:1,br:1,in:1,ko:1,hu:1,fi:1,pl:1};
 function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d._bh==null){d._bh=d.hp;d._bd=d.dmg||0;d._bs=d.sh||0;}const m=Math.sqrt(tb[d.f]||1);
  d.hp=Math.max(1,Math.round(d._bh*m));if(d._bs)d.sh=Math.max(1,Math.round(d._bs*m));if(d._bd)d.dmg=d._bd*m>=8?Math.round(d._bd*m):+(d._bd*m).toFixed(1);}}
 applyBal(FBAL);
@@ -2261,11 +2287,11 @@ function separate(){
 }
 function update(dt){
  G.time+=dt;if(G.warnT>0)G.warnT-=dt;fogT-=dt;if(fogT<=0){fogT=0.2;updFog();}
- buildHash();rebuildDet();rebuildHiVis();
+ buildHash();rebuildDet();rebuildHiVis();G._inUpd=true;
  for(let i=0;i<ents.length;i++){const e=ents[i];if(e.dead)continue;if(e.type==='unit')updUnit(e,dt);else if(e.type==='bld')updBld(e,dt);}
  separate();
  // 얼음
- if(iceSet.size){for(const i of iceSet){iceT[i]-=dt;if(iceT[i]<=0){iceT[i]=0;iceSet.delete(i);}}}
+ if(iceSet.size){for(const i of iceSet){iceT[i]-=dt;if(iceT[i]<=0){iceT[i]=0;iceSet.delete(i);compV++;}}}
  // 포탄
  for(const s of G.shells){
   s.t+=dt;const k=Math.min(1,s.t/s.dur);s.x=s.sx+(s.tx-s.sx)*k;s.y=s.sy+(s.ty-s.sy)*k-(s.arc?Math.sin(k*Math.PI)*40:0);
@@ -2273,7 +2299,7 @@ function update(dt){
   if(s.t<0){s.x=s.sx;s.y=s.sy;continue;}
   if(s.t>=s.dur){s.done=true;const src=byId.get(s.src);if(s.burn||s.frz)unitsNear(s.tx,s.ty,(s.spl||10)+10,v=>{if(!enemy(s.team,v.team)||dist(v.x,v.y,s.tx,s.ty)>(s.spl||10)+v.r)return;if(s.burn){v.burnT=4;v.burnSrc=s.src;}if(s.frz)v.slowT=Math.max(v.slowT||0,3);});
    if(s.spl){unitsNear(s.tx,s.ty,s.spl+20,v=>{if(!enemy(s.team,v.team)||!canHit(s.tg,v))return;const d=dist(v.x,v.y,s.tx,s.ty)-v.r;if(d<=s.spl)damage(v,d<s.spl*0.4?s.dmg:s.dmg*0.5,src);});
-    for(const b of ents)if(b.type==='bld'&&!b.dead&&enemy(s.team,b.team)&&edgeDist(b,s.tx,s.ty)<=s.spl*0.5)damage(b,s.dmg,src);
+    bldsNear(s.tx,s.ty,s.spl*0.5+4,b=>{if(enemy(s.team,b.team)&&edgeDist(b,s.tx,s.ty)<=s.spl*0.5)damage(b,s.dmg,src);});
     boom(s.tx,s.ty,s.bomb?18:14);}
    else{const t=byId.get(s.tid);if(t&&!t.dead&&!s.miss)damage(t,s.dmg,src);boom(s.tx+(s.miss?rnd(-14,14):0),s.ty+(s.miss?rnd(-14,14):0),s.torp?9:5);}
   }
@@ -2282,7 +2308,7 @@ function update(dt){
  // 포격 요청
  for(const s of G.strikes){s.t-=dt;if(s.t<=0){s.gap-=dt;if(s.gap<=0&&s.n>0){s.n--;s.gap=0.25;const x=s.x+rnd(-35,35),y=s.y+rnd(-35,35);boom(x,y,20);
    unitsNear(x,y,80,v=>{if(enemy(s.team,v.team)&&tgtLayer(v)!=='a'&&dist(v.x,v.y,x,y)<45+v.r)damage(v,s.dmg||45,null);});
-   for(const b of ents)if(b.type==='bld'&&!b.dead&&enemy(s.team,b.team)&&edgeDist(b,x,y)<30)damage(b,(s.dmg||45)*0.5,null);}}}
+   bldsNear(x,y,34,b=>{if(enemy(s.team,b.team)&&edgeDist(b,x,y)<30)damage(b,(s.dmg||45)*0.5,null);});}}}
  G.strikes=G.strikes.filter(s=>s.n>0);
  for(const f of G.flares){f.t-=dt;if(Math.random()<dt*6)part(f.x+rnd(-6,6),f.y+rnd(-6,6),0,-10,0.5,3,'#ffe08a');}G.flares=G.flares.filter(f=>f.t>0);
  for(const b of G.barriers)b.t-=dt;G.barriers=G.barriers.filter(b=>b.t>0);
@@ -2295,10 +2321,11 @@ function update(dt){
   for(const p of G.pl){if(!p.alive)continue;if(!ents.some(e=>e.team===p.id&&e.type==='bld')){p.alive=false;for(const e of ents)if(e.team===p.id&&!e.dead)kill(e,null);if(!p.human)toast(`${FAC[p.fac].n} ${p.ally?'동맹군이 무너졌어요!':'AI 격파!'}`);}}
   if(!P(0).alive)endGame(false);else if(!G.camp&&G.pl.every(p=>p.human||!p.alive||!enemy(0,p.id)))endGame(true);}
  if(G.camp)campTick(dt);
+ G._inUpd=false;
 }
 
 // ======================== 이펙트 ========================
-function part(x,y,vx,vy,life,size,col,grow){if(G.parts.length>600)return;G.parts.push({x,y,vx,vy,life,max:life,size,col,grow:grow||0});}
+function part(x,y,vx,vy,life,size,col,grow){if(G.parts.length>QPART[PQ])return;if(PQ>=2&&grow&&Math.random()<0.5)return;G.parts.push({x,y,vx,vy,life,max:life,size,col,grow:grow||0});}
 function puff(x,y,col,sc){part(x,y,rnd(-6,6),rnd(-18,-8),1.6*sc,3*sc,col,5*sc);}
 function flash(x,y,s){part(x,y,0,0,0.08,s,'#fff4c0');}
 function boom(x,y,s){
@@ -2470,14 +2497,22 @@ function updFog(){
  for(const e of ents.concat(extra)){if(e.dead||!friend0(e.team)||e.type==='res')continue;const r=e._r||(sightOf(e)+(P(0).fac==='uk'?2:0)),cx=e.x/T,cy=e.y/T,r2=r*r,hv=e._r?9:hOf(e);
   for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(MH-1,Math.ceil(cy+r));y++)for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(MW-1,Math.ceil(cx+r));x++){const dx=x+.5-cx,dy=y+.5-cy;if(dx*dx+dy*dy<=r2){const i=y*MW+x;if(hgt[i]>hv)continue;fvis[i]=1;fexp[i]=1;}}}
  const d=fogImg.data,FW=MW*FR,BY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
- const av=i=>fvis[i]?0:fexp[i]?0.55:1,A=new Float32Array(NN);for(let i=0;i<NN;i++)A[i]=av(i);
- for(let py=0;py<MH*FR;py++){const fy=(py+0.5)/FR-0.5,y0=Math.max(0,Math.floor(fy)),y1=Math.min(MH-1,y0+1),ay=clamp(fy-y0,0,1);
-  for(let px=0;px<FW;px++){const fx=(px+0.5)/FR-0.5,x0=Math.max(0,Math.floor(fx)),x1=Math.min(MW-1,x0+1),ax=clamp(fx-x0,0,1);
-   const v=(A[y0*MW+x0]*(1-ax)+A[y0*MW+x1]*ax)*(1-ay)+(A[y1*MW+x0]*(1-ax)+A[y1*MW+x1]*ax)*ay;
-   const th=(BY[(py&3)*4+(px&3)]+0.5)/16;let a;if(v<0.55)a=v/0.55>th?150:0;else a=(v-0.55)/0.45>th?250:150;
-   const k=(py*FW+px)*4;d[k]=8;d[k+1]=7;d[k+2]=5;d[k+3]=a;}}
- fogX.putImageData(fogImg,0,0);
+ // 바뀐 타일 주변만 다시 그림 (대규모 전투 최적화)
+ const full=fogG!==G||!fogA;if(full){fogG=G;fogA=new Float32Array(NN).fill(-1);fogD=new Uint8Array(NN);}
+ const A=fogA;let any=false,mx0=MW,my0=MH,mx1=-1,my1=-1;fogD.fill(0);
+ for(let i=0;i<NN;i++){const v=fvis[i]?0:fexp[i]?0.55:1;if(v!==A[i]){A[i]=v;const x=i%MW,y=(i/MW)|0;any=true;
+  for(let yy=Math.max(0,y-1);yy<=Math.min(MH-1,y+1);yy++)for(let xx=Math.max(0,x-1);xx<=Math.min(MW-1,x+1);xx++)fogD[yy*MW+xx]=1;
+  if(x-1<mx0)mx0=Math.max(0,x-1);if(x+1>mx1)mx1=Math.min(MW-1,x+1);if(y-1<my0)my0=Math.max(0,y-1);if(y+1>my1)my1=Math.min(MH-1,y+1);}}
+ if(!any)return;
+ for(let ty=my0;ty<=my1;ty++)for(let tx=mx0;tx<=mx1;tx++){if(!fogD[ty*MW+tx])continue;
+  for(let py=ty*FR;py<ty*FR+FR;py++){const fy=(py+0.5)/FR-0.5,y0=Math.max(0,Math.floor(fy)),y1=Math.min(MH-1,y0+1),ay=clamp(fy-y0,0,1);
+   for(let px=tx*FR;px<tx*FR+FR;px++){const fx=(px+0.5)/FR-0.5,x0=Math.max(0,Math.floor(fx)),x1=Math.min(MW-1,x0+1),ax=clamp(fx-x0,0,1);
+    const v=(A[y0*MW+x0]*(1-ax)+A[y0*MW+x1]*ax)*(1-ay)+(A[y1*MW+x0]*(1-ax)+A[y1*MW+x1]*ax)*ay;
+    const th=(BY[(py&3)*4+(px&3)]+0.5)/16;let a;if(v<0.55)a=v/0.55>th?150:0;else a=(v-0.55)/0.45>th?250:150;
+    const k=(py*FW+px)*4;d[k]=8;d[k+1]=7;d[k+2]=5;d[k+3]=a;}}}
+ fogX.putImageData(fogImg,0,0,mx0*FR,my0*FR,(mx1-mx0+1)*FR,(my1-my0+1)*FR);
 }
+let fogG=null,fogA=null,fogD=null;
 const tileOf=(x,y)=>clamp(Math.floor(y/T),0,MH-1)*MW+clamp(Math.floor(x/T),0,MW-1);
 function vis0(e){
  if(!G||e.team===0||e.team<0&&e.type!=='res')return true;
@@ -4025,7 +4060,7 @@ function render(){
  try{drawCreep(sx,sy,sw,sh);}catch(_){}
  const tx0=Math.max(0,Math.floor(vx0/T)),tx1=Math.min(MW,Math.ceil(vx1/T)),ty0=Math.max(0,Math.floor(vy0/T)),ty1=Math.min(MH,Math.ceil(vy1/T));
  ctx.fillStyle='rgba(190,232,255,.22)';
- for(let ty=ty0;ty<ty1;ty++)for(let tx=tx0;tx<tx1;tx++){if(terr[ty*MW+tx]!==1)continue;const ph=(G.time*0.35+hash(tx,ty))%1;if(ph>0.6)continue;const x=Math.round((tx*T+6+hash(ty,tx)*20)/2)*2,y=Math.round((ty*T+8+hash(tx+3,ty)*20)/2)*2,w=ph<0.3?ph*20:(0.6-ph)*20;ctx.fillRect(x,y,Math.round(w/2)*2+2,2);}
+ if(PQ<2)for(let ty=ty0;ty<ty1;ty++)for(let tx=tx0;tx<tx1;tx++){if(terr[ty*MW+tx]!==1)continue;const ph=(G.time*0.35+hash(tx,ty))%1;if(ph>0.6)continue;const x=Math.round((tx*T+6+hash(ty,tx)*20)/2)*2,y=Math.round((ty*T+8+hash(tx+3,ty)*20)/2)*2,w=ph<0.3?ph*20:(0.6-ph)*20;ctx.fillRect(x,y,Math.round(w/2)*2+2,2);}
  if(iceSet.size){for(const i of iceSet){const tx=i%MW,ty=(i/MW)|0;if(tx<tx0-1||tx>tx1||ty<ty0-1||ty>ty1)continue;ctx.fillStyle=`rgba(225,245,255,${Math.min(0.85,iceT[i]/6)})`;ctx.fillRect(tx*T,ty*T,T,T);}}
 
  if(G.placing){refreshPlaceMask();if(placeMask){
@@ -4057,7 +4092,7 @@ function render(){
  ctx.lineWidth=1.4;for(const t of G.tracers){ctx.strokeStyle=t.col;ctx.globalAlpha=Math.min(1,t.life/0.07);ctx.beginPath();ctx.moveTo(t.x1,t.y1);ctx.lineTo(t.x2,t.y2);ctx.stroke();}ctx.globalAlpha=1;
  for(const p of G.parts){const k=clamp(p.life/p.max,0,1);ctx.globalAlpha=p.grow?Math.min(0.6,k*0.8):1;ctx.fillStyle=p.col;const s=Math.max(2,Math.round(p.size*(p.grow?1:1.2)/2)*2);if(p.grow&&s>6){ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2+2)&~1,s,s-4);ctx.fillRect(Math.round(p.x-s/2+2)&~1,Math.round(p.y-s/2)&~1,s-4,s);}else ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2)&~1,s,s);}ctx.globalAlpha=1;
  for(const m of G.marks){const k=m.t/0.6;ctx.strokeStyle=m.col;ctx.globalAlpha=1-k;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(m.x,m.y,6+k*12,(6+k*12)*0.7,0,0,7);ctx.stroke();}ctx.globalAlpha=1;
- if(fogC){ctx.imageSmoothingEnabled=false;ctx.drawImage(fogC,0,0,fogC.width,fogC.height,0,0,WW,WH);ctx.fillStyle='#080705';ctx.fillRect(-400,-400,WW+800,400);ctx.fillRect(-400,WH,WW+800,400);ctx.fillRect(-400,0,400,WH);ctx.fillRect(WW,0,400,WH);}
+ if(fogC){ctx.imageSmoothingEnabled=false;{const FK=fogC.width/WW,fx0=Math.max(0,Math.floor(vx0/T)-1)*T,fy0=Math.max(0,Math.floor(vy0/T)-1)*T,fx1=Math.min(WW,Math.ceil(vx1/T+1)*T),fy1=Math.min(WH,Math.ceil(vy1/T+1)*T);if(fx1>fx0&&fy1>fy0)ctx.drawImage(fogC,fx0*FK,fy0*FK,(fx1-fx0)*FK,(fy1-fy0)*FK,fx0,fy0,fx1-fx0,fy1-fy0);}ctx.fillStyle='#080705';ctx.fillRect(-400,-400,WW+800,400);ctx.fillRect(-400,WH,WW+800,400);ctx.fillRect(-400,0,400,WH);ctx.fillRect(WW,0,400,WH);}
  drawSat();
  for(const e of vis)if(e.type!=='res'&&(selSet.has(e.id)||e.hp<e.maxhp||(e.maxsh&&e.sh<e.maxsh)||(e.pcMax&&e.team===0)||(e.type==='bld'&&!e.built)))hpBar(e);
  if(G.placing&&BD[G.placing].drop){const d=BD[G.placing],pul=0.5+0.5*Math.sin(performance.now()/220);
@@ -4712,7 +4747,7 @@ function fireSound(u){
 }
 // ======================== 화면 / 흐름 ========================
 function resize(){
- dpr=Math.min(window.devicePixelRatio||1,2);VW=innerWidth;VH=innerHeight;
+ dpr=Math.min(window.devicePixelRatio||1,2,QDPR[PQ]);VW=innerWidth;VH=innerHeight;
  cvs.width=Math.round(VW*dpr);cvs.height=Math.round(VH*dpr);cvs.style.width=VW+'px';cvs.style.height=VH+'px';
  {const r=mini.getBoundingClientRect();mini.width=Math.round((r.width||96)*dpr);mini.height=Math.round((r.height||96)*dpr);}
  rotated=VH>VW&&('ontouchstart' in window);$('rotate').classList.toggle('hidden',!rotated);
@@ -5200,11 +5235,11 @@ function endGame(win,why){
 let last=performance.now(),hudT=0,miniT=0;
 function frame(now){
  const dt=Math.min(0.05,(now-last)/1000);last=now;
- if(G){
+ if(G){const w0=performance.now();
   if(!G.paused&&!rotated&&!G.over){let rem=dt*(G.speed||1);while(rem>1e-4){const d=Math.min(rem,0.05);update(d);rem-=d;if(G.over)break;}}else if(G.over)updFx(dt);
   if(LOCK.active&&!wantLock()){try{document.exitPointerLock();}catch(_){}}
   keysPan(dt);if(!PC&&gest&&gest.mode==='drag'&&gest.ws){const m=40,sp=700*dt/cam.z;let dx=0,dy=0;if(gest.cx<m)dx=-sp;else if(gest.cx>VW-m)dx=sp;if(gest.cy<m+TOPH)dy=-sp;else if(gest.cy>VH-m)dy=sp;if(dx||dy){cam.x+=dx;cam.y+=dy;clampCam();}const s0=[(gest.ws[0]-cam.x)*cam.z,(gest.ws[1]-cam.y)*cam.z];if(G.dragLine){G.dragLine.x0=s0[0];G.dragLine.y0=s0[1];}}
-  render();updCursor();
+  render();updCursor();if(!G.paused)pqTick(performance.now()-w0,dt);
   miniT-=dt;if(miniT<=0){miniT=0.12;renderMini();}
   hudT-=dt;if(hudT<=0||hudDirty){hudT=0.15;renderHud();$('qWarn').classList.toggle('hidden',!(G.warnPos&&G.time-G.warnPos[2]<12));}
  }
