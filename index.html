@@ -417,7 +417,7 @@ body.pc #bottom.panel{background:linear-gradient(180deg,#4a3f2d 0%,#2b2419 30%,#
 · 유닛을 <b>탭</b>해서 고르고, <b>땅을 한 번 탭</b>하면 이동(적 무시), <b>두 번 탭</b>하면 어택땅(가는 길의 적과 싸우며 이동)이에요. 적을 직접 탭하면 공격해요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
 · <b>길게 누르면</b> 화면 안 같은 종류 유닛이 모두 선택돼요. 한 손가락 <b>드래그</b>는 범위 선택이에요.<br>
 · 건물을 탭하면 유닛을 뽑을 수 있고, 일꾼을 고른 뒤 <b>건설</b>을 누르면 초록 칸에 지을 수 있어요.<br>
-· 화면 이동은 왼쪽 아래 <b>조이스틱</b>, <b>두 손가락</b>, 오른쪽 위 <b>미니맵</b>으로 하세요. 가 보지 않은 곳은 <b>안개</b>로 가려져 있어요.<br>
+· 화면 이동은 왼쪽 아래 <b>조이스틱</b>, <b>두 손가락</b>, 오른쪽 위 <b>미니맵</b>으로 하세요. 미니맵: 유닛을 고른 채 <b>한 번 탭 = 그곳으로 이동</b>, <b>두 번 탭 = 화면 전환</b>, 끌기 = 화면 이동. 가 보지 않은 곳은 <b>안개</b>로 가려져 있어요.<br>
 · 공격받으면 오른쪽에 빨간 <b>⚠</b> 버튼이 떠요. 누르면 그곳으로 바로 가요.</div>
 <div class="seg" style="margin-top:10px"><button id="tipsOk" class="on">알겠어요</button></div></div></div>
 <div id="loading" class="hidden"><div class="ld-rays"></div><div class="ld-box">
@@ -1591,6 +1591,11 @@ Object.assign(FTRAIT,{
  }
  for(const k in BD){const d=BD[k];if(d.f==='hu'&&d.atk)d.atk.dmg=Math.round(d.atk.dmg*1.2);}
 })();
+// ===== 진영 밸런스 보정 (AI 대전 시뮬레이션으로 조정) — 전투력 배율: 체력·공격력에 각각 √배율 =====
+const FBAL={us:1.112,su:1.417,de:0.95,it:1.005,fr:0.928,uk:1.035,jp:1.045,cn:0.988,au:0.877,za:0.741,br:0.879,in:0.994,ko:1.034,hu:1.317,fi:0.942,pl:0.97};
+function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d._bh==null){d._bh=d.hp;d._bd=d.dmg||0;d._bs=d.sh||0;}const m=Math.sqrt(tb[d.f]||1);
+ d.hp=Math.max(1,Math.round(d._bh*m));if(d._bs)d.sh=Math.max(1,Math.round(d._bs*m));if(d._bd)d.dmg=d._bd*m>=8?Math.round(d._bd*m):+(d._bd*m).toFixed(1);}}
+applyBal(FBAL);
 
 
 
@@ -4426,6 +4431,7 @@ function renderMini(){
  if(fogC){mctx.imageSmoothingEnabled=false;mctx.drawImage(fogC,0,0,fogC.width,fogC.height,0,0,mw,mh);}
  for(const e of ents)if(!e.dead&&e.team===0&&e.type!=='res'){mctx.fillStyle=TCOL[0];if(e.type==='bld')mctx.fillRect((e.x-e.w*T/2)*sx-1,(e.y-e.h*T/2)*sy-1,e.w*T*sx+2,e.h*T*sy+2);else mctx.fillRect(e.x*sx-1.5,e.y*sy-1.5,3,3);}
  mctx.strokeStyle='#fff';mctx.lineWidth=1.5;mctx.strokeRect(cam.x*sx,cam.y*sy,VW/cam.z*sx,VH/cam.z*sy);
+ if(G.miniPing){const pg=G.miniPing,a=(performance.now()-pg.t)/700;if(a<1){mctx.strokeStyle=pg.c;mctx.lineWidth=2;for(const k of [0,0.35]){const q=a+k;if(q>1)continue;mctx.globalAlpha=1-q;mctx.beginPath();mctx.arc(pg.x*sx,pg.y*sy,3+q*12,0,7);mctx.stroke();}mctx.globalAlpha=1;}else G.miniPing=null;}
  if(G.warnPos&&G.time-G.warnPos[2]<4){const k=(G.time*2)%1;mctx.strokeStyle=`rgba(255,80,60,${1-k})`;mctx.lineWidth=2;mctx.beginPath();mctx.arc(G.warnPos[0]*sx,G.warnPos[1]*sy,4+k*14,0,7);mctx.stroke();}
 }
 let miniDrag=false;
@@ -4434,8 +4440,12 @@ mini.addEventListener('contextmenu',e=>e.preventDefault());
 mini.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(e.button===2){const r=mini.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;G.shiftQ=e.shiftKey;commandAt(x,y,false,false);G.shiftQ=false;return;}if(G&&G.pending&&e.button===0){const r=mini.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;const p=G.pending;G.pending=null;hudDirty=true;if(p.t==='amove')commandAt(x,y,true);else if(p.t==='move')commandAt(x,y,false);return;}try{mini.setPointerCapture(e.pointerId);}catch(_){}if(e.pointerType!=='mouse'&&G){miniTap={x:e.clientX,y:e.clientY,t:performance.now()};miniDrag=false;return;}miniDrag=true;miniMove(e);});
 let miniTap=null,miniLastTap=0;
 mini.addEventListener('pointermove',e=>{if(miniTap&&!miniDrag&&dist(e.clientX,e.clientY,miniTap.x,miniTap.y)>6){miniDrag=true;miniTap=null;}if(miniDrag)miniMove(e);});
-mini.addEventListener('pointerup',e=>{if(miniTap&&G){const now=performance.now(),dbl=now-miniLastTap<350;miniLastTap=now;const r=mini.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;const us=selEnts().filter(u=>u.type==='unit'&&u.team===0);
- if(us.length&&!dbl){commandAt(x,y,MOBATK,false);toast(MOBATK?'미니맵 지점으로 어택땅 (두 번 탭: 화면 이동)':'미니맵 지점으로 이동 (두 번 탭: 화면 이동)');}else centerOn(x,y);}miniTap=null;miniDrag=false;});mini.addEventListener('pointercancel',()=>miniDrag=false);
+// 미니맵(모바일): 유닛 선택 중 한 번 탭 = 그곳으로 이동, 두 번 탭 = 화면 전환 / 선택 없으면 한 번 탭 = 화면 전환 / 끌기 = 화면 이동
+let miniMoveT=null;
+mini.addEventListener('pointerup',e=>{if(miniTap&&G){const now=performance.now(),dbl=now-miniLastTap<320;miniLastTap=dbl?0:now;const r=mini.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;const us=selEnts().filter(u=>u.type==='unit'&&u.team===0);
+ if(dbl){clearTimeout(miniMoveT);miniMoveT=null;centerOn(x,y);G.miniPing={x,y,t:now,c:'#ffffff'};toast('📷 화면 전환');}
+ else if(us.length){clearTimeout(miniMoveT);miniMoveT=setTimeout(()=>{miniMoveT=null;if(!G)return;const live=selEnts().filter(u=>u.type==='unit'&&u.team===0);if(!live.length)return;commandAt(x,y,false,false);G.miniPing={x,y,t:performance.now(),c:'#6cff6c'};toast(`🚶 ${live.length}기 미니맵 지점으로 이동`);},300);}
+ else{centerOn(x,y);G.miniPing={x,y,t:now,c:'#ffffff'};}}miniTap=null;miniDrag=false;});mini.addEventListener('pointercancel',()=>miniDrag=false);
 // ======================== 효과음 (Web Audio 합성) ========================
 const SFX={ac:null,out:null,noise:null,on:true,last:{},n:0};
 try{SFX.on=localStorage.getItem('wd_snd')!=='0';}catch(_){}
