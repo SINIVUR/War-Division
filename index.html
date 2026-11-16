@@ -63,6 +63,33 @@ body.pc #joy,body.pc #groups{display:none!important}
 .btn:active{filter:brightness(1.4)}
 #groups{position:fixed;left:max(6px,env(safe-area-inset-left));top:31px;display:grid;grid-template-columns:48px 48px;gap:4px;z-index:5}
 #groups .btn{width:48px;height:30px;font-size:11.5px;padding:0}
+#obj{position:fixed;top:30px;left:50%;transform:translateX(-50%);max-width:52vw;background:rgba(20,15,8,.82);border:1px solid #8a6d3a;border-radius:6px;padding:3px 10px;font-size:11.5px;z-index:6;color:#f1e3c0;pointer-events:auto;cursor:pointer}
+body.pc #obj{top:36px;font-size:13px}
+#obj .ot{font-size:10px;color:#e8c56a;font-weight:700;letter-spacing:.04em}
+#obj .og{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#obj .og b{color:#9fff8a}#obj .og .on{color:#a88f5c;font-size:10px}
+#obj .og.done{color:#7a8a6a;text-decoration:line-through}#obj .og.warn,#brief .warn{color:#ff8a7a}
+#obj .oh{font-size:10.5px;color:#c8d8a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.incamp #toast{top:86px}
+body.pc.incamp #toast{top:110px}
+.big.camp{background:linear-gradient(#5a6e8a,#2a3a52);border-color:#a8c0e8;color:#f0f4ff}
+#camp .cwrap{display:flex;gap:14px;width:min(96vw,980px);max-height:96vh;align-items:stretch}
+#camp .cl{flex:1.1;display:flex;flex-direction:column}#camp .cr{flex:1;display:flex;flex-direction:column;overflow:auto}
+#camp .chd{font-size:16px;font-weight:900;color:#e8c56a;margin-bottom:6px}
+#campParts{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+#campParts .cp{position:relative;background:linear-gradient(#3a2f1e,#211a10);border:1px solid #6a5430;border-radius:5px;padding:4px 4px 3px 9px;cursor:pointer}
+#campParts .cp .bar{position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:5px 0 0 5px}
+#campParts .cp .cn{font-size:11px;font-weight:700;white-space:nowrap}#campParts .cp .cs{font-size:10px;color:#e8c56a}
+#campParts .cp.sel{border-color:#f0d080;box-shadow:0 0 8px rgba(240,208,128,.5)}#campParts .cp.lock{opacity:.5}
+#campDiff{flex-wrap:wrap}#campDiff button{padding:4px 7px;font-size:11px}
+#campMis .ct{font-size:15px;font-weight:900;color:#e8c56a}#campMis .cd{font-size:11px;color:#c8b890;margin:2px 0 6px}
+#campMis .cm{background:rgba(40,30,18,.85);border:1px solid #7a6034;border-radius:6px;padding:6px 8px;margin-bottom:5px;cursor:pointer;font-size:12.5px}
+#campMis .cm span{font-size:10.5px;color:#9fff8a}#campMis .cm.lock{opacity:.5}#campMis .cm.lock span{color:#c8a878}
+#campMis .cm .cg{font-size:10.5px;color:#c8b890;margin-top:2px}
+#camp .seg-b{margin-top:auto;align-self:flex-end;background:linear-gradient(#4a3d26,#2a2215);border:1px solid #8a6d3a;color:#f1e3c0;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit}
+#briefBody{width:min(92vw,640px);background:rgba(30,22,12,.9);border:1px solid #8a6d3a;border-radius:8px;padding:12px 16px;max-height:78vh;overflow:auto}
+#briefBody .bk{font-size:11px;color:#a88f5c;letter-spacing:.1em}#briefBody h3{font-size:20px;color:#e8c56a;margin:2px 0 6px}
+#briefBody .bt{font-size:13px;line-height:1.55;color:#f1e3c0}#briefBody .bi{font-size:11.5px;color:#c8b890;margin:8px 0 4px}
+#briefBody .bg{font-size:12.5px;color:#cfe8b0;border-top:1px solid #5a4828;padding-top:5px}
 #groups #amode{grid-column:1/3;width:auto;height:34px;font-size:12.5px;font-weight:700;border-color:#6cff6c;color:#bfffbf;background:rgba(30,80,30,.75)}
 #groups #amode.atk{border-color:#ff5a4a;color:#ffd0c8;background:rgba(120,25,20,.85);box-shadow:0 0 8px rgba(255,90,74,.6)}
 #hint{position:fixed;top:32px;left:50%;transform:translateX(-50%);background:rgba(20,16,10,.88);border:1px solid #c9a14a;padding:4px 14px;border-radius:12px;font-size:12px;z-index:6;display:none;pointer-events:none;white-space:nowrap}
@@ -213,6 +240,7 @@ body.pc #roster,body.pc #prod{display:none!important}
 <div id="fsgate" class="hidden"><div class="box"><div class="t">전체화면 전용</div><div class="d">PC에서는 전체화면에서만 플레이할 수 있어요.<br>게임이 일시정지됐어요.</div><button id="fsBtn" class="big">⛶ 전체화면으로 돌아가기</button></div></div>
 <div id="vcursor" class="hidden"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M2 2 L2 21 L7 16.5 L10.5 24 L14 22.4 L10.6 15 L17.5 15 Z" fill="#f0d488" stroke="#1a140b" stroke-width="2" stroke-linejoin="round"/></svg></div>
 <div id="hint"></div>
+<div id="obj" class="hidden"></div>
 <div id="toast"></div>
 
 <div id="title" class="overlay">
@@ -242,8 +270,8 @@ body.pc #roster,body.pc #prod{display:none!important}
       <div class="lbl">상대 AI 수 (진영 무작위 · 중복 없음 · 최대 12인전)</div>
       <div class="seg" id="aiSeg"><button data-v="1" class="on">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="7">7</button><button data-v="8">8</button><button data-v="9">9</button><button data-v="10">10</button><button data-v="11">11</button></div>
       <div class="lbl">난이도</div>
-      <div class="seg" id="diffSeg"><button data-v="0">쉬움</button><button data-v="1" class="on">보통</button><button data-v="2">어려움</button><button data-v="3">매우 어려움</button><button data-v="4">초극한급</button></div>
-      <button class="big" id="startBtn">출격</button>
+      <div class="seg" id="diffSeg"><button data-v="0">입문</button><button data-v="1">쉬움</button><button data-v="2" class="on">보통</button><button data-v="3">어려움</button><button data-v="4">매우 어려움</button><button data-v="5">초극한급</button></div>
+      <div style="display:flex;gap:8px"><button class="big" id="startBtn">출격</button><button class="big camp" id="campBtn">📜 캠페인</button></div>
     </div>
     <div class="right">
       <div class="seg" id="mapSeg" style="margin-bottom:6px;display:grid;grid-template-columns:repeat(2,auto);gap:4px"><button data-v="forest" class="on">더 포레스트</button><button data-v="ocean">디 오션</button><button data-v="city">더 시티</button><button data-v="ruins">더 루인스</button></div>
@@ -269,9 +297,21 @@ body.pc #roster,body.pc #prod{display:none!important}
 <div id="end" class="overlay hidden">
   <h2 id="endTitle">승리</h2>
   <div class="stats" id="endStats"></div>
-  <div class="seg"><button id="againBtn" class="on">다시 하기</button><button id="end2title">타이틀로</button></div>
+  <div class="seg"><button id="campNext" class="on hidden">다음 미션 ▶</button><button id="againBtn" class="on">다시 하기</button><button id="campList" class="hidden">캠페인 목록</button><button id="end2title">타이틀로</button></div>
 </div>
 
+<div id="camp" class="overlay hidden">
+  <div class="cwrap">
+    <div class="cl"><div class="chd">📜 캠페인 · 에테르 대전</div><div id="campParts"></div>
+      <div class="lbl" style="margin-top:6px">캠페인 난이도</div>
+      <div class="seg" id="campDiff"><button data-v="0">입문</button><button data-v="1">쉬움</button><button data-v="2">보통</button><button data-v="3">어려움</button><button data-v="4">매우 어려움</button><button data-v="5">초극한급</button></div></div>
+    <div class="cr"><div id="campMis"></div><button id="campBack" class="seg-b">◀ 타이틀로</button></div>
+  </div>
+</div>
+<div id="brief" class="overlay hidden">
+  <div id="briefBody"></div>
+  <div class="seg" style="margin-top:10px"><button id="briefBack">◀ 목록</button><button id="briefGo" class="on">출격 ▶</button></div>
+</div>
 <div id="rotate" class="overlay hidden"><div class="ph"></div>가로 화면으로 돌려 주세요</div>
 <div id="tips" class="overlay hidden"><div class="card"><h3>처음 하시나요? 이것만 기억하세요</h3>
 <div class="pcx">· 스타크래프트와 똑같아요: <b>좌클릭</b> 선택, <b>드래그</b> 범위 선택(최대 12기), <b>우클릭</b> 이동·공격·채집.<br>
@@ -490,6 +530,7 @@ jp:{order:['jp_barracks','jp_refinery','jp_forge','jp_lab','jp_naval','jp_tower'
  cn:{order:['cn_barracks','cn_refinery','cn_barracks','cn_lab','cn_works','cn_dock','cn_wall','cn_kitefield','cn_barracks'],army:{cn_barracks:['cn_militia','cn_militia','cn_rocket','cn_militia','cn_taoist'],cn_works:['cn_dragon'],cn_kitefield:['cn_kite'],cn_dock:['cn_junk']}},
 };
 const AIP=[
+ {n:'입문',mult:0.45,workers:7,first:720,gap:330,size:4,grow:1,think:3,prod:1,def:450},
  {n:'쉬움',mult:0.6,workers:9,first:520,gap:260,size:5,grow:2,think:2.2,prod:1,def:550},
  {n:'보통',mult:0.85,workers:13,first:380,gap:200,size:8,grow:3,think:1.4,prod:2,def:650},
  {n:'어려움',mult:1.15,workers:18,first:270,gap:145,size:12,grow:4,think:0.8,prod:2,def:800},
@@ -702,7 +743,8 @@ function addUnit(kind,team,x,y){
  return addEnt({type:'unit',kind,team,x,y,r:d.r*SZ,hp:d.hp,maxhp:d.hp,sh:d.sh||0,maxsh:d.sh||0,shT:9,state:'idle',path:null,pi:0,target:0,cd:Math.random()*0.5,face:Math.random()*6.28,carry:0,carryT:null,res:0,phase:null,timer:0,sg:0,sgT:0,sgWant:0,scanT:Math.random()*0.3,repathT:0,anim:Math.random()*10,morph:0,flash:0,abCd:0,slowT:0,revealT:0});
 }
 const P=t=>G.pl[t];
-const enemy=(a,b)=>a>=0&&b>=0&&a!==b;
+const enemy=(a,b)=>a>=0&&b>=0&&a!==b&&!(G&&G.ally&&G.ally[a]!=null&&G.ally[a]===G.ally[b]);
+const friend0=t=>t===0||(G&&G.ally&&G.ally[t]!=null&&G.ally[t]===G.ally[0]);
 
 // ======================== 게임 시작 ========================
 function newGame(cfg){
@@ -714,13 +756,18 @@ function newGame(cfg){
  const n=cfg.ais+1,r0=Math.floor(Math.random()*12),gap=12/n;
  let spots=[];for(let k=0;k<n;k++){const j=n===2?Math.floor(Math.random()*3)-1:0;spots.push(((r0+Math.round(k*gap)+j)%12+12)%12);}
  spots=spots.sort(()=>Math.random()-0.5);
+ if(cfg.plist){// 캠페인: 아군은 내 옆, 적은 맞은편
+  const used=new Set([r0]);spots=[r0];const put=(c)=>{for(const o of [0,1,-1,2,-2,3,-3,4,-4,5,-5,6]){const s2=((c+o)%12+12)%12;if(!used.has(s2)){used.add(s2);return s2;}}};
+  const al=cfg.plist.filter(q=>q.ally).length,en=cfg.plist.filter(q=>q.side==='B').length;let ai2=0,ei=0;
+  for(let t=1;t<n;t++){const q=cfg.plist[t];if(q.ally){ai2++;spots.push(put(r0+(ai2%2?2:-2)*Math.ceil(ai2/2)));}else{const sp2=en<=1?0:Math.round((ei-(en-1)/2)*(en>=3?2:3));ei++;spots.push(put(r0+6+sp2));}}
+ }
  const facs=['us','su','de','it','fr','uk','jp','cn','au','za','br','in','ko','hu','fi','pl'].filter(f=>f!==cfg.fac).sort(()=>Math.random()-0.5);
  const pl=[];
  for(let t=0;t<=cfg.ais;t++){
-  const fac=t===0?cfg.fac:facs[(t-1)%facs.length];
-  pl.push({id:t,fac,human:t===0,coal:50,ether:0,alive:true,up:{g:0,a:0,n:0},spawn:spots[t],ai:{nextWave:AIP[cfg.diff].first+rnd(-20,20),waveSize:AIP[cfg.diff].size,thinkT:1+t*0.37,alert:null,ord:0}});
+  const fac=cfg.plist?cfg.plist[t].fac:t===0?cfg.fac:facs[(t-1)%facs.length],dd=cfg.plist?cfg.plist[t].diff:cfg.diff;
+  pl.push({id:t,fac,human:t===0,ally:cfg.plist?!!cfg.plist[t].ally:false,coal:50,ether:0,alive:true,up:{g:0,a:0,n:0},spawn:spots[t],diff:dd,ai:{nextWave:AIP[dd].first+rnd(-20,20),waveSize:AIP[dd].size,thinkT:1+t*0.37,alert:null,ord:0}});
  }
- G={time:0,cfg,diff:cfg.diff,pl,sp,lay,sel:[],groups:[[],[],[],[],[],[],[],[],[],[]],cams:[null,null,null],placing:null,ghost:null,pending:null,buildMenu:false,buildPage:0,box:null,
+ G={time:0,cfg,diff:cfg.diff,ally:cfg.plist?cfg.plist.map(q=>q.side):null,pl,sp,lay,sel:[],groups:[[],[],[],[],[],[],[],[],[],[]],cams:[null,null,null],placing:null,ghost:null,pending:null,buildMenu:false,buildPage:0,box:null,
   marks:[],parts:[],tracers:[],shells:[],strikes:[],rings:[],flares:[],barriers:[],over:false,paused:false,stats:{made:0,kills:0,lost:0},speed:1,qp:null,autoT:0,warnT:0,warnPos:null,lastTap:{t:0,id:0},endT:0};
  for(const p of pl){
   const s=sp[p.spawn],L=lay[p.spawn],F=FAC[p.fac];
@@ -1434,8 +1481,8 @@ function gatherTick(u,dt){
   let dp=byId.get(u.drop);if(!dp||dp.dead||!dp.built||dp.moving){dp=nearestDrop(u);u.drop=dp?dp.id:0;u.path=null;}
   if(!dp){u.state='idle';return;}
   if(edgeDist(dp,u.x,u.y)<=u.r+10){
-   const m=tm.human?1:AIP[G.diff].mult,n=Math.round(u.carry*m);
-   if(u.carryT==='ether')tm.ether+=n;else tm.coal+=n;
+   const m=tm.human?1:AIP[tm.diff??G.diff].mult,n=Math.round(u.carry*m);
+   if(u.carryT==='ether')tm.ether+=n;else{tm.coal+=n;if(tm.human)G.stats.coal=(G.stats.coal||0)+n;}
    u.carry=0;u.carryT=null;u.phase='to';u.path=null;u.repathT=0;return;
   }
   moveToward(u,dp,dt);return;
@@ -1759,14 +1806,14 @@ function aiThink(p){
  for(const g of gas){let n=wk.filter(u=>u.state==='gather'&&u.res===g.id).length;for(const u of wk)if(n<3&&u.state==='gather'&&u.phase==='to'&&!u.carry&&byId.get(u.res)?.type==='res'){orderGather(u,g);n++;}}
  for(const u of wk)if(u.state==='idle'){const c=nearestCoal(base.x,base.y);if(c&&dist(c.x,c.y,base.x,base.y)<700)orderGather(u,c);}
  // 병력 생산
- const armyCap=[22,40,70,999,999][G.diff];
- for(const b of blds){if(!b.built||b.queue.length>=(G.diff>=3?3:G.diff>=2?2:1))continue;if(army.length>=armyCap)break;if(G.diff===0&&Math.random()<0.4)continue;const list=PL.army[b.kind];if(!list)continue;
-  let k=(G.diff>=2?counterPick(list,p.ai.intel,army):null)||list[b.aiIdx%list.length];
+ const armyCap=[12,22,40,70,999,999][G.diff];
+ for(const b of blds){if(!b.built||b.queue.length>=(G.diff>=4?3:G.diff>=3?2:1))continue;if(army.length>=armyCap)break;if(G.diff<=1&&Math.random()<(G.diff===0?0.6:0.4))continue;const list=PL.army[b.kind];if(!list)continue;
+  let k=(G.diff>=3?counterPick(list,p.ai.intel,army):null)||list[b.aiIdx%list.length];
   if(k==='balloon'&&army.filter(u=>u.kind==='balloon').length>=4)k=null;
   if(k==='observer'&&army.filter(u=>u.kind==='observer').length>=2)k=list[0];
   if(k&&tryTrain(b,k,true))b.aiIdx++;else if(k){const alt=list.filter(x=>x!==k&&UD[x].cost[1]<=p.ether&&UD[x].cost[0]<=p.coal&&!(x==='balloon'&&army.filter(u=>u.kind==='balloon').length>=4));if(alt.length&&tryTrain(b,alt[Math.floor(Math.random()*alt.length)],true))b.aiIdx++;}}
  // 업그레이드 연구
- for(const b of blds)if(BD[b.kind].up&&b.built&&!b.rs){const order=['g','g','a','n'];for(const ly of order){const lv=tm.up[ly]+1;if(lv>3||!canResearch(p.id,ly))continue;const c=upCost(lv,p.id);if(tm.coal>=c[0]+(G.diff>=3?20:G.diff>=2?80:150)&&tm.ether>=c[1]){startResearch(b,ly,true);}break;}}
+ for(const b of blds)if(BD[b.kind].up&&b.built&&!b.rs){const order=['g','g','a','n'];for(const ly of order){const lv=tm.up[ly]+1;if(lv>3||!canResearch(p.id,ly))continue;const c=upCost(lv,p.id);if(tm.coal>=c[0]+(G.diff>=4?20:G.diff>=3?80:150)&&tm.ether>=c[1]){startResearch(b,ly,true);}break;}}
  // 변이
  if(p.fac==='su'&&done('lab')&&tm.coal>=50&&tm.ether>=50&&sup.cap-sup.used>=2){
   const c=army.find(u=>u.kind==='conscript'&&!u.wave&&u.state==='idle'&&dist(u.x,u.y,base.x,base.y)<700);
@@ -1813,21 +1860,21 @@ function aiHuman(p,c){
   let near=false;for(const m of myPts)if(Math.abs(m.x-e.x)<380&&Math.abs(m.y-e.y)<380){near=true;break;}if(!near)continue;
   const d=UD[e.kind],L=d.layer||'g',w=0.05;if(L==='a')intel.air+=w;else if(L==='n')intel.nav+=w;else intel.gnd+=w;if(d.mech)intel.mech+=w;if(d.bio)intel.bio+=w;}
  // --- 노릴 상대: 가깝고, 나를 때렸고, 약한 상대
- const foes=G.pl.filter(q=>q.alive&&q.id!==p.id);
+ const foes=G.pl.filter(q=>q.alive&&q.id!==p.id&&enemy(p.id,q.id));
  const fscore=q=>{const d=dist(q.base.x,q.base.y,base.x,base.y)/600;const arm=ents.reduce((s,e)=>s+(!e.dead&&e.team===q.id&&e.type==='unit'?1:0),0);return d+arm*0.03-(ai.hate[q.id]||0)*0.004;};
  if(!ai.focus||!P(ai.focus).alive||G.time>(ai.focusT||0)){const f=foes.sort((a,b)=>fscore(a)-fscore(b))[0];ai.focus=f?f.id:null;ai.focusT=G.time+60+rnd(0,40);}
  const focusTarget=()=>{let best=null,bd=1e9;for(const e of ents)if(!e.dead&&e.type==='bld'&&e.team===ai.focus){const d=dist(e.x,e.y,base.x,base.y);if(d<bd){bd=d;best=e;}}
   if(!best)for(const e of ents)if(!e.dead&&e.type==='bld'&&enemy(p.id,e.team)){const d=dist(e.x,e.y,base.x,base.y);if(d<bd){bd=d;best=e;}}return best;};
  c.pickOverride=focusTarget;
  // --- 정찰: 초반에 일꾼 하나를 상대 기지로
- if(!ai.scouted&&G.time>(D>=2?45:120)+rnd(0,20)&&D>=1){
+ if(!ai.scouted&&G.time>(D>=3?45:120)+rnd(0,20)&&D>=2){
   let s=byId.get(ai.scout);
   if(!s||s.dead){const w=wk.find(u=>u.state==='gather'&&!u.carry);if(w&&wk.length>=6){const f=foes.sort((a,b)=>dist(a.base.x,a.base.y,base.x,base.y)-dist(b.base.x,b.base.y,base.x,base.y))[0];if(f){ai.scout=w.id;w.scouting=1;orderMove(w,f.base.x+rnd(-60,60),f.base.y+rnd(-60,60));}}}
   else if(s.state==='idle'||G.time>150){ai.scouted=true;s.scouting=0;const cl=nearestCoal(base.x,base.y);if(cl)orderGather(s,cl);}
  }
  // --- 확장: 비어 있는 출발지에 두 번째·세 번째 본진
  const hqs=blds.filter(b=>BD[b.kind].drop);
- const maxB=1+(D>=1?1:0)+(D>=3?1:0);
+ const maxB=1+(D>=2?1:0)+(D>=4?1:0);
  if(G.time>(420-D*50)&&hqs.length<maxB&&!pending(F.hq)&&p.coal>=BD[F.hq].cost[0]+60&&wk.length>=12){
   const used=new Set(G.pl.map(q=>q.spawn));let best=-1,bd=1e9;
   for(let i=0;i<12;i++){if(used.has(i))continue;const L=G.lay[i],x=(L.hq[0]+1.5)*T,y=(L.hq[1]+1.5)*T;
@@ -1846,7 +1893,7 @@ function aiHuman(p,c){
  const defK=F.build.find(k=>BD[k].atk);
  if(defK&&p.coal>700+D*50&&reqMet(p.id,defK)&&have(defK)<2+D*2&&!pending(defK)){const hh=hqs[Math.floor(Math.random()*hqs.length)]||{x:base.x,y:base.y};const tx=hh.x+(WW/2-hh.x)*0.08,ty=hh.y+(WH/2-hh.y)*0.08;const sp=findSpot(p.id,defK,tx,ty);const w=wk.find(u=>u.state==='gather'&&!u.carry);if(sp&&w){p.coal-=BD[defK].cost[0];p.ether-=BD[defK].cost[1];orderSite(w,defK,sp[0],sp[1]);}}
  // --- 견제: 빠른 유닛 몇 기로 상대 일꾼 습격
- if(D>=2&&G.time>240&&G.time>(ai.raidT||0)){
+ if(D>=3&&G.time>240&&G.time>(ai.raidT||0)){
   ai.raidT=G.time+(110-D*12)+rnd(0,30);
   const fast=army.filter(u=>!u.wave&&!u.raid&&UD[u.kind].dmg&&spd(u)>=78&&!UD[u.kind].suicide).sort((a,b)=>spd(b)-spd(a)).slice(0,3+D);
   const f=ai.focus!=null?P(ai.focus):null;
@@ -1855,24 +1902,24 @@ function aiHuman(p,c){
  for(const u of army)if(u.raid){if(u.hp<u.maxhp*0.45){u.raid=0;orderMove(u,base.x+rnd(-60,60),base.y+rnd(-60,60));}else if(u.state==='idle'){const t=findTarget(u,300,0);if(!t){u.raid=0;}}}
  // --- 전투 판단: 지면 물러나서 다시 모임, 이기면 밀어붙임
  const wave=army.filter(u=>u.wave);
- if(D>=1&&wave.length){
+ if(D>=2&&wave.length){
   const cx=wave.reduce((s,u)=>s+u.x,0)/wave.length,cy=wave.reduce((s,u)=>s+u.y,0)/wave.length;
   let mine=0,theirs=0;for(const u of wave)if(dist(u.x,u.y,cx,cy)<420)mine+=upow(u);
   unitsNear(cx,cy,460,v=>{if(enemy(p.id,v.team)&&seen(v,p.id)&&!UD[v.kind].worker)theirs+=upow(v);});
   for(const b of ents)if(!b.dead&&b.type==='bld'&&enemy(p.id,b.team)&&BD[b.kind].atk&&dist(b.x,b.y,cx,cy)<460)theirs+=b.hp*2;
   const ratio=theirs>0?mine/theirs:9;
-  if(theirs>300&&ratio<(D>=3?0.7:0.55)){ // 후퇴
+  if(theirs>300&&ratio<(D>=4?0.7:0.55)){ // 후퇴
    const sx=base.x+(WW/2-base.x)*0.16,sy=base.y+(WH/2-base.y)*0.16;
    for(const u of wave){u.wave=0;u.stage=1;orderMove(u,sx+rnd(-70,70),sy+rnd(-70,70));}
    ai.nextWave=G.time+AIP[D].gap*0.45;ai.retreats=(ai.retreats||0)+1;
   }
  }
  // --- 다친 유닛 빼기 (생체는 의무병 쪽, 기계는 기지 쪽)
- if(D>=2)for(const u of wave){const d=UD[u.kind];if(d.suicide||d.melee||u.sg)continue;if(u.hp<u.maxhp*0.22&&u.state==='attack'){let close=false;unitsNear(u.x,u.y,160,v=>{if(enemy(p.id,v.team)&&UD[v.kind].dmg)close=true;});if(close){u.wave=0;orderMove(u,u.x+(base.x-u.x)*0.3,u.y+(base.y-u.y)*0.3);}}}
+ if(D>=3)for(const u of wave){const d=UD[u.kind];if(d.suicide||d.melee||u.sg)continue;if(u.hp<u.maxhp*0.22&&u.state==='attack'){let close=false;unitsNear(u.x,u.y,160,v=>{if(enemy(p.id,v.team)&&UD[v.kind].dmg)close=true;});if(close){u.wave=0;orderMove(u,u.x+(base.x-u.x)*0.3,u.y+(base.y-u.y)*0.3);}}}
 }
 // 웨이브 출발: 두 갈래로 나눠 측면 공격
 function launchWave(p,ready,t){
- const D=G.diff,split=D>=2&&ready.length>=10;
+ const D=G.diff,split=D>=3&&ready.length>=10;
  const cx=ready.reduce((s,u)=>s+u.x,0)/ready.length,cy=ready.reduce((s,u)=>s+u.y,0)/ready.length;
  const a=Math.atan2(t.y-cy,t.x-cx),px=-Math.sin(a),py=Math.cos(a),side=Math.random()<0.5?1:-1;
  ready.sort((u,v)=>(u.x-cx)*px+(u.y-cy)*py-((v.x-cx)*px+(v.y-cy)*py));
@@ -1931,13 +1978,14 @@ function update(dt){
  for(const f of G.flares){f.t-=dt;if(Math.random()<dt*6)part(f.x+rnd(-6,6),f.y+rnd(-6,6),0,-10,0.5,3,'#ffe08a');}G.flares=G.flares.filter(f=>f.t>0);
  for(const b of G.barriers)b.t-=dt;G.barriers=G.barriers.filter(b=>b.t>0);
  // AI
- for(const p of G.pl){if(p.human||!p.alive)continue;p.ai.thinkT-=dt;if(p.ai.thinkT<=0){p.ai.thinkT=AIP[G.diff].think;aiThink(p);}}
+ for(const p of G.pl){if(p.human||!p.alive)continue;p.ai.thinkT-=dt;if(p.ai.thinkT<=0){const gd=G.diff;G.diff=p.diff??gd;p.ai.thinkT=AIP[G.diff].think;try{aiThink(p);}finally{G.diff=gd;}}}
  updFx(dt);
  if(ents.some(e=>e.dead)){for(const e of ents)if(e.dead)byId.delete(e.id);ents=ents.filter(e=>!e.dead);G.sel=G.sel.filter(id=>byId.has(id));}
  G.endT-=dt;
  if(G.endT<=0){G.endT=0.5;
-  for(const p of G.pl){if(!p.alive)continue;if(!ents.some(e=>e.team===p.id&&e.type==='bld')){p.alive=false;for(const e of ents)if(e.team===p.id&&!e.dead)kill(e,null);if(!p.human)toast(`${FAC[p.fac].n} AI 격파!`);}}
-  if(!P(0).alive)endGame(false);else if(G.pl.every(p=>p.human||!p.alive))endGame(true);}
+  for(const p of G.pl){if(!p.alive)continue;if(!ents.some(e=>e.team===p.id&&e.type==='bld')){p.alive=false;for(const e of ents)if(e.team===p.id&&!e.dead)kill(e,null);if(!p.human)toast(`${FAC[p.fac].n} ${p.ally?'동맹군이 무너졌어요!':'AI 격파!'}`);}}
+  if(!P(0).alive)endGame(false);else if(!G.camp&&G.pl.every(p=>p.human||!p.alive))endGame(true);}
+ if(G.camp)campTick(dt);
 }
 
 // ======================== 이펙트 ========================
@@ -2078,7 +2126,7 @@ function updFog(){
  const FR=5;if(!fogC){fogC=document.createElement('canvas');fogC.width=MW*FR;fogC.height=MH*FR;fogX=fogC.getContext('2d');fogImg=fogX.createImageData(MW*FR,MH*FR);}
  fvis.fill(0);
  const extra=[];if(G.flares)for(const f of G.flares)if(f.team===0)extra.push({x:f.x,y:f.y,_r:8,team:0});
- for(const e of ents.concat(extra)){if(e.dead||e.team!==0||e.type==='res')continue;const r=e._r||(sightOf(e)+(P(0).fac==='uk'?2:0)),cx=e.x/T,cy=e.y/T,r2=r*r,hv=e._r?9:hOf(e);
+ for(const e of ents.concat(extra)){if(e.dead||!friend0(e.team)||e.type==='res')continue;const r=e._r||(sightOf(e)+(P(0).fac==='uk'?2:0)),cx=e.x/T,cy=e.y/T,r2=r*r,hv=e._r?9:hOf(e);
   for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(MH-1,Math.ceil(cy+r));y++)for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(MW-1,Math.ceil(cx+r));x++){const dx=x+.5-cx,dy=y+.5-cy;if(dx*dx+dy*dy<=r2){const i=y*MW+x;if(hgt[i]>hv)continue;fvis[i]=1;fexp[i]=1;}}}
  const d=fogImg.data,FW=MW*FR,BY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
  const av=i=>fvis[i]?0:fexp[i]?0.55:1,A=new Float32Array(NN);for(let i=0;i<NN;i++)A[i]=av(i);
@@ -4287,10 +4335,11 @@ function resize(){
 }
 addEventListener('resize',resize);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G&&!G.over){G.paused=true;$('pause').classList.remove('hidden');}});
-const cfg={fac:'us',map:'forest',ais:1,diff:1};
+const cfg={fac:'us',map:'forest',ais:1,diff:2};
 const opt={autoWork:true,autoSup:true,autoIdle:true};
 try{Object.assign(opt,JSON.parse(localStorage.getItem('wd_opt')||'{}'));}catch(_){}
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('wd_cfg')||'{}'));}catch(_){}
+if(!cfg.dv){cfg.diff=Math.min(5,(cfg.diff|0)+1);cfg.dv=1;}
 function segInit(id,key,parse){const btns=document.querySelectorAll('#'+id+' button');btns.forEach(b=>{b.classList.toggle('on',String(cfg[key])===b.dataset.v);b.addEventListener('click',()=>{btns.forEach(x=>x.classList.remove('on'));b.classList.add('on');cfg[key]=parse(b.dataset.v);if(key==='map')drawPreview();});});}
 segInit('aiSeg','ais',Number);segInit('diffSeg','diff',Number);segInit('mapSeg','map',String);
 function showTrait(){$('facTrait').textContent='★ '+FTRAIT[cfg.fac];}
@@ -4314,31 +4363,357 @@ function start(){
  if(el.requestFullscreen&&!document.fullscreenElement&&('ontouchstart' in window)){try{el.requestFullscreen().then(()=>{try{screen.orientation.lock('landscape').catch(()=>{});}catch(_){}}).catch(()=>{});}catch(_){}}
  setTimeout(()=>{
   $('title').classList.add('hidden');$('end').classList.add('hidden');$('pause').classList.add('hidden');
-  showGame(true);resize();newGame({...cfg});buildGroups();hudDirty=true;renderHud();
+  showGame(true);resize();newGame(CAMP?campCfg():{...cfg});if(CAMP)campBegin();else $('obj').classList.add('hidden');document.body.classList.toggle('incamp',!!CAMP);buildGroups();hudDirty=true;renderHud();
   $('loading').classList.add('hidden');
-  toast(`${MAPS[cfg.map].n} · ${G.pl.length}개 진영 전투 시작`);
+  toast(CAMP?`${CAMPAIGN[CAMP.p].t.split(' · ')[0]} 미션 ${CAMP.m+1} — ${CAMPAIGN[CAMP.p].ms[CAMP.m].t}`:`${MAPS[cfg.map].n} · ${G.pl.length}개 진영 전투 시작`);
   let seenTips=false;try{seenTips=!!localStorage.getItem('wd_tips');}catch(_){}
-  if(!seenTips){G.paused=true;$('tips').classList.remove('hidden');}
+  if(!seenTips&&!CAMP){G.paused=true;$('tips').classList.remove('hidden');}
  },30);
 }
-$('startBtn').addEventListener('click',start);
+// ======================== 캠페인 ========================
+const CAMP_ORDER=['us','su','de','it','fr','uk','jp','cn','au','za','br','in','ko','hu','fi','pl'];
+let CAMP=null; // {p,m}
+let campDiff=0;try{campDiff=+(localStorage.getItem('wd_campdiff')||0);}catch(_){}
+const campSave=()=>{try{return JSON.parse(localStorage.getItem('wd_camp')||'{}');}catch(_){return {};}};
+function campDone(p,m){return campSave()[p+'-'+m]!=null;}
+function campUnlocked(p,m){const i=p*3+m;if(i===0)return true;const q=i-1;return campDone(Math.floor(q/3),q%3);}
+function campMark(p,m,d){const s=campSave();const k=p+'-'+m;s[k]=Math.max(s[k]??-1,d);try{localStorage.setItem('wd_camp',JSON.stringify(s));}catch(_){}}
+// 진영별 역할 → 건물/유닛
+function roleB(f,r){
+ const F=FAC[f];if(r==='sup')return F.sup;if(r==='gas')return F.gas;if(r==='hq')return F.hq;
+ const ks=Object.keys(PLAN[f].army);
+ if(r==='bar')return ks[0];
+ if(r==='sea')return ks.find(k=>BD[k].shore);
+ if(r==='air')return ks.find(k=>!BD[k].shore&&PLAN[f].army[k].every(u=>UD[u].layer==='a'));
+ if(r==='veh'){const c=ks.slice(1).filter(k=>!BD[k].shore&&!PLAN[f].army[k].every(u=>UD[u].layer==='a'));return c.find(k=>PLAN[f].army[k].some(u=>UD[u].mech))||c[c.length-1];}
+ return r;
+}
+function roleU(f,r){const b=roleB(f,r);return b&&PLAN[f].army[b]?PLAN[f].army[b]:[];}
+const WMUL=[0.4,0.6,0.85,1.1,1.4,1.8];
+
+// ---- 미션 데이터 ----
+// e: 적 [{f,d(난이도 보정),army(시작 병력),blds:[역할]}], al: 아군 AI, st: 시작 {coal,ether,army:[[역할,인덱스,수]],blds:[역할]}
+// g: 목표 [{g:'workers'|'build'|'army'|'coal'|'survive'|'kills'|'killhq'|'kill'|'elim'|'up', ...}]
+// w: 증원 웨이브 {from,start,every,n,grow,air}, lose:'hq'|'ally'
+const CAMPAIGN=[
+ {f:'us',t:'1부 · 자유의 증기',d:'1943년, 에테르 광맥이 세계 곳곳에서 터져 나오며 전쟁이 시작됐어요. 신병 사령관으로서 기초부터 배워요.',ms:[
+  {t:'신병 훈련소',map:'forest',b:'사령관, 환영합니다. 이 섬은 훈련장이에요. 일꾼으로 석탄을 캐고, 병영을 세우고, 병사를 키워 저 너머의 이탈리아 정찰 기지를 밀어내세요. 서두를 필요는 없어요.',
+   e:[{f:'it',d:-9}],g:[{g:'workers',n:8},{g:'build',r:'sup'},{g:'build',r:'bar'},{g:'army',n:6},{g:'kill'}]},
+  {t:'해안 방어선',map:'ocean',b:'일본 해군 상륙대가 해안에 몰려와요. 이미 병영과 병사 몇 명이 있어요. 본진을 지키며 6분 동안 버티면 증원이 도착해요.',
+   e:[{f:'jp',d:0,blds:['bar']}],st:{coal:400,ether:100,blds:['sup','bar'],army:[['bar',0,6]]},
+   w:{from:1,start:70,every:55,n:3,grow:1},lose:'hq',g:[{g:'survive',s:360}]},
+  {t:'라인강의 증기',map:'forest',b:'영국군과 함께 독일의 에테르 요새로 진격해요. 전차 공장을 세워 기갑 부대를 갖춘 뒤 독일 기지를 완전히 무너뜨리세요.',
+   e:[{f:'de',d:0,army:4,blds:['bar']}],al:[{f:'uk',d:0}],st:{coal:300},g:[{g:'build',r:'veh'},{g:'army',n:12},{g:'kill'}]},
+ ]},
+ {f:'su',t:'2부 · 붉은 동토',d:'혹한의 대지에서 소련은 물량과 얼음 주술로 버팁니다.',ms:[
+  {t:'혹한의 징집',map:'forest',b:'국경 숲에서 핀란드 스키 부대가 보급로를 끊고 있어요. 징집소를 세우고 병사를 모아 숲속 핀란드 거점을 정리하세요.',
+   e:[{f:'fi',d:-1}],g:[{g:'workers',n:10},{g:'build',r:'bar'},{g:'army',n:10},{g:'kill'}]},
+  {t:'강철 도시',map:'city',b:'운하 도시가 독일군에 포위됐어요. 거리마다 적이 쏟아져 들어와요. 7분 동안 본진을 지켜 내세요.',
+   e:[{f:'de',d:0,blds:['bar','veh']}],st:{coal:500,ether:150,blds:['sup','bar'],army:[['bar',0,8]]},
+   w:{from:1,start:60,every:50,n:3,grow:1},lose:'hq',g:[{g:'survive',s:420}]},
+  {t:'겨울 반격',map:'ruins',b:'겨울이 왔어요. 이제 반격할 때예요. 독일과 헝가리 연합군을 모두 몰아내세요.',
+   e:[{f:'de',d:0,army:3},{f:'hu',d:0}],st:{coal:400,ether:100},g:[{g:'kills',n:25},{g:'kill'}]},
+ ]},
+ {f:'de',t:'3부 · 룬의 제국',d:'룬 마법과 에테르 기술을 손에 쥔 독일은 방어막과 보행 전차로 싸워요.',ms:[
+  {t:'룬 마법진',map:'forest',b:'독일 진영은 마법진(보급 건물)의 동력 범위 안에만 건물을 지을 수 있어요. 대신 일꾼이 터만 잡으면 알아서 지어져요. 폴란드 국경 기지를 점령하세요.',
+   e:[{f:'pl',d:-1}],g:[{g:'build',r:'sup',n:2},{g:'build',r:'bar'},{g:'army',n:8},{g:'kill'}]},
+  {t:'마지노 돌파',map:'ruins',b:'프랑스의 요새 사령부가 해자 너머에 버티고 있어요. 증원이 계속 오기 전에 프랑스 본진 건물만 노려 무너뜨리세요.',
+   e:[{f:'fr',d:0,army:5,blds:['bar','veh']}],st:{coal:500,ether:200,blds:['sup','bar'],army:[['bar',0,6]]},
+   w:{from:1,start:90,every:70,n:2,grow:1},g:[{g:'build',r:'veh'},{g:'killhq'}]},
+  {t:'두 전선',map:'forest',b:'동쪽의 소련, 서쪽의 영국이 동시에 몰려와요. 두 진영을 모두 쓰러뜨리세요.',
+   e:[{f:'su',d:0},{f:'uk',d:0}],st:{coal:400,ether:150},g:[{g:'up',n:2},{g:'kill'}]},
+ ]},
+ {f:'it',t:'4부 · 지중해의 태양',d:'최고의 기동력과 연금술로 지중해를 누비는 이탈리아.',ms:[
+  {t:'모토 돌격대',map:'forest',b:'이탈리아 부대는 빠르고 스스로 수리해요. 증기 공방을 세우고 모토 돌격대로 남아공 광산 기지를 급습하세요.',
+   e:[{f:'za',d:-1}],g:[{g:'build',r:'bar'},{g:'build',r:'veh'},{g:'army',n:8},{g:'kill'}]},
+  {t:'몰타의 바다',map:'ocean',b:'영국 해군이 섬 주변 바다를 장악했어요. 조선소를 세우고 함대를 꾸려 적 함선 20척 분량을 격침하세요.',
+   e:[{f:'uk',d:0,blds:['bar','sea']}],st:{coal:600,ether:200,blds:['sup','bar']},g:[{g:'build',r:'sea'},{g:'kills',n:20},{g:'killhq'}]},
+  {t:'사막의 여우들',map:'ruins',b:'영국과 호주 사막 부대가 연합했어요. 독일 지원군과 함께 두 진영을 격파하세요.',
+   e:[{f:'uk',d:0},{f:'au',d:0}],al:[{f:'de',d:0}],st:{coal:400,ether:150},g:[{g:'kill'}]},
+ ]},
+ {f:'fr',t:'5부 · 철의 요새',d:'협동 건설과 튼튼한 요새로 버티는 프랑스.',ms:[
+  {t:'협동 건설',map:'forest',b:'프랑스는 여러 일꾼이 함께 지으면 빨라져요. 보급을 늘리고 연구로 무기를 강화한 뒤 이탈리아 거점을 함락하세요.',
+   e:[{f:'it',d:-1}],g:[{g:'workers',n:12},{g:'build',r:'bar'},{g:'up',n:1},{g:'kill'}]},
+  {t:'베르됭',map:'city',b:"'그들은 지나가지 못한다.' 독일군의 맹공을 8분 동안 막아 내세요. 본진이 무너지면 끝이에요.",
+   e:[{f:'de',d:1,blds:['bar','veh']}],st:{coal:500,ether:150,blds:['sup','bar'],army:[['bar',0,6],['bar',2,2]]},
+   w:{from:1,start:60,every:45,n:3,grow:1},lose:'hq',g:[{g:'survive',s:480}]},
+  {t:'파리 해방',map:'forest',b:'영국과 함께 점령당한 수도 주변의 독일·헝가리 기지를 쓸어 내세요.',
+   e:[{f:'de',d:0,army:4},{f:'hu',d:0}],al:[{f:'uk',d:0}],st:{coal:400,ether:150},g:[{g:'build',r:'air'},{g:'kill'}]},
+ ]},
+ {f:'uk',t:'6부 · 해가 지지 않는 함대',d:'빠른 건설과 넓은 시야, 그리고 대함대를 거느린 영국.',ms:[
+  {t:'본토 항공전',map:'ocean',b:'독일 폭격기들이 섬을 노려요. 비행장을 세우고 전투기로 하늘을 지켜 적 25기를 격추·격파하세요.',
+   e:[{f:'de',d:0,blds:['bar','air']}],st:{coal:500,ether:200,blds:['sup','bar']},
+   w:{from:1,start:80,every:60,n:2,grow:1,air:1},lose:'hq',g:[{g:'build',r:'air'},{g:'kills',n:25}]},
+  {t:'대서양의 늑대',map:'ocean',b:'잠수함 기지에서 쏟아지는 독일 해군을 상대해요. 함대를 꾸려 독일 기지를 무너뜨리세요.',
+   e:[{f:'de',d:0,army:4,blds:['bar','sea']}],st:{coal:500,ether:200},g:[{g:'build',r:'sea'},{g:'army',n:10},{g:'kill'}]},
+  {t:'노르망디',map:'forest',b:'미국·프랑스와 함께 대륙에 상륙해요. 독일과 이탈리아를 모두 몰아내세요.',
+   e:[{f:'de',d:1,army:4},{f:'it',d:0}],al:[{f:'us',d:0},{f:'fr',d:0}],st:{coal:400,ether:150},g:[{g:'kill'}]},
+ ]},
+ {f:'jp',t:'7부 · 결계의 섬',d:'무사도와 은신, 결계 술법을 쓰는 일본. 영토 위에만 건물을 지을 수 있어요.',ms:[
+  {t:'영토 확장',map:'forest',b:'일본은 본진과 창고 주변의 영토 위에만 지을 수 있어요. 창고를 늘려 영토를 넓히고 중국 국경 거점을 정리하세요.',
+   e:[{f:'cn',d:-1}],g:[{g:'build',r:'sup',n:3},{g:'build',r:'bar'},{g:'army',n:8},{g:'kill'}]},
+  {t:'그림자 작전',map:'city',b:'닌자와 기계 사무라이로 적 사령부를 기습해요. 대한제국 본진 건물만 무너뜨리면 성공이에요.',
+   e:[{f:'ko',d:0,army:6,blds:['bar','veh']}],st:{coal:500,ether:200,blds:['sup','bar'],army:[['bar',2,4],['bar',0,4]]},g:[{g:'killhq'}]},
+  {t:'태평양의 폭풍',map:'ocean',b:'미국과 호주 함대가 섬들을 포위했어요. 거함을 띄워 두 진영을 모두 격파하세요.',
+   e:[{f:'us',d:1,army:3},{f:'au',d:0}],st:{coal:500,ether:200},g:[{g:'build',r:'sea'},{g:'kill'}]},
+ ]},
+ {f:'cn',t:'8부 · 화룡의 대지',d:'값싼 물량과 자연 회복, 화약 병기로 싸우는 중국.',ms:[
+  {t:'백성의 군대',map:'forest',b:'중국 건물은 싸고 영토 위에 지어요. 민병대를 대량으로 모아 일본 전초 기지를 몰아내세요.',
+   e:[{f:'jp',d:-1}],g:[{g:'workers',n:12},{g:'build',r:'bar',n:2},{g:'army',n:15},{g:'kill'}]},
+  {t:'장강의 방벽',map:'ruins',b:'일본군이 강을 건너와요. 화룡 공방까지 갖추고 7분 동안 버티세요.',
+   e:[{f:'jp',d:1,blds:['bar','veh']}],st:{coal:500,ether:150,blds:['sup','bar'],army:[['bar',0,8]]},
+   w:{from:1,start:60,every:50,n:3,grow:1},lose:'hq',g:[{g:'build',r:'veh'},{g:'survive',s:420}]},
+  {t:'봉황의 비상',map:'forest',b:'대한제국과 손잡고 일본·이탈리아 연합을 격파하세요.',
+   e:[{f:'jp',d:1,army:4},{f:'it',d:0}],al:[{f:'ko',d:0}],st:{coal:400,ether:150},g:[{g:'build',r:'air'},{g:'kill'}]},
+ ]},
+ {f:'au',t:'9부 · 남십자성',d:'장거리 사격과 기동력, 보호막을 두른 호주 부대.',ms:[
+  {t:'오지의 디거',map:'forest',b:'호주는 동력장 안에만 짓고 유닛에 보호막이 있어요. 경기병대로 남아공 정찰 기지를 치세요.',
+   e:[{f:'za',d:0}],g:[{g:'build',r:'sup',n:2},{g:'build',r:'bar'},{g:'army',n:10},{g:'kill'}]},
+  {t:'토브루크의 쥐',map:'ruins',b:'포위된 요새에서 이탈리아군의 공세를 8분 동안 견디세요.',
+   e:[{f:'it',d:1,blds:['bar','veh']}],st:{coal:500,ether:150,blds:['sup','bar'],army:[['bar',0,6],['bar',2,2]]},
+   w:{from:1,start:60,every:45,n:3,grow:1},lose:'hq',g:[{g:'survive',s:480}]},
+  {t:'산호해',map:'ocean',b:'미국 함대와 함께 일본·이탈리아 해군을 바다에서 몰아내세요.',
+   e:[{f:'jp',d:1,army:4},{f:'it',d:0}],al:[{f:'us',d:0}],st:{coal:500,ether:200},g:[{g:'build',r:'sea'},{g:'kills',n:30},{g:'kill'}]},
+ ]},
+ {f:'za',t:'10부 · 황금의 곶',d:'광산의 부와 두꺼운 장갑, 보호막을 지닌 남아공.',ms:[
+  {t:'금광의 도시',map:'forest',b:'남아공 일꾼은 한 번에 많이 캐요. 석탄 3000을 모아 경제를 키운 뒤 브라질 거점을 밀어내세요.',
+   e:[{f:'br',d:0}],g:[{g:'coal',n:3000},{g:'build',r:'veh'},{g:'army',n:10},{g:'kill'}]},
+  {t:'희망봉 수비',map:'ocean',b:'케이프 항구를 노리는 독일 해군과 상륙대를 8분 동안 막아 내세요.',
+   e:[{f:'de',d:1,blds:['bar','veh']}],st:{coal:500,ether:200,blds:['sup','bar'],army:[['bar',0,6],['veh',0,2]]},
+   w:{from:1,start:60,every:45,n:3,grow:1},lose:'hq',g:[{g:'survive',s:480}]},
+  {t:'엘 알라메인',map:'ruins',b:'영국과 함께 사막의 독일·이탈리아 연합군을 끝장내세요.',
+   e:[{f:'de',d:1,army:5},{f:'it',d:1}],al:[{f:'uk',d:0}],st:{coal:500,ether:150},g:[{g:'kill'}]},
+ ]},
+ {f:'br',t:'11부 · 아마존의 숨결',d:'열대의 회피 기동과 숲의 치유 술법을 쓰는 브라질.',ms:[
+  {t:'밀림의 전사',map:'forest',b:'카포에이라 투사들은 공격을 흘려 피해요. 연구로 무기를 강화하고 인도 거점을 공략하세요.',
+   e:[{f:'in',d:0,army:2}],g:[{g:'build',r:'bar'},{g:'up',n:2},{g:'army',n:12},{g:'kill'}]},
+  {t:'강의 감시자',map:'ocean',b:'아마존 하구로 이탈리아 함대가 거슬러 올라와요. 강 항구를 세우고 함대로 적 본진을 무너뜨리세요.',
+   e:[{f:'it',d:1,army:4,blds:['bar','sea']}],st:{coal:600,ether:200,blds:['sup','bar']},g:[{g:'build',r:'sea'},{g:'killhq'}]},
+  {t:'몬테 카스텔로',map:'ruins',b:'미국과 함께 산 위 요새에 웅크린 독일·헝가리·이탈리아 연합군을 모두 격파하세요.',
+   e:[{f:'de',d:1,army:4},{f:'hu',d:1},{f:'it',d:0}],al:[{f:'us',d:0}],st:{coal:500,ether:200},g:[{g:'kill'}]},
+ ]},
+ {f:'in',t:'12부 · 비마나의 하늘',d:'강철 코끼리와 마이소르 로켓, 하늘을 나는 비마나의 인도. 영토 위에만 지어요.',ms:[
+  {t:'세포이의 맹세',map:'forest',b:'영토를 넓히고 세포이와 구르카를 모아 중국 국경 거점을 밀어내세요.',
+   e:[{f:'cn',d:0,army:2}],g:[{g:'build',r:'sup',n:3},{g:'build',r:'veh'},{g:'army',n:12},{g:'kill'}]},
+  {t:'임팔 고원',map:'ruins',b:'일본군이 고원 너머로 밀려와요. 8분 동안 버티면 승리예요. 언덕 위가 유리해요.',
+   e:[{f:'jp',d:1,blds:['bar','veh']}],st:{coal:500,ether:200,blds:['sup','bar'],army:[['bar',0,6],['bar',2,3]]},
+   w:{from:1,start:60,every:45,n:4,grow:1},lose:'hq',g:[{g:'survive',s:480}]},
+  {t:'신들의 전차',map:'forest',b:'비마나 전당을 세워 하늘을 장악하고, 일본·중국·이탈리아를 모두 격파하세요.',
+   e:[{f:'jp',d:1,army:4},{f:'cn',d:1},{f:'it',d:0}],st:{coal:500,ether:250},g:[{g:'build',r:'air'},{g:'kill'}]},
+ ]},
+ {f:'ko',t:'13부 · 광무의 깃발',d:'신기전 화차와 철갑 거북선, 해태 보행기로 나라를 지키는 대한제국.',ms:[
+  {t:'광무 개혁',map:'forest',b:'훈련원과 기기창을 세워 신식 군대를 길러요. 연구로 무장을 갖춘 뒤 중국 거점을 제압하세요.',
+   e:[{f:'cn',d:0,army:3}],g:[{g:'build',r:'bar'},{g:'build',r:'veh'},{g:'up',n:2},{g:'kill'}]},
+  {t:'명량',map:'ocean',b:'열세의 함대로 일본 대함대를 맞아요. 수군 진영을 세우고 적 35척 분량을 격파한 뒤 일본 본진을 무너뜨리세요.',
+   e:[{f:'jp',d:1,army:4,blds:['bar','sea']}],st:{coal:600,ether:250,blds:['sup','bar']},g:[{g:'build',r:'sea'},{g:'kills',n:35},{g:'killhq'}]},
+  {t:'한성 수호',map:'city',b:'중국과 손잡고 일본·독일 연합군을 맞아 도성을 지키고 적을 모두 몰아내세요. 본진을 잃으면 끝이에요.',
+   e:[{f:'jp',d:1,army:5},{f:'de',d:1}],al:[{f:'cn',d:0}],st:{coal:500,ether:200},lose:'hq',g:[{g:'kill'}]},
+ ]},
+ {f:'hu',t:'14부 · 도나우의 기병',d:'후사르의 돌격과 투란 전차, 도나우 함대를 거느린 헝가리.',ms:[
+  {t:'푸스타의 질주',map:'forest',b:'헝가리 기병은 누구보다 빨라요. 후사르를 모아 핀란드 거점을 휩쓰세요.',
+   e:[{f:'fi',d:0,army:2}],g:[{g:'build',r:'bar',n:2},{g:'army',n:12},{g:'kill'}]},
+  {t:'도나우 방어선',map:'ocean',b:'소련 함대가 도나우강을 거슬러 와요. 8분 동안 본진을 지키세요.',
+   e:[{f:'su',d:1,blds:['bar','veh']}],st:{coal:500,ether:200,blds:['sup','bar'],army:[['bar',0,6],['bar',2,3]]},
+   w:{from:1,start:60,every:45,n:4,grow:1},lose:'hq',g:[{g:'survive',s:480}]},
+  {t:'부다 성채',map:'city',b:'폴란드와 함께 소련·프랑스·영국 연합군에 맞서 도시를 되찾으세요.',
+   e:[{f:'su',d:1,army:5},{f:'fr',d:1},{f:'uk',d:0}],al:[{f:'pl',d:0}],st:{coal:500,ether:200},g:[{g:'kill'}]},
+ ]},
+ {f:'fi',t:'15부 · 하얀 숲',d:'스키 예거와 하얀 저격수, 화염병으로 숲을 지키는 핀란드.',ms:[
+  {t:'모티 전술',map:'forest',b:'숲속에서 적을 잘라 먹어요. 적 30기를 처치하고 소련 거점을 무너뜨리세요.',
+   e:[{f:'su',d:0,army:4}],st:{coal:300},g:[{g:'build',r:'bar'},{g:'kills',n:30},{g:'kill'}]},
+  {t:'만네르헤임 선',map:'ruins',b:'소련의 끝없는 물량 공세를 9분 동안 막아 내세요. 저격수는 언덕 위에 두세요.',
+   e:[{f:'su',d:1,blds:['bar','veh']}],st:{coal:500,ether:200,blds:['sup','bar'],army:[['bar',0,6],['bar',2,3]]},
+   w:{from:1,start:55,every:40,n:4,grow:1},lose:'hq',g:[{g:'survive',s:540}]},
+  {t:'백야',map:'forest',b:'헝가리와 함께 소련·독일·일본 연합군을 모두 격파하세요.',
+   e:[{f:'su',d:1,army:5},{f:'de',d:1},{f:'jp',d:1}],al:[{f:'hu',d:0}],st:{coal:500,ether:200},g:[{g:'kill'}]},
+ ]},
+ {f:'pl',t:'16부 · 날개 달린 기사',d:'날개 기병과 갈매기 날개 전투기, 에니그마 암호병의 폴란드. 마지막 전쟁이에요.',ms:[
+  {t:'에니그마',map:'forest',b:'암호를 풀어 적의 움직임을 읽었어요. 연구를 마치고 독일 정찰 기지를 기습하세요.',
+   e:[{f:'de',d:0,army:3}],g:[{g:'build',r:'bar'},{g:'up',n:2},{g:'army',n:12},{g:'kill'}]},
+  {t:'바르샤바 봉기',map:'city',b:'도시 한가운데서 봉기했어요. 독일 사령부 건물만 무너뜨리면 도시는 우리 거예요.',
+   e:[{f:'de',d:1,army:6,blds:['bar','veh']}],st:{coal:500,ether:200,blds:['sup','bar'],army:[['bar',0,6],['bar',2,4]]},
+   w:{from:1,start:80,every:60,n:3,grow:1},g:[{g:'killhq'}]},
+  {t:'최후의 돌격',map:'forest',b:'에테르 대전의 마지막 전투예요. 영국·프랑스·미국과 함께 독일·소련·일본·이탈리아의 마지막 연합을 쓰러뜨리세요.',
+   e:[{f:'de',d:1,army:6},{f:'su',d:1,army:4},{f:'jp',d:1},{f:'it',d:1}],al:[{f:'uk',d:0},{f:'fr',d:0},{f:'us',d:0}],st:{coal:600,ether:250},g:[{g:'kill'}]},
+ ]},
+];
+
+function goalText(gl,f){
+ const bn=r=>BD[roleB(f,r)]?.n||r;
+ switch(gl.g){
+  case 'workers':return `일꾼 ${gl.n}명 만들기`;
+  case 'build':return `${bn(gl.r)} ${gl.n>1?gl.n+'개 ':''}짓기`;
+  case 'army':return `병력 ${gl.n}기 모으기`;
+  case 'coal':return `석탄 ${gl.n} 캐기`;
+  case 'survive':return `${Math.floor(gl.s/60)}분${gl.s%60?' '+gl.s%60+'초':''} 동안 버티기`;
+  case 'kills':return `적 ${gl.n}기 처치`;
+  case 'killhq':return `적 본진 건물 파괴`;
+  case 'kill':return `적 진영 모두 격파`;
+  case 'up':return `연구 ${gl.n}단계 완료`;
+ }return '';
+}
+function goalHint(gl,f){
+ const bn=r=>BD[roleB(f,r)]?.n||r;
+ switch(gl.g){
+  case 'workers':return PC?'본진을 클릭하고 일꾼을 뽑으세요':'본진을 탭하거나 🏭생산 버튼에서 일꾼을 뽑으세요';
+  case 'build':return PC?`일꾼 선택 → B/V → ${bn(gl.r)} → 초록 칸 클릭`:`🔨건설 → ${bn(gl.r)} → 초록 칸에 놓기`;
+  case 'army':return PC?'병영을 클릭해 병력을 뽑으세요':'🏭생산 버튼에서 병력을 뽑으세요 (화면 이동 필요 없음)';
+  case 'coal':return '일꾼을 석탄에 보내고 일꾼 수를 16명까지 늘리세요';
+  case 'survive':return '본진 앞에 병력을 모아 두고 계속 생산하세요';
+  case 'kills':return '적 병력을 찾아 싸우세요. ⚔어택땅이 편해요';
+  case 'killhq':return '적 본진 건물만 노리세요. 적을 직접 탭하면 그 대상을 공격해요';
+  case 'kill':return '병력을 모아 ⚔어택땅으로 적 건물을 모두 부수세요';
+  case 'up':return `연구 건물을 짓고 무기·장갑 연구를 진행하세요`;
+ }return '';
+}
+
+function campCfg(){
+ const part=CAMPAIGN[CAMP.p],m=part.ms[CAMP.m],D=campDiff;
+ const cl=d=>Math.max(0,Math.min(5,d));
+ const plist=[{fac:part.f,diff:D,side:'A'}];
+ for(const a of (m.al||[]))plist.push({fac:a.f,diff:cl(D+(a.d||0)),side:'A',ally:1});
+ for(const e of m.e)plist.push({fac:e.f,diff:cl(D+(e.d||0)),side:'B'});
+ return {fac:part.f,map:m.map,ais:plist.length-1,diff:D,plist,camp:true};
+}
+function campPlaceBld(team,role){
+ const k=roleB(P(team).fac,role);if(!k)return null;const b=P(team).base;
+ const sp=findSpot(team,k,b.x,b.y);if(!sp)return null;return addBuilding(k,team,sp[0],sp[1],true);
+}
+function campSpawn(team,kind,cx,cy,tx,ty){
+ const L=UD[kind].layer==='a'?'a':UD[kind].layer==='n'?'n':'g';
+ let gx=Math.floor(cx/T),gy=Math.floor(cy/T);
+ if(L!=='a'){const q=nearestPass(L,gx,gy,gx,gy,12);if(!q)return null;gx=q[0];gy=q[1];}
+ const u=addUnit(kind,team,(gx+0.5)*T+rnd(-8,8),(gy+0.5)*T+rnd(-8,8));return u;
+}
+function campFront(team,dist0){const b=P(team).base,o=P(0).base;let dx=o.x-b.x,dy=o.y-b.y;const l=Math.hypot(dx,dy)||1;if(team===0){dx=-dx;dy=-dy;const ce=[WW/2-b.x,WH/2-b.y];const l2=Math.hypot(ce[0],ce[1])||1;return [b.x+ce[0]/l2*dist0,b.y+ce[1]/l2*dist0];}return [b.x+dx/l*dist0,b.y+dy/l*dist0];}
+function campBegin(){
+ const part=CAMPAIGN[CAMP.p],m=part.ms[CAMP.m];
+ G.camp={p:CAMP.p,m:CAMP.m,def:m,gi:0,gt:0,k0:0,waveN:0,next:m.w?m.w.start:1e9,f:part.f};
+ const st=m.st||{};
+ P(0).coal=st.coal??50;P(0).ether=st.ether??0;
+ for(const r of (st.blds||[]))campPlaceBld(0,r);
+ const fr=campFront(0,150);
+ for(const [r,i,n] of (st.army||[])){const list=roleU(part.f,r);const k=list[i%list.length];if(!k)continue;for(let j=0;j<n;j++)campSpawn(0,k,fr[0]+rnd(-50,50),fr[1]+rnd(-50,50));}
+ let ti=1+(m.al||[]).length;
+ for(const e of m.e){const p=P(ti);p.coal=e.coal??(200+campDiff*100);p.ether=60+campDiff*40;
+  for(const r of (e.blds||[]))campPlaceBld(ti,r);
+  if(e.army){const list=roleU(p.fac,'bar').filter(k=>!UD[k].layer);const f2=campFront(ti,140);for(let j=0;j<e.army;j++)campSpawn(ti,list[j%list.length],f2[0]+rnd(-40,40),f2[1]+rnd(-40,40));}
+  ti++;}
+ for(const p of G.pl)if(!p.human&&p.ai&&m.w&&p.id===m.w.from)p.ai.nextWave=Math.max(p.ai.nextWave,m.w.start+200);
+ goalStart();campPanel();
+}
+function goalStart(){const c=G.camp,gl=c.def.g[c.gi];if(!gl)return;c.gt=G.time;c.k0=G.stats.kills;if(c.gi>0){play('ready');toast('목표 달성! 다음: '+goalText(gl,c.f));}}
+function enemiesOf0(){return G.pl.filter(p=>enemy(0,p.id));}
+function goalProg(gl){
+ const c=G.camp,f=c.f,mine=ents.filter(e=>!e.dead&&e.team===0);
+ switch(gl.g){
+  case 'workers':{const n=mine.filter(e=>e.type==='unit'&&UD[e.kind].worker).length;return [n>=gl.n,`${n}/${gl.n}`];}
+  case 'build':{const k=roleB(f,gl.r),n=mine.filter(e=>e.type==='bld'&&e.kind===k&&e.built).length,need=gl.n||1;return [n>=need,`${n}/${need}`];}
+  case 'army':{const n=mine.filter(e=>e.type==='unit'&&!UD[e.kind].worker).length;return [n>=gl.n,`${n}/${gl.n}`];}
+  case 'coal':{const n=G.stats.coal||0;return [n>=gl.n,`${n}/${gl.n}`];}
+  case 'survive':{const left=Math.max(0,gl.s-(G.time-c.gt));return [left<=0,`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')} 남음`];}
+  case 'kills':{const n=G.stats.kills-c.k0;return [n>=gl.n,`${Math.min(n,gl.n)}/${gl.n}`];}
+  case 'killhq':{const es=enemiesOf0();const left=ents.filter(e=>!e.dead&&e.type==='bld'&&es.some(p=>p.id===e.team&&e.kind===FAC[p.fac].hq)).length;return [left===0,`남은 본진 ${left}`];}
+  case 'kill':{const es=enemiesOf0(),al=es.filter(p=>p.alive).length;return [al===0,`남은 적 ${al}/${es.length}`];}
+  case 'up':{const u=P(0).up,n=u.g+u.a+u.n;return [n>=gl.n,`${n}/${gl.n}`];}
+ }return [false,''];
+}
+function campTick(dt){
+ const c=G.camp;if(!c||G.over)return;
+ // 패배 조건
+ if(c.def.lose==='hq'&&!ents.some(e=>!e.dead&&e.team===0&&e.type==='bld'&&BD[e.kind].drop)){endGame(false,'본진을 잃었어요');return;}
+ if(G.pl.some(p=>p.ally&&!p.alive)&&c.def.lose==='ally'){endGame(false,'동맹군이 무너졌어요');return;}
+ // 목표
+ const gl=c.def.g[c.gi];
+ if(gl){const [ok]=goalProg(gl);if(ok){c.gi++;if(c.gi>=c.def.g.length){endGame(true);return;}goalStart();}}
+ // 웨이브
+ const w=c.def.w;
+ if(w&&G.time>=c.next){const src=P(w.from);
+  if(src&&src.alive&&c.def.g[c.gi]){c.next=G.time+w.every;const n=Math.max(1,Math.round((w.n+c.waveN*(w.grow||0))*WMUL[campDiff]));c.waveN++;
+   const list=roleU(src.fac,'bar').concat(roleU(src.fac,'veh')).filter(k=>!UD[k].layer&&!UD[k].worker);const air=w.air?roleU(src.fac,'air'):[];
+   const f2=campFront(w.from,170),tgt=P(0).base;let made=0;
+   for(let j=0;j<n;j++){const k=(air.length&&j%2===0)?air[j%air.length]:list[(c.waveN+j)%list.length];if(!k)continue;const u=campSpawn(w.from,k,f2[0]+rnd(-50,50),f2[1]+rnd(-50,50));if(u){orderMove(u,tgt.x+rnd(-60,60),tgt.y+rnd(-60,60),true);made++;}}
+   if(made){toast(`⚠ 적 증원 ${made}기 접근 중!`);G.warnPos=[f2[0],f2[1],G.time];}
+  }else c.next=1e9;}
+ c.pT=(c.pT||0)-dt;if(c.pT<=0){c.pT=0.3;campPanel();}
+}
+function campPanel(){
+ const el=$('obj');if(!G||!G.camp){el.classList.add('hidden');return;}
+ const c=G.camp;el.classList.remove('hidden');
+ const gl=c.def.g[c.gi];
+ let h=`<div class="ot">${CAMPAIGN[c.p].t.split(' · ')[0]}-${c.m+1} ${c.def.t}</div>`;
+ if(el.classList.contains('open')){c.def.g.forEach((g2,i)=>{const done=i<c.gi,cur=i===c.gi;h+=`<div class="og ${done?'done':cur?'cur':''}">${done?'✔':cur?'▶':'·'} ${goalText(g2,c.f)}${cur?' <b>'+goalProg(g2)[1]+'</b>':''}</div>`;});
+  if(c.def.lose==='hq')h+=`<div class="og warn">✖ 본진 건물을 모두 잃으면 패배</div>`;}
+ else if(gl)h+=`<div class="og cur">▶ ${goalText(gl,c.f)} <b>${goalProg(gl)[1]}</b> <span class="on">(${c.gi+1}/${c.def.g.length})</span></div>`;
+ if(gl&&(campDiff<=1||c.p===0))h+=`<div class="oh">💡 ${goalHint(gl,c.f)}</div>`;
+ if(el._h!==h){el.innerHTML=h;el._h=h;}
+}
+
+// ---- 캠페인 화면 ----
+let campSelP=0;
+function openCamp(){
+ $('title').classList.add('hidden');$('end').classList.add('hidden');$('brief').classList.add('hidden');$('camp').classList.remove('hidden');
+ renderCamp();
+}
+function renderCamp(){
+ const sv=campSave();
+ let h='';CAMPAIGN.forEach((pt,p)=>{const st=[0,1,2].filter(m=>sv[p+'-'+m]!=null).length,lock=!campUnlocked(p,0);
+  h+=`<div class="cp${lock?' lock':''}${p===campSelP?' sel':''}" data-p="${p}"><div class="bar" style="background:${FCOL[pt.f]||'#888'}"></div><div class="cn">${p+1}부 ${FAC[pt.f].n}</div><div class="cs">${lock?'🔒':'★'.repeat(st)+'☆'.repeat(3-st)}</div></div>`;});
+ $('campParts').innerHTML=h;
+ const pt=CAMPAIGN[campSelP];
+ let r=`<div class="ct">${pt.t}</div><div class="cd">${pt.d}</div>`;
+ pt.ms.forEach((m,i)=>{const un=campUnlocked(campSelP,i),dn=sv[campSelP+'-'+i];
+  r+=`<div class="cm${un?'':' lock'}" data-m="${i}"><b>${i+1}. ${m.t}</b> <span>${un?(dn!=null?'✔ 클리어 ('+AIP[dn].n+')':'도전 가능'):'🔒 이전 미션을 깨면 열려요'}</span><div class="cg">${m.g.map(g=>goalText(g,pt.f)).join(' → ')}</div></div>`;});
+ $('campMis').innerHTML=r;
+ document.querySelectorAll('#campDiff button').forEach(b=>b.classList.toggle('on',+b.dataset.v===campDiff));
+}
+function openBrief(p,m){
+ CAMP={p,m};const pt=CAMPAIGN[p],ms=pt.ms[m];
+ $('camp').classList.add('hidden');$('brief').classList.remove('hidden');
+ const allies=(ms.al||[]).map(a=>FAC[a.f].n),foes=ms.e.map(e=>FAC[e.f].n);
+ $('briefBody').innerHTML=`<div class="bk">${pt.t} · 미션 ${m+1}</div><h3>${ms.t}</h3><div class="bt">${ms.b}</div>
+  <div class="bi">🗺 ${MAPS[ms.map].n} · ⚔ 적: ${foes.join(', ')}${allies.length?' · 🤝 아군: '+allies.join(', '):''} · 난이도 ${AIP[campDiff].n}</div>
+  <div class="bg">${ms.g.map((g,i)=>`<div>${i+1}. ${goalText(g,pt.f)}</div>`).join('')}${ms.lose==='hq'?'<div class="warn">✖ 본진 건물을 모두 잃으면 패배</div>':''}</div>`;
+}
+
+$('startBtn').addEventListener('click',()=>{CAMP=null;start();});
+$('campBtn').addEventListener('click',()=>{sfxInit();campSelP=15;for(let i=0;i<48;i++){const p=Math.floor(i/3),m=i%3;if(campUnlocked(p,m)&&!campDone(p,m)){campSelP=p;break;}}openCamp();});
+$('campParts').addEventListener('click',e=>{const c=e.target.closest('.cp');if(!c)return;campSelP=+c.dataset.p;renderCamp();});
+$('campMis').addEventListener('click',e=>{const c=e.target.closest('.cm');if(!c)return;const m=+c.dataset.m;if(!campUnlocked(campSelP,m)){toast('이전 미션을 먼저 깨야 해요');return;}openBrief(campSelP,m);});
+document.querySelectorAll('#campDiff button').forEach(b=>b.addEventListener('click',()=>{campDiff=+b.dataset.v;try{localStorage.setItem('wd_campdiff',campDiff);}catch(_){}renderCamp();}));
+$('campBack').addEventListener('click',()=>{$('camp').classList.add('hidden');$('title').classList.remove('hidden');});
+$('briefBack').addEventListener('click',()=>{$('brief').classList.add('hidden');openCamp();});
+$('briefGo').addEventListener('click',()=>{$('brief').classList.add('hidden');start();});
+$('campNext').addEventListener('click',()=>{if(!CAMP)return;let i=CAMP.p*3+CAMP.m+1;if(i>=48){toTitle();return;}const p=Math.floor(i/3),m=i%3;G=null;showGame(false);$('end').classList.add('hidden');campSelP=p;openBrief(p,m);});
+$('campList').addEventListener('click',()=>{kbUnlock();try{document.exitPointerLock();}catch(_){}fsGate(false);G=null;showGame(false);$('end').classList.add('hidden');$('pause').classList.add('hidden');$('obj').classList.add('hidden');if(CAMP)campSelP=CAMP.p;openCamp();});
+$('obj').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();$('obj').classList.toggle('open');$('obj')._h='';campPanel();});
+
 const qb=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(G)fn();});
 qb('qWarn',()=>{if(G.warnPos){centerOn(G.warnPos[0],G.warnPos[1]);buzz(10);}});
 $('tipsOk').addEventListener('click',()=>{$('tips').classList.add('hidden');if(G)G.paused=false;try{localStorage.setItem('wd_tips','1');}catch(_){}});
 $('againBtn').addEventListener('click',start);
 $('restartBtn').addEventListener('click',start);
-const toTitle=()=>{kbUnlock();try{document.exitPointerLock();}catch(_){}fsGate(false);G=null;showGame(false);$('end').classList.add('hidden');$('pause').classList.add('hidden');$('title').classList.remove('hidden');$('hint').style.display='none';drawPreview();};
-$('quitBtn').addEventListener('click',toTitle);$('end2title').addEventListener('click',toTitle);
+const toTitle=()=>{$('obj').classList.add('hidden');CAMP=null;kbUnlock();try{document.exitPointerLock();}catch(_){}fsGate(false);G=null;showGame(false);$('end').classList.add('hidden');$('pause').classList.add('hidden');$('title').classList.remove('hidden');$('hint').style.display='none';drawPreview();};
+$('quitBtn').addEventListener('click',()=>{if(CAMP)$('campList').click();else toTitle();});$('end2title').addEventListener('click',toTitle);
 $('lockBtn').addEventListener('click',()=>{LOCK.on=!LOCK.on;try{localStorage.setItem('wd_lock',LOCK.on?'1':'0');}catch(_){}lockUpd();if(!LOCK.on){try{document.exitPointerLock();}catch(_){}toast('마우스 가두기 꺼짐');}else toast('마우스 가두기 켜짐 — 게임 화면을 클릭하면 잠겨요');});
 const sndUpd=()=>{$('sndBtn').textContent=SFX.on?'🔊':'🔇';};sndUpd();
 $('sndBtn').addEventListener('click',()=>{SFX.on=!SFX.on;sndUpd();try{localStorage.setItem('wd_snd',SFX.on?'1':'0');}catch(_){}sfxInit();if(SFX.on)play('select');});
 $('pauseBtn').addEventListener('click',()=>{if(G){G.paused=true;$('pause').classList.remove('hidden');}});
 $('resumeBtn').addEventListener('click',e=>{sfxInit();if(PC&&!document.fullscreenElement){pcFull();}if(G){G.paused=false;tryLock(e.clientX||VW/2,e.clientY||VH/2);}if(G)G.paused=false;$('pause').classList.add('hidden');});
-function endGame(win){
+function endGame(win,why){
  if(G.over)return;G.over=true;play(win?'win':'lose');
  const t=Math.floor(G.time);
  $('endTitle').textContent=win?'승리':'패배';$('endTitle').style.color=win?'#e8c56a':'#ff7a6a';
  $('endStats').innerHTML=`${MAPS[G.cfg.map].n} · ${FAC[P(0).fac].n} vs ${G.pl.filter(p=>!p.human).map(p=>FAC[p.fac].n).join(', ')} · 난이도 ${AIP[G.diff].n}<br>전투 시간 ${Math.floor(t/60)}분 ${t%60}초 · 생산 ${G.stats.made} · 처치 ${G.stats.kills} · 손실 ${G.stats.lost}`;
+ const cm=!!G.camp;$('campNext').classList.toggle('hidden',!(cm&&win));$('campList').classList.toggle('hidden',!cm);$('end2title').classList.toggle('hidden',cm);
+ $('againBtn').textContent=cm&&win?'다시 하기':'다시 도전';
+ if(cm){const c=G.camp,pt=CAMPAIGN[c.p];if(win)campMark(c.p,c.m,campDiff);
+  const last=c.p===15&&c.m===2;
+  $('endTitle').textContent=win?(last?'에테르 대전 종결!':'미션 성공'):'미션 실패';
+  $('endStats').innerHTML=`${pt.t} · 미션 ${c.m+1}「${c.def.t}」 · 난이도 ${AIP[campDiff].n}<br>${why?why+' · ':''}전투 시간 ${Math.floor(t/60)}분 ${t%60}초 · 생산 ${G.stats.made} · 처치 ${G.stats.kills} · 손실 ${G.stats.lost}`+
+   (win&&!last&&c.m===2?`<br><b style="color:#e8c56a">${c.p+2}부 「${CAMPAIGN[c.p+1].t.split(' · ')[1]}」(${FAC[CAMPAIGN[c.p+1].f].n}) 캠페인이 열렸어요!</b>`:'')+
+   (last&&win?'<br><b style="color:#e8c56a">16부 캠페인을 모두 끝냈어요. 축하해요, 사령관!</b>':'');
+  $('campNext').textContent=last?'타이틀로':'다음 미션 ▶';}
  setTimeout(()=>$('end').classList.remove('hidden'),900);
 }
 let last=performance.now(),hudT=0,miniT=0;
