@@ -318,7 +318,7 @@ body.pc #roster,body.pc #prod{display:none!important}
 · <b>Shift</b> 추가 선택·명령 예약, <b>Ctrl+클릭/더블클릭</b> 같은 종류, <b>Ctrl+숫자</b> 부대 지정, 숫자 두 번 누르면 이동.<br>
 · 일꾼: <b>B</b> 기본 건설, <b>V</b> 고급 건설. 명령: <b>M A S H P G</b>, 건물 집결지 <b>R</b>, <b>Esc</b> 취소, <b>Space</b> 마지막 경보, <b>F2~F4</b> 화면 위치.<br>
 · 게임 중에는 <b>전체화면</b>으로 고정되고 마우스가 창 밖으로 나가지 않아요. <b>Esc를 길게</b> 누르면 전체화면이 풀리고 일시정지돼요.</div><div class="mo">
-· 유닛을 <b>탭</b>해서 고르고, <b>땅을 탭</b>하면 명령해요. 왼쪽 위 <b>🚶이동 / ⚔어택땅</b> 버튼으로 바꿔요: 이동은 적을 무시하고 그 자리로 가고, 어택땅은 가는 길의 적과 싸우며 가요. 적을 직접 탭하면 언제든 공격해요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
+· 유닛을 <b>탭</b>해서 고르고, <b>땅을 한 번 탭</b>하면 이동(적 무시), <b>두 번 탭</b>하면 어택땅(가는 길의 적과 싸우며 이동)이에요. 적을 직접 탭하면 공격해요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
 · <b>길게 누르면</b> 화면 안 같은 종류 유닛이 모두 선택돼요. 한 손가락 <b>드래그</b>는 범위 선택이에요.<br>
 · 건물을 탭하면 유닛을 뽑을 수 있고, 일꾼을 고른 뒤 <b>건설</b>을 누르면 초록 칸에 지을 수 있어요.<br>
 · 화면 이동은 왼쪽 아래 <b>조이스틱</b>, <b>두 손가락</b>, 오른쪽 위 <b>미니맵</b>으로 하세요. 가 보지 않은 곳은 <b>안개</b>로 가려져 있어요.<br>
@@ -624,24 +624,74 @@ const hgt=new Uint8Array(NN),rampT=new Uint8Array(NN);
 function makeHills(sp,road,name){
  hgt.fill(0);rampT.fill(0);
  const land=i=>terr[i]!==1&&terr[i]!==2;
- const centers=sp.map(s=>[s.cx,s.cy,10.5]);
+ const centers=sp.map(s=>[s.cx,s.cy,9]);
+ const owner=new Int8Array(NN).fill(-1);
  // 중앙부 작은 언덕
  const nh=name==='ocean'?3:5;
  for(let k=0;k<nh;k++){const a=k/nh*Math.PI*2+hash(k,name.length)*1.2,r=16+hash(k*3,7)*14,x=MW/2+Math.cos(a)*r,y=MH/2+Math.sin(a)*r;
   if(sp.some(s=>dist(s.cx,s.cy,x,y)<20))continue;centers.push([x,y,4.5+hash(k,9)*2.5,1]);}
- for(const [cx,cy,r] of centers)for(let y=Math.floor(cy-r);y<=cy+r;y++)for(let x=Math.floor(cx-r);x<=cx+r;x++){if(!inB(x,y))continue;const i=y*MW+x;const rr=r+(hash(x,y)-0.5)*1.2;if((x+.5-cx)**2+(y+.5-cy)**2<=rr*rr&&land(i))hgt[i]=1;}
+ centers.forEach(([cx,cy,r],ci)=>{for(let y=Math.floor(cy-r-1);y<=cy+r+1;y++)for(let x=Math.floor(cx-r-1);x<=cx+r+1;x++){if(!inB(x,y))continue;const i=y*MW+x;const rr=r+(hash(x,y)-0.5)*0.9,d0=Math.hypot(x+.5-cx,y+.5-cy);if(d0>rr||!land(i))continue;
+  // 이웃 본진과 사이에 낮은 땅 골짜기(3칸 이상)를 남김
+  if(ci<sp.length){let ok=true;for(let k=0;k<sp.length;k++)if(k!==ci&&Math.hypot(x+.5-sp[k].cx,y+.5-sp[k].cy)<d0+3.2){ok=false;break;}if(!ok)continue;}
+  hgt[i]=1;owner[i]=ci<sp.length?ci:-1;}});
+ // 본진 언덕 안쪽 구멍 메우기 (작은 낮은 칸이 갇히지 않게)
+ for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){const i=y*MW+x;if(hgt[i]||!land(i))continue;let n=0,o=-1;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const j=(y+dy)*MW+x+dx;if(hgt[j]){n++;o=owner[j];}}if(n>=3){hgt[i]=1;owner[i]=o;}}
  // 절벽: 높은 지대 가장자리 중 낮은 땅과 맞닿은 칸
  const cliff=new Uint8Array(NN);
  for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){const i=y*MW+x;if(!hgt[i]||!land(i))continue;
   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){const j=(y+dy)*MW+x+dx;if(!hgt[j]&&land(j)){cliff[i]=1;break;}}}
- // 경사로: 길이 지나는 곳 + 중앙 언덕마다 2곳
- for(let i=0;i<NN;i++)if(cliff[i]&&road[i]){cliff[i]=0;rampT[i]=1;}
+ // 본진 레이아웃(본진·석탄·에테르)은 반드시 언덕 위
+ sp.forEach((s,k)=>{const l=baseLayout(s);const put=(tx,ty,w,h)=>{for(let y=ty-1;y<ty+h+1;y++)for(let x=tx-1;x<tx+w+1;x++){if(!inB(x,y))continue;const i=y*MW+x;if(land(i)){hgt[i]=1;owner[i]=k;}}};
+  put(l.hq[0],l.hq[1],3,3);for(const c of l.coal)put(c[0],c[1],2,1);put(l.gey[0],l.gey[1],3,2);});
+ // 절벽 다시 계산
+ cliff.fill(0);
+ for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){const i=y*MW+x;if(!hgt[i]||!land(i))continue;
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){const j=(y+dy)*MW+x+dx;if(!hgt[j]&&land(j)){cliff[i]=1;break;}}}
+ // 지상 통행 가능한 큰 낮은 땅
+ const gp=i=>{const t=terr[i];return (t===0||t===2||t===6)&&!cliff[i];};
+ const low=new Int32Array(NN).fill(-1);let big=-1,bigN=0;
+ for(let i0=0;i0<NN;i0++){if(low[i0]>=0||hgt[i0]||!gp(i0))continue;const q=[i0];low[i0]=i0;let n=0;while(q.length){const c=q.pop();n++;const x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;if(low[j]<0&&!hgt[j]&&gp(j)){low[j]=i0;q.push(j);}}}if(n>bigN){bigN=n;big=i0;}}
+ const reachBig=(sx,sy)=>{const seen=new Uint8Array(NN);const st=sy*MW+sx;const q=[st];seen[st]=1;while(q.length){const c=q.pop();if(low[c]===big)return true;const x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;if(!seen[j]&&gp(j)){seen[j]=1;q.push(j);}}}return false;};
+ // 본진마다 길목(경사로) 하나: 맵 중앙 쪽에서 큰 낮은 땅과 이어지는 곳 · 폭 3칸
+ sp.forEach((s,k)=>{const a0=Math.atan2(MH/2-s.cy,MW/2-s.cx),cand=[];
+  for(let y=Math.floor(s.cy-12);y<=s.cy+12;y++)for(let x=Math.floor(s.cx-12);x<=s.cx+12;x++){if(!inB(x,y))continue;const i=y*MW+x;if(!cliff[i]||owner[i]!==k)continue;
+   let ok=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){if(!inB(x+dx,y+dy))continue;const j=(y+dy)*MW+x+dx;if(low[j]===big)ok=true;}if(!ok)continue;
+   let da=Math.abs(Math.atan2(y+.5-s.cy,x+.5-s.cx)-a0);if(da>Math.PI)da=2*Math.PI-da;cand.push([da+(road[i]?-0.15:0),x,y]);}
+  cand.sort((a,b)=>a[0]-b[0]);
+  for(const [,bx,by] of cand.slice(0,40)){
+   const ux=bx+.5-s.cx,uy=by+.5-s.cy,L=Math.hypot(ux,uy)||1,nx=ux/L,ny=uy/L,changed=[];
+   for(let y=Math.floor(s.cy-13);y<=s.cy+13;y++)for(let x=Math.floor(s.cx-13);x<=s.cx+13;x++){if(!inB(x,y))continue;const i=y*MW+x;if(!cliff[i])continue;
+    const rx=x+.5-s.cx,ry=y+.5-s.cy,along=rx*nx+ry*ny,perp=Math.abs(-rx*ny+ry*nx);if(along>L-3&&along<L+2.5&&perp<=1.6){cliff[i]=0;rampT[i]=1;changed.push(i);}}
+   if(reachBig(Math.floor(s.cx),Math.floor(s.cy)))break;
+   for(const i of changed){cliff[i]=1;rampT[i]=0;}
+  }
+  // 그래도 갇힌 본진(물로 둘러싸인 낮은 땅): 최단 경로로 경사로 + 다리를 놓음
+  if(!reachBig(Math.floor(s.cx),Math.floor(s.cy))){
+   const cost=i=>{const t=terr[i];if(hgt[i]){if(owner[i]!==k)return 0;return cliff[i]?3:1;}if(gp(i))return 1;if(t===1)return 3;if(t===3||t===5)return 4;return 0;};
+   const D=new Float32Array(NN).fill(1e9),prev=new Int32Array(NN).fill(-1),st=Math.floor(s.cy)*MW+Math.floor(s.cx);D[st]=0;const open=[st];let goal=-1;
+   while(open.length){let bi=0;for(let q=1;q<open.length;q++)if(D[open[q]]<D[open[bi]])bi=q;const c=open[bi];open[bi]=open[open.length-1];open.pop();
+    if(low[c]===big&&!hgt[c]){goal=c;break;}const x=c%MW,y=(c/MW)|0;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;const j=ny*MW+nx,w=cost(j);if(!w)continue;const nd=D[c]+w;if(nd<D[j]){if(D[j]>=1e9)open.push(j);D[j]=nd;prev[j]=c;}}}
+   for(let c=goal;c>=0;c=prev[c]){const x=c%MW,y=(c/MW)|0;
+    for(let yy=y-1;yy<=y+1;yy++)for(let xx=x-1;xx<=x+1;xx++){if(!inB(xx,yy))continue;const i=yy*MW+xx,t=terr[i];const core=xx===x&&yy===y;
+     if(hgt[i]&&cliff[i]&&owner[i]===k){cliff[i]=0;rampT[i]=1;}
+     else if(!hgt[i]&&t===1&&(core||Math.abs(xx-x)+Math.abs(yy-y)===1))terr[i]=2;
+     else if(!hgt[i]&&(t===3||t===5)&&core)terr[i]=0;}}
+  }
+ });
  for(const c of centers.slice(sp.length)){const [cx,cy,r]=c;let made=0;for(let a0=hash(cx|0,cy|0)*6.28,k=0;k<2;k++){const a=a0+k*Math.PI,x=Math.round(cx+Math.cos(a)*r),y=Math.round(cy+Math.sin(a)*r);
    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const tx=x+dx,ty=y+dy;if(!inB(tx,ty))continue;const i=ty*MW+tx;if(cliff[i]&&Math.abs(dx)+Math.abs(dy)<=2){cliff[i]=0;rampT[i]=1;made++;}}}}
  // 경사로가 없는 본진(섬 등)은 가장 가까운 이웃 쪽으로 하나 뚫음
  sp.forEach((s,k)=>{let has=false;for(let y=Math.floor(s.cy-12);y<=s.cy+12&&!has;y++)for(let x=Math.floor(s.cx-12);x<=s.cx+12;x++)if(inB(x,y)&&rampT[y*MW+x]){has=true;break;}
   if(has)return;const t=sp[(k+1)%12],a=Math.atan2(t.cy-s.cy,t.cx-s.cx);for(let rr=8;rr<=12;rr+=0.5){const x=Math.round(s.cx+Math.cos(a)*rr),y=Math.round(s.cy+Math.sin(a)*rr);for(let d=-1;d<=1;d++){const tx=x+Math.round(-Math.sin(a)*d),ty=y+Math.round(Math.cos(a)*d);if(inB(tx,ty)&&cliff[ty*MW+tx]){cliff[ty*MW+tx]=0;rampT[ty*MW+tx]=1;}}}});
  for(let i=0;i<NN;i++)if(cliff[i])terr[i]=7;
+ // 절벽에 막혀 끝나는 쓸모없는 다리 제거 (지상 구역 두 곳 이상을 잇는 다리만 남김)
+ const gc=new Int32Array(NN).fill(-1);let ng=0;
+ for(let i0=0;i0<NN;i0++){const t0=terr[i0];if(gc[i0]>=0||!(t0===0||t0===6))continue;const q=[i0];gc[i0]=ng;while(q.length){const c=q.pop();const x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx,t=terr[j];if(gc[j]<0&&(t===0||t===6)){gc[j]=ng;q.push(j);}}}ng++;}
+ const bs=new Uint8Array(NN);
+ for(let i0=0;i0<NN;i0++){if(bs[i0]||terr[i0]!==2)continue;const seg=[i0],q=[i0];bs[i0]=1;const touch=new Set();
+  while(q.length){const c=q.pop();const x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;if(terr[j]===2&&!bs[j]){bs[j]=1;q.push(j);seg.push(j);}else if(gc[j]>=0)touch.add(gc[j]);}}
+  if(touch.size<2)for(const j of seg)terr[j]=1;}
 }
 const hAt=(x,y)=>{const tx=clamp(Math.floor(x/T),0,MW-1),ty=clamp(Math.floor(y/T),0,MH-1);return hgt[ty*MW+tx];};
 function hOf(e){if(e.type==='unit'&&UD[e.kind].layer==='a')return 9;return hAt(e.x,e.y);}
@@ -1766,6 +1816,7 @@ function findSpot(team,kind,cx,cy){
    if(inside){if(!buildable(x,y))return false;}else{if(occ[i]!==0)return false;if(t===3||t===4||t===5)return false;}}
   for(const e of ents)if(e.type==='res'&&!e.dead&&e.tx+e.w>tx-2&&e.tx<tx+w+2&&e.ty+e.h>ty-2&&e.ty<ty+h+2)return false;
   if(d.shore&&!shoreOk(tx,ty,w,h))return false;
+  for(let y=ty-2;y<ty+h+2;y++)for(let x=tx-2;x<tx+w+2;x++)if(inB(x,y)&&rampT[y*MW+x])return false;
   if(zoneWhy(team,kind,tx,ty))return false;
   return true;};
  for(let r=2;r<16;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const tx=ctx0+dx-(w>>1),ty=cty+dy-(h>>1);if(ok(tx,ty))return [tx,ty];}
@@ -3827,7 +3878,9 @@ function handleTap(sx,sy){
  const hit=pick(wx,wy),us=ownUnits(),now=performance.now();
  if(hit&&hit.team===0){
   const workers=us.filter(u=>UD[u.kind].worker);
-  if(hit.type==='bld'&&workers.length&&workers.length===us.length&&((!hit.built&&isStay(P(0).fac))||(BD[hit.kind].geyser&&hit.built)||(BD[hit.kind].drop&&workers.some(u=>u.carry)))){commandAt(wx,wy,false);return;}
+  // 건설 중인(건설하러 가는) 일꾼은 그대로 두고 건물을 선택. 쉬는/채집 일꾼만 에테르 정제소로 보냄
+  const busy=workers.some(u=>u.state==='site'||u.state==='build');
+  if(hit.type==='bld'&&!busy&&workers.length&&workers.length===us.length&&BD[hit.kind].geyser&&hit.built&&hit.id!==G.lastTap.id){commandAt(wx,wy,false);G.lastTap={t:now,id:hit.id};return;}
   if(G.lastTap.id===hit.id&&now-G.lastTap.t<350){
    const vx1=cam.x+VW/cam.z,vy1=cam.y+VH/cam.z;
    setSel(ents.filter(e=>!e.dead&&e.type===hit.type&&e.team===0&&e.kind===hit.kind&&e.x>cam.x&&e.x<vx1&&e.y>cam.y&&e.y<vy1));
@@ -3836,8 +3889,9 @@ function handleTap(sx,sy){
  }
  if(hit&&enemy(0,hit.team)){if(us.length)commandAt(wx,wy,false,MOBATK);else setSel([hit]);return;}
  if(hit&&hit.type==='res'){if(us.length||ownBlds().length)commandAt(wx,wy,false,MOBATK);else setSel([hit]);return;}
- // 빈 땅 탭: 이동 모드 = 순수 이동(적 무시), 어택 모드 = 어택땅(가는 길의 적과 교전) / 건물이면 집결지
- if(us.length||ownBlds().length)commandAt(wx,wy,MOBATK&&us.length>0,false);
+ // 빈 땅: 한 번 탭 = 이동, 두 번 탭 = 어택땅 / 건물만 고른 상태면 집결지
+ if(us.length||ownBlds().length){const lg=G.lastGround||{t:0,x:-999,y:-999};const dbl=us.length&&now-lg.t<330&&dist(sx,sy,lg.x,lg.y)<45;
+  commandAt(wx,wy,!!dbl,false);if(dbl)toast('⚔ 어택땅');G.lastGround=dbl?{t:0,x:-999,y:-999}:{t:now,x:sx,y:sy};}
 }
 function boxSelect(b,add){
  const a=s2w(Math.min(b.x0,b.x1),Math.min(b.y0,b.y1)),c=s2w(Math.max(b.x0,b.x1),Math.max(b.y0,b.y1));
@@ -4184,7 +4238,6 @@ function buildGroups(){
  mk('본진',()=>{const hq=ents.find(e=>!e.dead&&e.team===0&&e.type==='bld'&&BD[e.kind].drop)||ents.find(e=>!e.dead&&e.team===0&&e.type==='bld');if(hq){centerOn(hq.x,hq.y);setSel([hq]);}});
  {const want=['1','2','3','본진','군대','일꾼','🏭생산','🔨건설'];const kids=[...g.children];for(const w of want){const k=kids.find(x=>x.textContent===w);if(k)g.appendChild(k);}}
  // 이동 / 어택땅 전환
- const am=mk('',()=>{setMobAtk(!MOBATK);});am.id='amode';g.insertBefore(am,g.firstChild);setMobAtk(MOBATK,true);
 }
 let MOBATK=false;
 function setMobAtk(v,quiet){MOBATK=!!v;const el=$('amode');if(el){el.textContent=MOBATK?'⚔ 어택땅':'🚶 이동';el.classList.toggle('atk',MOBATK);}
@@ -4560,9 +4613,9 @@ function goalHint(gl,f){
   case 'army':return PC?'병영을 클릭해 병력을 뽑으세요':'🏭생산 버튼에서 병력을 뽑으세요 (화면 이동 필요 없음)';
   case 'coal':return '일꾼을 석탄에 보내고 일꾼 수를 16명까지 늘리세요';
   case 'survive':return '본진 앞에 병력을 모아 두고 계속 생산하세요';
-  case 'kills':return '적 병력을 찾아 싸우세요. ⚔어택땅이 편해요';
+  case 'kills':return PC?'적 병력을 찾아 싸우세요. A+클릭 어택땅이 편해요':'적 병력을 찾아 싸우세요. 땅을 두 번 탭하면 어택땅이에요';
   case 'killhq':return '적 본진 건물만 노리세요. 적을 직접 탭하면 그 대상을 공격해요';
-  case 'kill':return '병력을 모아 ⚔어택땅으로 적 건물을 모두 부수세요';
+  case 'kill':return PC?'병력을 모아 A+클릭 어택땅으로 적 건물을 모두 부수세요':'병력을 모아 땅을 두 번 탭(어택땅)해 적 건물을 모두 부수세요';
   case 'up':return `연구 건물을 짓고 무기·장갑 연구를 진행하세요`;
  }return '';
 }
