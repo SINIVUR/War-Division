@@ -308,6 +308,9 @@ body.pc #bottom.panel{background:linear-gradient(180deg,#4a3f2d 0%,#2b2419 30%,#
 @keyframes wdFade{from{opacity:0}}
 #end .seg{animation:wdFade .5s 1s both}
 @media (max-height:420px){#end h2#endTitle{font-size:46px!important}#end .ec{min-width:62px;padding:3px 6px}#end .ec b{font-size:15px}#loading .ld-box{padding:10px 18px}#loading .ld-t{font-size:24px}}
+@media (max-height:440px){.overlay{padding-top:4px;padding-bottom:4px}}
+.overlay{overflow:auto}
+#title .wrap{max-width:100%}
 </style>
 </head>
 <body>
@@ -391,7 +394,8 @@ body.pc #bottom.panel{background:linear-gradient(180deg,#4a3f2d 0%,#2b2419 30%,#
 <div id="pause" class="overlay hidden">
   <h3>일시 정지</h3>
   <div class="help">
-    · <b>탭</b>: 선택 / 유닛을 고른 뒤 땅 탭 = 이동 (가는 길에 적을 만나면 자동 교전)<br>
+    · <b>탭</b>: 선택 / 유닛을 고른 뒤 <b>땅 한 번 탭 = 이동</b>, <b>두 번 탭 = 어택땅</b> · 적을 탭하면 공격<br>
+    · <b>미니맵</b>: 유닛 선택 중 한 번 탭 = 그곳으로 이동, 두 번 탭 = 화면 전환 · <b>ESC</b>: 취소 / 메뉴<br>
     · <b>한 손가락 드래그</b>: 범위 선택 (병력이 있으면 일꾼은 빠짐)<br>
     · <b>조이스틱</b>(왼쪽 아래), <b>두 손가락</b>, <b>미니맵</b>(오른쪽 위): 화면 이동 · 벌려서 확대/축소<br>
     · <b>유닛 두 번 탭</b>: 화면 안 같은 종류 전체 선택<br>
@@ -1217,15 +1221,18 @@ function drawCreep(sx,sy,sw,sh){
 
 
 // ======================== 명령 ========================
-const immov=u=>u.sg||u.sgT>0||u.morph>0;
+// 일꾼이 붙어서 짓는 진영(미국 등): 건설 중인 일꾼은 완공까지 움직일 수 없음
+const buildLock=u=>u&&u.type==='unit'&&u.state==='build'&&UD[u.kind].worker&&isStay(P(u.team).fac)&&(()=>{const b=byId.get(u.target);return b&&!b.dead&&!b.built;})();
+let lockToastT=0;function lockToast(){if(performance.now()-lockToastT>2500){lockToastT=performance.now();toast('건설 중인 일꾼은 완공될 때까지 움직일 수 없어요 (건설 취소는 건물에서)');}}
+const immov=u=>u.sg||u.sgT>0||u.morph>0||buildLock(u);
 // 건설하러 가던 일꾼이 다른 명령을 받거나 죽으면 비용 전액 환불
 function cancelSite(u){if(u.state==='site'&&u.site){const d=BD[u.site.kind],p=P(u.team);p.coal+=d.cost[0];p.ether+=d.cost[1];u.site=null;if(p.human)toast(d.n+' 건설 취소 — 비용을 돌려받았어요');}}
 function orderMove(u,x,y,am,keep){if(immov(u))return;cancelSite(u);u.hold=false;if(!keep){u.patrol=null;u.wq=null;}u.target=0;u.healing=0;u.cast=null;u.state=am?'amove':'move';u.amove=am?[x,y]:null;u.repathT=0;pathTo(u,x,y);}
-function orderAttack(u,t){if(u.morph>0||u.sgT>0)return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;const d=UD[u.kind];if(!d.dmg||!canHit(d.tg,t)){if(!u.sg)orderMove(u,t.x,t.y);return;}u.forced=1;u.state='attack';u.target=t.id;u.amove=null;u.cast=null;u.path=null;u.repathT=0;}
-function orderGather(u,r){if(!r)return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='gather';u.res=r.id;u.phase=u.carry?'back':'to';u.path=null;u.repathT=0;u.target=0;}
-function orderStop(u){if(u.morph>0)return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='idle';u.path=null;u.target=0;u.amove=null;u.cast=null;}
+function orderAttack(u,t){if(u.morph>0||u.sgT>0||buildLock(u))return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;const d=UD[u.kind];if(!d.dmg||!canHit(d.tg,t)){if(!u.sg)orderMove(u,t.x,t.y);return;}u.forced=1;u.state='attack';u.target=t.id;u.amove=null;u.cast=null;u.path=null;u.repathT=0;}
+function orderGather(u,r){if(!r||buildLock(u))return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='gather';u.res=r.id;u.phase=u.carry?'back':'to';u.path=null;u.repathT=0;u.target=0;}
+function orderStop(u){if(u.morph>0||buildLock(u))return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='idle';u.path=null;u.target=0;u.amove=null;u.cast=null;}
 function resume(u){u.target=0;u.forced=0;if(u.hold){u.state='idle';u.path=null;return;}if(u.amove){u.state='amove';pathTo(u,u.amove[0],u.amove[1]);}else{u.state='idle';u.path=null;}}
-function orderSite(u,kind,tx,ty){
+function orderSite(u,kind,tx,ty){if(buildLock(u))return;
  const d=BD[kind];
  u.state='site';u.site={type:'site',kind,tx,ty,w:d.w,h:d.h,x:(tx+d.w/2)*T,y:(ty+d.h/2)*T};u.path=null;u.repathT=0;u.target=0;
 }
@@ -4084,6 +4091,7 @@ function mark(x,y,col){G.marks.push({x,y,t:0,col});}
 function commandAt(wx,wy,am,auto){
  const mv=am||!!auto;
  const us=ownUnits(),hit=pick(wx,wy);
+ if(us.some(buildLock)){lockToast();}
  if(us.length){buzz(8);play('cmd');
   const workers=us.filter(u=>UD[u.kind].worker);
   if(hit&&enemy(0,hit.team)){let any=false;for(const u of us){if(UD[u.kind].dmg&&canHit(UD[u.kind].tg,hit)){orderAttack(u,hit);any=true;}else orderMove(u,hit.x,hit.y,mv);}if(!any)toast('선택한 유닛은 그 대상을 공격할 수 없어요');mark(hit.x,hit.y,'#ff5a4a');return;}
@@ -4169,6 +4177,8 @@ function handleTap(sx,sy){
   const workers=us.filter(u=>UD[u.kind].worker);
   // 건설 중인(건설하러 가는) 일꾼은 그대로 두고 건물을 선택. 쉬는/채집 일꾼만 에테르 정제소로 보냄
   const busy=workers.some(u=>u.state==='site'||u.state==='build');
+  // 짓다 만 건물을 쉬는/채집 일꾼으로 탭하면 건설 재개
+  if(hit.type==='bld'&&!hit.built&&isStay(P(0).fac)&&workers.length&&workers.length===us.length&&workers.some(u=>u.state!=='build')){const free=workers.filter(u=>u.state!=='build'&&u.state!=='site');if(free.length){const sv=G.sel;G.sel=free.map(u=>u.id);commandAt(wx,wy,false);G.sel=sv;toast('건설을 다시 시작해요');G.lastTap={t:now,id:hit.id};return;}}
   if(hit.type==='bld'&&!busy&&workers.length&&workers.length===us.length&&BD[hit.kind].geyser&&hit.built&&hit.id!==G.lastTap.id){commandAt(wx,wy,false);G.lastTap={t:now,id:hit.id};return;}
   if(G.lastTap.id===hit.id&&now-G.lastTap.t<350){
    const vx1=cam.x+VW/cam.z,vy1=cam.y+VH/cam.z;
@@ -5122,6 +5132,16 @@ document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',
 document.querySelectorAll('#aiSeg button').forEach(b=>b.addEventListener('click',()=>setTimeout(teamSummary,0)));
 setTimeout(teamSummary,0);
 $('startBtn').addEventListener('click',()=>{CAMP=null;start();});
+// ---- 화면 맞춤: 창 내용이 화면보다 크면 자동으로 줄여서 위아래가 잘리지 않게 (갤럭시 S23 가로 기준) ----
+function fitOverlay(o){if(!o||o.classList.contains('hidden'))return;const kids=[...o.children].filter(c=>!c.classList.contains('end-fx')&&!c.classList.contains('ld-rays'));
+ for(const c of kids)c.style.zoom='';const H=o.clientHeight-12,W=o.clientWidth-12;let h=0,w=0;
+ for(const c of kids){const r=c.getBoundingClientRect(),cs=getComputedStyle(c);h+=r.height+parseFloat(cs.marginTop||0)+parseFloat(cs.marginBottom||0);w=Math.max(w,r.width);}
+ const z=Math.min(1,H/Math.max(1,h),W/Math.max(1,w));if(z<0.995)for(const c of kids)c.style.zoom=z.toFixed(3);}
+function fitAll(){for(const id of ['title','pause','end','camp','teamDlg','brief','tips','loading'])fitOverlay($(id));}
+let fitReq=0;const fitSoon=()=>{if(fitReq)return;fitReq=requestAnimationFrame(()=>{fitReq=0;fitAll();});};
+addEventListener('resize',()=>{fitSoon();setTimeout(fitAll,250);});addEventListener('orientationchange',()=>setTimeout(fitAll,300));
+{const mo=new MutationObserver(fitSoon);for(const id of ['title','pause','end','camp','teamDlg','brief','tips','loading'])mo.observe($(id),{attributes:true,attributeFilter:['class'],childList:true,subtree:true,characterData:true});}
+setTimeout(fitAll,50);setTimeout(fitAll,600);
 $('campBtn').addEventListener('click',()=>{sfxInit();campSelP=15;for(let i=0;i<48;i++){const p=Math.floor(i/3),m=i%3;if(campUnlocked(p,m)&&!campDone(p,m)){campSelP=p;break;}}openCamp();});
 $('campParts').addEventListener('click',e=>{const c=e.target.closest('.cp');if(!c)return;campSelP=+c.dataset.p;renderCamp();});
 $('campMis').addEventListener('click',e=>{const c=e.target.closest('.cm');if(!c)return;const m=+c.dataset.m;if(!campUnlocked(campSelP,m)){toast('이전 미션을 먼저 깨야 해요');return;}openBrief(campSelP,m);});
