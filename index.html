@@ -63,6 +63,8 @@ body.pc #joy,body.pc #groups{display:none!important}
 .btn:active{filter:brightness(1.4)}
 #groups{position:fixed;left:max(6px,env(safe-area-inset-left));top:31px;display:grid;grid-template-columns:48px 48px;gap:4px;z-index:5}
 #groups .btn{width:48px;height:30px;font-size:11.5px;padding:0}
+#groups #amode{grid-column:1/3;width:auto;height:34px;font-size:12.5px;font-weight:700;border-color:#6cff6c;color:#bfffbf;background:rgba(30,80,30,.75)}
+#groups #amode.atk{border-color:#ff5a4a;color:#ffd0c8;background:rgba(120,25,20,.85);box-shadow:0 0 8px rgba(255,90,74,.6)}
 #hint{position:fixed;top:32px;left:50%;transform:translateX(-50%);background:rgba(20,16,10,.88);border:1px solid #c9a14a;padding:4px 14px;border-radius:12px;font-size:12px;z-index:6;display:none;pointer-events:none;white-space:nowrap}
 #toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(60,18,12,.9);border:1px solid #e0705a;padding:4px 14px;border-radius:12px;font-size:12px;z-index:7;pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap}
 .overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at 50% 35%,#3b2d19 0%,#15110b 62%,#0b0907 100%);padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
@@ -276,7 +278,7 @@ body.pc #roster,body.pc #prod{display:none!important}
 · <b>Shift</b> 추가 선택·명령 예약, <b>Ctrl+클릭/더블클릭</b> 같은 종류, <b>Ctrl+숫자</b> 부대 지정, 숫자 두 번 누르면 이동.<br>
 · 일꾼: <b>B</b> 기본 건설, <b>V</b> 고급 건설. 명령: <b>M A S H P G</b>, 건물 집결지 <b>R</b>, <b>Esc</b> 취소, <b>Space</b> 마지막 경보, <b>F2~F4</b> 화면 위치.<br>
 · 게임 중에는 <b>전체화면</b>으로 고정되고 마우스가 창 밖으로 나가지 않아요. <b>Esc를 길게</b> 누르면 전체화면이 풀리고 일시정지돼요.</div><div class="mo">
-· 유닛을 <b>탭</b>해서 고르고, <b>땅을 탭</b>하면 이동해요. 가는 길에 적을 만나면 알아서 싸워요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
+· 유닛을 <b>탭</b>해서 고르고, <b>땅을 탭</b>하면 명령해요. 왼쪽 위 <b>🚶이동 / ⚔어택땅</b> 버튼으로 바꿔요: 이동은 적을 무시하고 그 자리로 가고, 어택땅은 가는 길의 적과 싸우며 가요. 적을 직접 탭하면 언제든 공격해요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
 · <b>길게 누르면</b> 화면 안 같은 종류 유닛이 모두 선택돼요. 한 손가락 <b>드래그</b>는 범위 선택이에요.<br>
 · 건물을 탭하면 유닛을 뽑을 수 있고, 일꾼을 고른 뒤 <b>건설</b>을 누르면 초록 칸에 지을 수 있어요.<br>
 · 화면 이동은 왼쪽 아래 <b>조이스틱</b>, <b>두 손가락</b>, 오른쪽 위 <b>미니맵</b>으로 하세요. 가 보지 않은 곳은 <b>안개</b>로 가려져 있어요.<br>
@@ -488,9 +490,9 @@ jp:{order:['jp_barracks','jp_refinery','jp_forge','jp_lab','jp_naval','jp_tower'
  cn:{order:['cn_barracks','cn_refinery','cn_barracks','cn_lab','cn_works','cn_dock','cn_wall','cn_kitefield','cn_barracks'],army:{cn_barracks:['cn_militia','cn_militia','cn_rocket','cn_militia','cn_taoist'],cn_works:['cn_dragon'],cn_kitefield:['cn_kite'],cn_dock:['cn_junk']}},
 };
 const AIP=[
- {n:'쉬움',mult:0.9,workers:12,first:300,gap:170,size:8,grow:3,think:1.2,prod:2,def:700},
- {n:'보통',mult:1.2,workers:18,first:220,gap:130,size:12,grow:4,think:0.8,prod:2,def:800},
- {n:'어려움',mult:1.5,workers:22,first:170,gap:100,size:16,grow:5,think:0.5,prod:3,def:900},
+ {n:'쉬움',mult:0.6,workers:9,first:520,gap:260,size:5,grow:2,think:2.2,prod:1,def:550},
+ {n:'보통',mult:0.85,workers:13,first:380,gap:200,size:8,grow:3,think:1.4,prod:2,def:650},
+ {n:'어려움',mult:1.15,workers:18,first:270,gap:145,size:12,grow:4,think:0.8,prod:2,def:800},
  {n:'매우 어려움',mult:1.9,workers:26,first:140,gap:80,size:20,grow:6,think:0.35,prod:4,def:1000},
  {n:'초극한급',mult:2.6,workers:30,first:110,gap:60,size:24,grow:8,think:0.2,prod:5,def:1200},
 ];
@@ -1757,8 +1759,9 @@ function aiThink(p){
  for(const g of gas){let n=wk.filter(u=>u.state==='gather'&&u.res===g.id).length;for(const u of wk)if(n<3&&u.state==='gather'&&u.phase==='to'&&!u.carry&&byId.get(u.res)?.type==='res'){orderGather(u,g);n++;}}
  for(const u of wk)if(u.state==='idle'){const c=nearestCoal(base.x,base.y);if(c&&dist(c.x,c.y,base.x,base.y)<700)orderGather(u,c);}
  // 병력 생산
- for(const b of blds){if(!b.built||b.queue.length>=(G.diff>=3?3:2))continue;const list=PL.army[b.kind];if(!list)continue;
-  let k=(G.diff>=1?counterPick(list,p.ai.intel,army):null)||list[b.aiIdx%list.length];
+ const armyCap=[22,40,70,999,999][G.diff];
+ for(const b of blds){if(!b.built||b.queue.length>=(G.diff>=3?3:G.diff>=2?2:1))continue;if(army.length>=armyCap)break;if(G.diff===0&&Math.random()<0.4)continue;const list=PL.army[b.kind];if(!list)continue;
+  let k=(G.diff>=2?counterPick(list,p.ai.intel,army):null)||list[b.aiIdx%list.length];
   if(k==='balloon'&&army.filter(u=>u.kind==='balloon').length>=4)k=null;
   if(k==='observer'&&army.filter(u=>u.kind==='observer').length>=2)k=list[0];
   if(k&&tryTrain(b,k,true))b.aiIdx++;else if(k){const alt=list.filter(x=>x!==k&&UD[x].cost[1]<=p.ether&&UD[x].cost[0]<=p.coal&&!(x==='balloon'&&army.filter(u=>u.kind==='balloon').length>=4));if(alt.length&&tryTrain(b,alt[Math.floor(Math.random()*alt.length)],true))b.aiIdx++;}}
@@ -1817,7 +1820,7 @@ function aiHuman(p,c){
   if(!best)for(const e of ents)if(!e.dead&&e.type==='bld'&&enemy(p.id,e.team)){const d=dist(e.x,e.y,base.x,base.y);if(d<bd){bd=d;best=e;}}return best;};
  c.pickOverride=focusTarget;
  // --- 정찰: 초반에 일꾼 하나를 상대 기지로
- if(!ai.scouted&&G.time>45+rnd(0,20)&&D>=1){
+ if(!ai.scouted&&G.time>(D>=2?45:120)+rnd(0,20)&&D>=1){
   let s=byId.get(ai.scout);
   if(!s||s.dead){const w=wk.find(u=>u.state==='gather'&&!u.carry);if(w&&wk.length>=6){const f=foes.sort((a,b)=>dist(a.base.x,a.base.y,base.x,base.y)-dist(b.base.x,b.base.y,base.x,base.y))[0];if(f){ai.scout=w.id;w.scouting=1;orderMove(w,f.base.x+rnd(-60,60),f.base.y+rnd(-60,60));}}}
   else if(s.state==='idle'||G.time>150){ai.scouted=true;s.scouting=0;const cl=nearestCoal(base.x,base.y);if(cl)orderGather(s,cl);}
@@ -1843,7 +1846,7 @@ function aiHuman(p,c){
  const defK=F.build.find(k=>BD[k].atk);
  if(defK&&p.coal>700+D*50&&reqMet(p.id,defK)&&have(defK)<2+D*2&&!pending(defK)){const hh=hqs[Math.floor(Math.random()*hqs.length)]||{x:base.x,y:base.y};const tx=hh.x+(WW/2-hh.x)*0.08,ty=hh.y+(WH/2-hh.y)*0.08;const sp=findSpot(p.id,defK,tx,ty);const w=wk.find(u=>u.state==='gather'&&!u.carry);if(sp&&w){p.coal-=BD[defK].cost[0];p.ether-=BD[defK].cost[1];orderSite(w,defK,sp[0],sp[1]);}}
  // --- 견제: 빠른 유닛 몇 기로 상대 일꾼 습격
- if(D>=1&&G.time>240&&G.time>(ai.raidT||0)){
+ if(D>=2&&G.time>240&&G.time>(ai.raidT||0)){
   ai.raidT=G.time+(110-D*12)+rnd(0,30);
   const fast=army.filter(u=>!u.wave&&!u.raid&&UD[u.kind].dmg&&spd(u)>=78&&!UD[u.kind].suicide).sort((a,b)=>spd(b)-spd(a)).slice(0,3+D);
   const f=ai.focus!=null?P(ai.focus):null;
@@ -3673,7 +3676,7 @@ function render(){
  }
  if(G.pending&&G.pending.t==='reloc'&&G.ghost){const b=byId.get(G.pending.id);if(b){const g=G.ghost,ok=relocOk(b,g.tx,g.ty);ctx.globalAlpha=0.45;ctx.fillStyle=ok?'#4cff6a':'#ff4a3a';ctx.fillRect(g.tx*T,g.ty*T,b.w*T,b.h*T);ctx.globalAlpha=1;}}
  ctx.setTransform(dpr,0,0,dpr,0,0);
- if(G.dragLine){const b=G.dragLine,a=Math.atan2(b.y1-b.y0,b.x1-b.x0);ctx.strokeStyle='rgba(108,255,108,.9)';ctx.lineWidth=3*dpr/dpr;ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(b.x0,b.y0);ctx.lineTo(b.x1,b.y1);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#6cff6c';ctx.beginPath();ctx.moveTo(b.x1,b.y1);ctx.lineTo(b.x1-Math.cos(a-0.5)*14,b.y1-Math.sin(a-0.5)*14);ctx.lineTo(b.x1-Math.cos(a+0.5)*14,b.y1-Math.sin(a+0.5)*14);ctx.fill();}
+ if(G.dragLine){const b=G.dragLine,a=Math.atan2(b.y1-b.y0,b.x1-b.x0);ctx.strokeStyle=MOBATK?'rgba(255,90,74,.95)':'rgba(108,255,108,.9)';ctx.lineWidth=3*dpr/dpr;ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(b.x0,b.y0);ctx.lineTo(b.x1,b.y1);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#6cff6c';ctx.beginPath();ctx.moveTo(b.x1,b.y1);ctx.lineTo(b.x1-Math.cos(a-0.5)*14,b.y1-Math.sin(a-0.5)*14);ctx.lineTo(b.x1-Math.cos(a+0.5)*14,b.y1-Math.sin(a+0.5)*14);ctx.fill();}
  if(G.box){const b=G.box;ctx.strokeStyle='#6cff6c';ctx.lineWidth=1.5;ctx.fillStyle='rgba(108,255,108,.1)';const x=Math.min(b.x0,b.x1),y=Math.min(b.y0,b.y1);ctx.fillRect(x,y,Math.abs(b.x1-b.x0),Math.abs(b.y1-b.y0));ctx.strokeRect(x,y,Math.abs(b.x1-b.x0),Math.abs(b.y1-b.y0));}
 }
 
@@ -3713,8 +3716,8 @@ function commandAt(wx,wy,am,auto){
    if(BD[hit.kind].geyser&&hit.built){for(const u of workers)orderGather(u,hit);mark(hit.x,hit.y,'#5ff0ff');return;}
    if(BD[hit.kind].drop){for(const u of workers){if(u.carry){u.state='gather';u.phase='back';u.drop=hit.id;u.path=null;u.repathT=0;}else orderMove(u,wx,wy);}mark(hit.x,hit.y,'#6cff6c');return;}
   }
-  if(G.shiftQ){for(const u of us){if((u.state==='move'||u.state==='amove')&&u.path){(u.wq=u.wq||[]).push([wx,wy,mv]);}else orderMove(u,wx,wy,mv);}mark(wx,wy,'#6cff6c');return;}
-  moveGroup(us,wx,wy,mv);mark(wx,wy,mv&&am?'#ff5a4a':'#6cff6c');return;
+  if(G.shiftQ){for(const u of us){if((u.state==='move'||u.state==='amove')&&u.path){(u.wq=u.wq||[]).push([wx,wy,mv]);}else orderMove(u,wx,wy,mv);}mark(wx,wy,mv?'#ff5a4a':'#6cff6c');return;}
+  moveGroup(us,wx,wy,mv);mark(wx,wy,mv?'#ff5a4a':'#6cff6c');return;
  }
  const bs=ownBlds().filter(b=>BD[b.kind].train);
  if(bs.length){for(const b of bs)b.rally=hit&&hit.type==='res'?{res:hit.id}:{x:wx,y:wy};mark(wx,wy,'#6cff6c');}
@@ -3783,10 +3786,10 @@ function handleTap(sx,sy){
   }else setSel([hit]);
   play('select');G.lastTap={t:now,id:hit.id};return;
  }
- if(hit&&enemy(0,hit.team)){if(us.length)commandAt(wx,wy,false,true);else setSel([hit]);return;}
- if(hit&&hit.type==='res'){if(us.length||ownBlds().length)commandAt(wx,wy,false,true);else setSel([hit]);return;}
- // 빈 땅 탭: 선택한 유닛 이동 (이동 중 적을 만나면 자동 교전) / 건물이면 집결지
- if(us.length||ownBlds().length)commandAt(wx,wy,false,true);
+ if(hit&&enemy(0,hit.team)){if(us.length)commandAt(wx,wy,false,MOBATK);else setSel([hit]);return;}
+ if(hit&&hit.type==='res'){if(us.length||ownBlds().length)commandAt(wx,wy,false,MOBATK);else setSel([hit]);return;}
+ // 빈 땅 탭: 이동 모드 = 순수 이동(적 무시), 어택 모드 = 어택땅(가는 길의 적과 교전) / 건물이면 집결지
+ if(us.length||ownBlds().length)commandAt(wx,wy,MOBATK&&us.length>0,false);
 }
 function boxSelect(b,add){
  const a=s2w(Math.min(b.x0,b.x1),Math.min(b.y0,b.y1)),c=s2w(Math.max(b.x0,b.x1),Math.max(b.y0,b.y1));
@@ -3832,7 +3835,7 @@ function ptrEnd(e,cancel){
   if(gest.mode==='tap'){if(gest.mouse&&!G.placing&&!G.pending)mouseSelect(e.clientX,e.clientY,gest.shift,gest.ctrl);else handleTap(e.clientX,e.clientY);}
   else if(gest.mode==='ghost'){if(G.placing)tryPlace();else if(G.pending&&G.pending.t==='reloc')handleTap(e.clientX,e.clientY);}
   else if(gest.mode==='box'&&G.box)boxSelect(G.box,gest.shift);
-  else if(gest.mode==='drag'){const w=s2w(e.clientX,e.clientY),hit=pick(w[0],w[1]);commandAt(w[0],w[1],false,true);}
+  else if(gest.mode==='drag'){const w=s2w(e.clientX,e.clientY),hit=pick(w[0],w[1]);if(hit&&hit.type==='res')commandAt(w[0],w[1],false,MOBATK);else commandAt(w[0],w[1],MOBATK&&!(hit&&enemy(0,hit.team)),false);}
  }
  G.box=null;G.dragLine=null;
  if(gest.mode==='pan'){gest=ptrs.size===0?null:{mode:'dead'};}else if(ptrs.size===0)gest=null;
@@ -4063,7 +4066,7 @@ function cmdList(){
  if(cons.length&&tm.fac==='su'){const lab=reqMet(0,'lab')&&ents.some(e=>e.team===0&&e.kind==='lab'&&e.built&&!e.dead);out.push({k:'U',l:'변이',s:lab?costTxt(UD.shock.cost):'실험실 필요',dis:!lab||tm.coal<50||tm.ether<50,f:()=>{if(!lab){toast('변이 실험실이 필요해요');return;}let n=0;for(const u of ownUnits())if(u.kind==='conscript'&&!u.morph){const sp=supplyOf(0);if(tm.coal<50||tm.ether<50){toast('자원이 부족해요');break;}if(sp.used+1.5>sp.cap){toast('보급이 부족해요');break;}tm.coal-=50;tm.ether-=50;u.morph=UD.shock.t;u.state='idle';u.path=null;n++;play('morph',u.x,u.y);}}});}
  return out.slice(0,9);
 }
-const STATE_TXT={idle:'대기',move:'이동 중',amove:'이동 중',attack:'교전 중',gather:'채집 중',build:'건설 중',site:'건설하러 가는 중',cast:'스킬 시전 이동 중'};
+const STATE_TXT={idle:'대기',move:'이동 중',amove:'어택 이동 중',attack:'교전 중',gather:'채집 중',build:'건설 중',site:'건설하러 가는 중',cast:'스킬 시전 이동 중'};
 function renderHud(){try{renderRoster();renderProd();}catch(_){}
  const tm=P(0),sp=supplyOf(0);
  $('rCoal').textContent=Math.floor(tm.coal);$('rEth').textContent=Math.floor(tm.ether);
@@ -4132,7 +4135,12 @@ function buildGroups(){
  mk('🔨건설',()=>{const c=s2w(VW/2,VH/2),w=pickWorker(c[0],c[1]);if(!w){toast('일꾼이 없어요');return;}setSel([w]);G.buildMenu=true;G.buildPage=0;G.prodOpen=false;renderProd();hudDirty=true;});
  mk('본진',()=>{const hq=ents.find(e=>!e.dead&&e.team===0&&e.type==='bld'&&BD[e.kind].drop)||ents.find(e=>!e.dead&&e.team===0&&e.type==='bld');if(hq){centerOn(hq.x,hq.y);setSel([hq]);}});
  {const want=['1','2','3','본진','군대','일꾼','🏭생산','🔨건설'];const kids=[...g.children];for(const w of want){const k=kids.find(x=>x.textContent===w);if(k)g.appendChild(k);}}
+ // 이동 / 어택땅 전환
+ const am=mk('',()=>{setMobAtk(!MOBATK);});am.id='amode';g.insertBefore(am,g.firstChild);setMobAtk(MOBATK,true);
 }
+let MOBATK=false;
+function setMobAtk(v,quiet){MOBATK=!!v;const el=$('amode');if(el){el.textContent=MOBATK?'⚔ 어택땅':'🚶 이동';el.classList.toggle('atk',MOBATK);}
+ if(!quiet){buzz(10);toast(MOBATK?'어택땅 모드 — 땅을 찍으면 가는 길의 적과 싸우며 이동':'이동 모드 — 적을 무시하고 그 자리로 이동');}}
 
 
 
@@ -4202,7 +4210,7 @@ mini.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();i
 let miniTap=null,miniLastTap=0;
 mini.addEventListener('pointermove',e=>{if(miniTap&&!miniDrag&&dist(e.clientX,e.clientY,miniTap.x,miniTap.y)>6){miniDrag=true;miniTap=null;}if(miniDrag)miniMove(e);});
 mini.addEventListener('pointerup',e=>{if(miniTap&&G){const now=performance.now(),dbl=now-miniLastTap<350;miniLastTap=now;const r=mini.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;const us=selEnts().filter(u=>u.type==='unit'&&u.team===0);
- if(us.length&&!dbl){commandAt(x,y,false,true);toast('미니맵 지점으로 이동 명령 (두 번 탭: 화면 이동)');}else centerOn(x,y);}miniTap=null;miniDrag=false;});mini.addEventListener('pointercancel',()=>miniDrag=false);
+ if(us.length&&!dbl){commandAt(x,y,MOBATK,false);toast(MOBATK?'미니맵 지점으로 어택땅 (두 번 탭: 화면 이동)':'미니맵 지점으로 이동 (두 번 탭: 화면 이동)');}else centerOn(x,y);}miniTap=null;miniDrag=false;});mini.addEventListener('pointercancel',()=>miniDrag=false);
 // ======================== 효과음 (Web Audio 합성) ========================
 const SFX={ac:null,out:null,noise:null,on:true,last:{},n:0};
 try{SFX.on=localStorage.getItem('wd_snd')!=='0';}catch(_){}
