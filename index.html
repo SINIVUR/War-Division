@@ -1033,7 +1033,9 @@ function newGame(cfg){
  let spots=[];for(let k=0;k<n;k++){const j=n===2?Math.floor(Math.random()*3)-1:0;spots.push(((r0+Math.round(k*gap)+j)%12+12)%12);}
  spots=spots.sort(()=>Math.random()-0.5);
  if(cfg.plist&&cfg.teamMode){// 팀전: 같은 팀은 고리 위에 나란히, 팀끼리는 고르게 떨어지게
-  const order=cfg.plist.map((q,t)=>t).sort((a,b)=>(cfg.plist[a].side===cfg.plist[0].side?-1:0)-(cfg.plist[b].side===cfg.plist[0].side?-1:0)||cfg.plist[a].side.localeCompare(cfg.plist[b].side)||a-b);
+  // 팀 안의 자리 순서는 무작위 (플레이어가 항상 팀 가장자리에 서지 않게)
+  const sides=[...new Set(cfg.plist.map(q=>q.side))].sort(()=>Math.random()-0.5),rk={};cfg.plist.forEach((q,t)=>rk[t]=Math.random());
+  const order=cfg.plist.map((q,t)=>t).sort((a,b)=>sides.indexOf(cfg.plist[a].side)-sides.indexOf(cfg.plist[b].side)||rk[a]-rk[b]);
   spots=new Array(n);order.forEach((t,k)=>{spots[t]=((r0+Math.round(k*gap))%12+12)%12;});
  }else if(cfg.plist){// 캠페인: 아군은 내 옆, 적은 맞은편
   const used=new Set([r0]);spots=[r0];const put=(c)=>{for(const o of [0,1,-1,2,-2,3,-3,4,-4,5,-5,6]){const s2=((c+o)%12+12)%12;if(!used.has(s2)){used.add(s2);return s2;}}};
@@ -1726,7 +1728,7 @@ Object.assign(FTRAIT,{
  for(const k in BD){const d=BD[k];if(d.f==='hu'&&d.atk)d.atk.dmg=Math.round(d.atk.dmg*1.2);}
 })();
 // ===== 진영 밸런스 보정 (AI 대전 시뮬레이션으로 조정) — 전투력 배율: 체력·공격력에 각각 √배율 =====
-const FBAL={us:1.124,su:1.333,de:0.977,it:0.972,fr:1.167,uk:1.103,jp:1.049,cn:0.911,au:0.815,za:0.778,br:0.905,in:1.055,ko:1.008,hu:1.034,fi:0.92,pl:1.027};
+const FBAL={us:1.083,su:1.688,de:1.078,it:0.827,fr:1.548,uk:1.164,jp:1.254,cn:0.883,au:0.684,za:0.6,br:0.803,in:1.132,ko:1.016,hu:1.041,fi:0.839,pl:0.985};
 function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d._bh==null){d._bh=d.hp;d._bd=d.dmg||0;d._bs=d.sh||0;}const m=Math.sqrt(tb[d.f]||1);
  d.hp=Math.max(1,Math.round(d._bh*m));if(d._bs)d.sh=Math.max(1,Math.round(d._bs*m));if(d._bd)d.dmg=d._bd*m>=8?Math.round(d._bd*m):+(d._bd*m).toFixed(1);}}
 applyBal(FBAL);
@@ -2105,7 +2107,10 @@ function aiThink(p){
  };
  let acted=false;
  if(POWF.has(p.fac)&&!blds.some(b=>BD[b.kind].power)&&!siting(F.sup)){build(F.sup);acted=true;}
- if(!acted&&sup.cap<200&&sup.cap-sup.used<=(G.time>300?8:4)&&!pending(F.sup)){build(F.sup);acted=true;}
+ {// 보급: 생산 건물 수만큼 여유를 두고, 막힐 것 같으면 두 채까지 동시에
+  const prodN=blds.filter(b=>b.built&&PL.army[b.kind]).length+blds.filter(b=>b.built&&BD[b.kind].drop).length,margin=G.time>240?4+prodN*2:4;
+  const pendN=blds.filter(b=>b.kind===F.sup&&!b.built).length+wk.filter(u=>u.state==='site'&&u.site&&u.site.kind===F.sup).length;
+  if(!acted&&sup.cap<200&&sup.cap-sup.used<=margin&&(pendN===0||pendN<2&&sup.cap-sup.used<=margin/2&&G.time>240)){build(F.sup);acted=true;}}
  if(!acted&&wk.length>=6){
   const need={};
   for(const k of PL.order){need[k]=(need[k]||0)+1;if(have(k)<need[k]){if(BD[k].shore&&p.noShore)continue;const r=build(k);if(r==='nospot'&&!BD[k].shore&&(POWF.has(p.fac)||CREEPF.has(p.fac))&&!pending(F.sup))build(F.sup);if(r==='nospot'&&BD[k].shore){p.noShoreT=(p.noShoreT||0)+1;if(p.noShoreT>5)p.noShore=true;}break;}}
@@ -2252,7 +2257,7 @@ function aiHuman(p,c){
  // 새 본진이 생기면 일꾼 일부를 옮김
  for(const h of hqs)if(h.built&&!h.aiStaffed&&dist(h.x,h.y,base.x,base.y)>400){h.aiStaffed=1;const cl=nearestCoal(h.x,h.y);if(cl){let n=0;for(const u of wk)if(n<Math.floor(wk.length/3)&&u.state==='gather'&&!u.scouting){orderGather(u,cl);n++;}}}
  // 본진마다 일꾼 생산
- for(const h of hqs)if(h.built&&h.kind===F.hq&&h.queue.length<1&&wk.length<AP.workers*Math.min(hqs.length,3)+(p.fac==='su'?4:0))tryTrain(h,F.worker,true);
+ for(const h of hqs)if(h.built&&h.kind===F.hq&&h.queue.length<(D>=2&&wk.length<AP.workers*0.8?2:1)&&wk.length<AP.workers*Math.min(hqs.length,3)+(p.fac==='su'?4:0))tryTrain(h,F.worker,true);
  // 기지별 일꾼 균형: 과포화 기지에서 부족한 기지로 옮김
  if(G.time>(ai.balT||0)){ai.balT=G.time+8;const bh=hqs.filter(h=>h.built&&!h.moving);if(bh.length>=2){
   const info=bh.map(h=>{let pt=0;for(const e of ents)if(e.type==='res'&&e.kind==='coal'&&!e.dead&&e.amount>0&&dist(e.x,e.y,h.x,h.y)<420)pt++;const ws=wk.filter(u=>u.state==='gather'&&!u.scouting&&byId.get(u.res)?.type==='res'&&byId.get(u.res).kind==='coal'&&dist(byId.get(u.res).x,byId.get(u.res).y,h.x,h.y)<420);return {h,pt,ws,want:pt*2};});
