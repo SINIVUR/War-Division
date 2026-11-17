@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="version" content="1.5.1">
+<meta name="version" content="1.6.0">
 <title>워 디비전</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -366,7 +366,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v1.5.1</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v1.6.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -981,7 +981,7 @@ const LAYOUTS={
  python:{groups:[{main:[21,21],R:14.5,nat:[17.5,53],natO:[-1,0],mouth:[30,61],third:[53,15.5],thirdO:[0,-1]}],hills:[{c:[44,44],o:[-0.71,-0.71],r:9.6,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:6.5,rivers:'axes',rw:3}},
  temple:{groups:[{main:[64,19],R:13,nat:[93,22],natO:[0,-1],mouth:[88,40],third:[19,19],thirdO:[-0.71,-0.71]}],center:{r:15,ramps:[[0.71,0.71]],base:1},water:{rw:3}},
  spirit:{groups:[{main:[20,20],R:14,nat:[24,51],natO:[-1,0],mouth:[40,57],third:[53,18],thirdO:[0,-1]}],water:{lake:4.5,rivers:'axes',rw:2.6},plaza:9},
- circuit:{groups:[{main:[20,20],R:14,nat:[51,17],natO:[0,-1],mouth:[57,34],third:[17,51],thirdO:[-1,0]}],hills:[{c:[45,45],o:[-0.71,-0.71],r:8.6,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:11,rivers:'axes',rw:4.2}},
+ circuit:{groups:[{main:[20,20],R:14,nat:[51,17],natO:[0,-1],mouth:[57,34],third:[17,51],thirdO:[-1,0]}],hills:[{c:[45,45],o:[-0.71,-0.71],r:8.6,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:11,rivers:'axes',rw:4.2,diag:1}},
  hunters:{groups:[{main:[17,17],R:11.5,nat:[41,21],natO:[0,-1],mouth:[42,36]},{main:[64,15],R:11.5,nat:[87,22],natO:[0,-1],mouth:[86,37]}],hills:[{c:[46,46],o:[-0.71,-0.71],r:8,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:5,rw:3}},
  bighunt:{groups:[{main:[17,17],R:11.5,nat:[41,21],natO:[0,-1],mouth:[42,36]},{main:[64,15],R:11.5,nat:[87,22],natO:[0,-1],mouth:[86,37]}],hills:[{c:[47,47],o:[-0.71,-0.71],r:8.8,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:9,rw:3.6}},
 };
@@ -1083,6 +1083,14 @@ function genLayout(name,L){
    const [ex,ey]=pts[pts.length-1],ee=Math.min(ex,ey,MW-ex,MH-ey);const dir=ee===ex?[-1,0]:ee===ey?[0,-1]:ee===MW-ex?[1,0]:[0,1];pts.push([ex+dir[0]*6,ey+dir[1]*6]);
    for(let k=0;k<4;k++){const rp=pts.map(([x,y])=>rotQ(x,y,k));stroke(rp,rw,1,(t,i)=>!hgt[i]&&!rampT[i]&&t!==7);
     const inl=rp.filter(([x,y])=>Math.min(x,y,MW-x,MH-y)>11);if(inl.length>1)bridgesAlong(inl,ocean?7:5.5,rw+1.5,lakeR+2);}}}
+ // 대각선 강 (디 오션): 중앙 바다 → 언덕 멀티를 감싸는 해자, 경사로 앞에는 다리
+ if(W.diag)for(let k=0;k<4;k++)for(const h of hills){const [hx,hy]=rotQ(...h.c,k),mr=h.r+3.2,dl=Math.hypot(hx-C0,hy-C0),ux=(hx-C0)/dl,uy=(hy-C0)/dl;
+  const pts=[[C0+ux*(lakeR-1),C0+uy*(lakeR-1)],[hx-ux*mr,hy-uy*mr]];stroke(pts,rw,1,(t,i)=>!hgt[i]&&!rampT[i]&&t!==7);bridgesAlong(pts,ocean?7:5.5,rw+1.5,lakeR+2);
+  const ring=[];for(let a=0;a<=64;a++){const th=a/64*Math.PI*2;ring.push([hx+Math.cos(th)*mr,hy+Math.sin(th)*mr]);}stroke(ring,2.6,1,(t,i)=>!hgt[i]&&!rampT[i]&&t!==7);
+  for(const v of h.ramps){const [vx,vy]=rotV(...v,k);bridgeAt(hx+vx*mr,hy+vy*mr,-vy,vx,3.6,3);}
+  bridgeAt(hx+ux*mr,hy+uy*mr,-uy,ux,3.6,2.4);
+  {const ms=sp.find(q=>q.k===k)||sp[0],far=Math.hypot(ms.cx-hx,ms.cy-hy)-ms.g.R-1.5,out=[[hx+ux*mr,hy+uy*mr],[hx+ux*Math.max(mr+2,far),hy+uy*Math.max(mr+2,far)]];
+   stroke(out,rw,1,(t,i)=>!hgt[i]&&!rampT[i]&&t!==7);bridgesAlong(out,ocean?7:5.5,rw+1.5,0);}}
  // 8) 핵심 지점끼리 길이 막혔으면 장애물을 걷어 길을 냄 (네 방향 동시에)
  const okG=t=>t===0||t===2||t===6;
  const reach=(sx,sy)=>{const seen=new Uint8Array(NN),st=Math.floor(sy)*MW+Math.floor(sx),q=[st];seen[st]=1;while(q.length){const c=q.pop(),x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;if(!seen[j]&&okG(terr[j])){seen[j]=1;q.push(j);}}}return seen;};
@@ -1913,7 +1921,7 @@ Object.assign(FTRAIT,{
  for(const k in BD){const d=BD[k];if(d.f==='hu'&&d.atk)d.atk.dmg=Math.round(d.atk.dmg*1.2);}
 })();
 // ===== 진영 밸런스 보정 (AI 대전 시뮬레이션으로 조정) — 전투력 배율: 체력·공격력에 각각 √배율 =====
-const FBAL={us:1.27,su:1.67,de:1.26,it:0.78,fr:1.26,uk:1.04,jp:1.29,cn:0.71,au:0.7,za:0.61,br:1.04,in:1.03,ko:0.99,hu:1.04,fi:0.71,pl:0.83};
+const FBAL={us:1.24,su:1.63,de:1.25,it:0.75,fr:1.44,uk:1.13,jp:1.45,cn:0.56,au:0.59,za:0.58,br:0.91,in:1.12,ko:1.15,hu:0.92,fi:0.81,pl:0.73};
 function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d._bh==null){d._bh=d.hp;d._bd=d.dmg||0;d._bs=d.sh||0;}const m=Math.sqrt(tb[d.f]||1);
  d.hp=Math.max(1,Math.round(d._bh*m));if(d._bs)d.sh=Math.max(1,Math.round(d._bs*m));if(d._bd)d.dmg=d._bd*m>=8?Math.round(d._bd*m):+(d._bd*m).toFixed(1);}}
 // ===== 밸런스 패치 v1.5 (섬멸전 240판 분석 반영): 유닛 수치 조정 — 진영 보정값을 곱하기 전의 기본 수치에 적용
@@ -1930,6 +1938,11 @@ function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d
  if(U.in_patang)U.in_patang.cost=[75,25];mul('in_patang','dmg',0.83);
  // 대한제국: 신식군 소총병 공격 간격 0.77 → 0.85초
  mul('ko_sinsik','cd',1.1);
+ // 2차 (새 더 포레스트 섬멸전 120판): 효율이 튀는 유닛 정리
+ mul('su_rata','dmg',0.88);mul('us_halftrack','dmg',0.9);mul('pl_p11','dmg',0.9);
+ mul('fr_flamme','dmg',1.15);mul('fr_flamme','hp',1.1);mul('fr_poilu','hp',1.08);mul('fi_molotov','dmg',1.12);mul('uk_commando','dmg',1.15);
+ mul('cn_kite','dmg',1.12);mul('cn_lantern','dmg',1.12);mul('au_lighthorse','dmg',1.1);mul('de_faust','dmg',1.12);
+ mul('in_gurkha','dmg',1.12);mul('in_gurkha','hp',1.08);mul('ko_byeolgi','dmg',1.1);mul('ko_sinsik','cd',0.95);mul('za_ratel','dmg',1.12);mul('br_urutu','dmg',1.1);
 })();
 // AI가 과하게 뽑던 통신·주술 지원 유닛 (생산 비중 최대 8%)
 const SUPK=new Set(['radio','shaman','it_alchimista','uk_signal','jp_onmyoji','cn_taoist','za_scout','in_sadhu','ko_mudang','pl_enigma']);
