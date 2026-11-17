@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="version" content="1.5.0">
+<meta name="version" content="1.5.1">
 <title>워 디비전</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -366,7 +366,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v1.5.0</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v1.5.1</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -979,83 +979,119 @@ function rotV(vx,vy,k){for(let i=0;i<k;i++){const t=vx;vx=-vy;vy=t;}return [vx,v
 // spec(128칸 기준 좌표, 4방향 회전 복제): groups = 본진 묶음(본진·앞마당·3번째), hills = 언덕 멀티, center = 중앙 고원, water = 호수·강
 const LAYOUTS={
  python:{groups:[{main:[21,21],R:14.5,nat:[17.5,53],natO:[-1,0],mouth:[30,61],third:[53,15.5],thirdO:[0,-1]}],hills:[{c:[44,44],o:[-0.71,-0.71],r:9.6,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:6.5,rivers:'axes',rw:3}},
- temple:{groups:[{main:[64,19],R:13,nat:[93,22],natO:[0,-1],mouth:[88,40],third:[19,19],thirdO:[-0.71,-0.71]}],center:{r:15,ramps:[[0.71,0.71]],base:1},water:{lake:0,rivers:'none',rw:3}},
+ temple:{groups:[{main:[64,19],R:13,nat:[93,22],natO:[0,-1],mouth:[88,40],third:[19,19],thirdO:[-0.71,-0.71]}],center:{r:15,ramps:[[0.71,0.71]],base:1},water:{rw:3}},
  spirit:{groups:[{main:[20,20],R:14,nat:[24,51],natO:[-1,0],mouth:[40,57],third:[53,18],thirdO:[0,-1]}],water:{lake:4.5,rivers:'axes',rw:2.6},plaza:9},
  circuit:{groups:[{main:[20,20],R:14,nat:[51,17],natO:[0,-1],mouth:[57,34],third:[17,51],thirdO:[-1,0]}],hills:[{c:[45,45],o:[-0.71,-0.71],r:8.6,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:11,rivers:'axes',rw:4.2}},
- hunters:{groups:[{main:[17,17],R:11.5,nat:[41,21],natO:[0,-1],mouth:[42,36]},{main:[64,15],R:11.5,nat:[87,22],natO:[0,-1],mouth:[86,37]}],hills:[{c:[46,46],o:[-0.71,-0.71],r:8,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:5,rivers:'none',rw:3}},
- bighunt:{groups:[{main:[17,17],R:11.5,nat:[41,21],natO:[0,-1],mouth:[42,36]},{main:[64,15],R:11.5,nat:[87,22],natO:[0,-1],mouth:[86,37]}],hills:[{c:[47,47],o:[-0.71,-0.71],r:8.8,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:9,rivers:'none',rw:3.6}},
+ hunters:{groups:[{main:[17,17],R:11.5,nat:[41,21],natO:[0,-1],mouth:[42,36]},{main:[64,15],R:11.5,nat:[87,22],natO:[0,-1],mouth:[86,37]}],hills:[{c:[46,46],o:[-0.71,-0.71],r:8,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:5,rw:3}},
+ bighunt:{groups:[{main:[17,17],R:11.5,nat:[41,21],natO:[0,-1],mouth:[42,36]},{main:[64,15],R:11.5,nat:[87,22],natO:[0,-1],mouth:[86,37]}],hills:[{c:[47,47],o:[-0.71,-0.71],r:8.8,ramps:[[0.71,-0.71],[-0.71,0.71]]}],water:{lake:9,rw:3.6}},
 };
+// 4방향 회전 대칭 도우미: 칸 (x,y)를 90° 돌린 칸, 그리고 왼쪽 위 사분면의 대표 칸
+const rotT=(x,y)=>[MW-1-y,x];
+function canonT(x,y){for(let k=0;k<4;k++){if(x<C0&&y<C0)return [x,y];[x,y]=rotT(x,y);}return [x,y];}
+// 작은 우선순위 큐 (강 경로 찾기용)
+function heapPush(h,c,v){h.push([c,v]);let i=h.length-1;while(i>0){const p=(i-1)>>1;if(h[p][0]<=h[i][0])break;[h[p],h[i]]=[h[i],h[p]];i=p;}}
+function heapPop(h){const top=h[0],last=h.pop();if(h.length){h[0]=last;let i=0;for(;;){const l=i*2+1,r=l+1;let m=i;if(l<h.length&&h[l][0]<h[m][0])m=l;if(r<h.length&&h[r][0]<h[m][0])m=r;if(m===i)break;[h[m],h[i]]=[h[i],h[m]];i=m;}}return top;}
 function genLayout(name,L){
  BRG=[];BRT.fill(0);terr.fill(0);occ.fill(0);iceT.fill(0);iceSet=new Set();hgt.fill(0);rampT.fill(0);NAT=[];HILLC=[];
  const city=name==='city',ocean=name==='ocean',ruins=name==='ruins',forest=name==='forest',baseT=city?6:0;
  if(city)terr.fill(6);
  const SQ=MW/128,sc=v=>v&&[v[0]*SQ,v[1]*SQ];
+ const cnz=(x,y,f,ox)=>{const [a,b]=canonT(x,y);return vnoise(a/f+(ox||0),b/f);};
  const sp=[],keyPts=[],groups=L.groups.map(g=>({...g,main:sc(g.main),nat:sc(g.nat),mouth:sc(g.mouth),third:sc(g.third),R:g.R*Math.sqrt(SQ)}));
- // 1) 지형 바탕
+ // 1) 지형 바탕: 장식은 듬성듬성, 회전 대칭
  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const i=y*MW+x;
-  if(forest){const n=vnoise(x/5,y/5)*0.75+vnoise(x/2.1+30,y/2.1)*0.35;if(n>0.7)terr[i]=4;}
-  else if(ruins){if(vnoise(x/3.2+11,y/3.2)>0.76)terr[i]=5;else if(hash(x*3,y*7)>0.985)terr[i]=3;}
-  else if(city){if(x%8<4&&y%8<4&&hash(x>>3,y>>3)>0.35)terr[i]=5;}
-  else if(ocean){if(hash(x,y)>0.988)terr[i]=3;}}
- // 2) 외곽 바다
- for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const e=Math.min(x,y,MW-1-x,MH-1-y);const lim=(ocean?3.2:1.2)+vnoise(x/6+5,y/6)*1.6;if(e<lim)terr[y*MW+x]=1;}
- const plateau=(mx,my,R,k)=>{for(let y=Math.floor(my-R-3);y<=my+R+3;y++)for(let x=Math.floor(mx-R-3);x<=mx+R+3;x++){if(!inB(x,y))continue;const dx=x+.5-mx,dy=y+.5-my;let d=Math.hypot(dx,dy);
-   if(forest)d/=1+(vnoise(x/4.5+k*7,y/4.5)-0.5)*0.4;else if(city)d=(Math.abs(dx)+Math.abs(dy))*0.76;else if(ruins){let m=0;for(let q=0;q<6;q++){const a=q*Math.PI/3;m=Math.max(m,(dx*Math.cos(a)+dy*Math.sin(a))/0.866);}d=m*1.02;}else d=Math.hypot(dx/1.06,dy/0.96);
-   if(d<=R+(hash(x,y)-0.5)*0.6){hgt[y*MW+x]=1;terr[y*MW+x]=baseT;}}};
- // 3) 본진 언덕 (회전 순서대로: 시계 방향으로 한 바퀴)
- for(let k=0;k<4;k++)for(const g of groups){const [mx,my]=rotQ(...g.main,k);plateau(mx,my,g.R,k*3+sp.length);
+  if(forest){const n=cnz(x,y,5.5)*0.75+cnz(x,y,2.2,30)*0.3;if(n>0.76)terr[i]=4;}
+  else if(ruins){if(cnz(x,y,3.4,11)>0.82)terr[i]=5;}
+  else if(city){const [a,b]=canonT(x,y);if(a%8<4&&b%8<4&&hash(a>>3,b>>3)>0.5)terr[i]=5;}
+  else if(ocean){const [a,b]=canonT(x,y);if(hash(a,b)>0.992)terr[i]=3;}}
+ // 2) 외곽 바다 (넓게)
+ for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const e=Math.min(x,y,MW-1-x,MH-1-y);const lim=(ocean?7.5:5.2)+cnz(x,y,6,5)*2;if(e<lim)terr[y*MW+x]=1;}
+ // 본진 언덕: 진영 기준 좌표계로 모양을 만들어 네 본진이 똑같은 모양
+ const plateau=(mx,my,R,k)=>{for(let y=Math.floor(my-R-3);y<=my+R+3;y++)for(let x=Math.floor(mx-R-3);x<=mx+R+3;x++){if(!inB(x,y))continue;const [dx,dy]=rotV(x+.5-mx,y+.5-my,(4-k)%4);let d=Math.hypot(dx,dy);
+   if(forest)d/=1+(cnz(x,y,4.5,7)-0.5)*0.3;else if(city)d=(Math.abs(dx)+Math.abs(dy))*0.76;else if(ruins){let m=0;for(let q=0;q<6;q++){const a=q*Math.PI/3;m=Math.max(m,(dx*Math.cos(a)+dy*Math.sin(a))/0.866);}d=m*1.02;}else d=Math.hypot(dx/1.06,dy/0.96);
+   if(d<=R){hgt[y*MW+x]=1;terr[y*MW+x]=baseT;}}};
+ // 3) 본진 언덕 (회전 순서대로)
+ for(let k=0;k<4;k++)for(const g of groups){const [mx,my]=rotQ(...g.main,k);plateau(mx,my,g.R,k);
   const o0=[mx-C0,my-C0],l=Math.hypot(...o0)||1,o=[o0[0]/l,o0[1]/l];
   sp.push({i:sp.length,k,g,a:Math.atan2(o[0],-o[1]),o,p:[-o[1],o[0]],cx:mx,cy:my,map:name,pool:[mx,my]});keyPts.push([mx,my]);}
- // 언덕 멀티 · 중앙 고원
  const hills=(L.hills||[]).map(h=>({...h,c:sc(h.c),r:h.r*Math.sqrt(SQ)}));
  for(let k=0;k<4;k++)for(const h of hills){const [hx,hy]=rotQ(...h.c,k);HILLC.push([hx,hy,h.r,1]);
-  for(let y=Math.floor(hy-h.r-2);y<=hy+h.r+2;y++)for(let x=Math.floor(hx-h.r-2);x<=hx+h.r+2;x++){if(!inB(x,y))continue;const d=Math.hypot(x+.5-hx,y+.5-hy)/(1+(vnoise(x/3+k,y/3)-0.5)*0.15);if(d<=h.r){hgt[y*MW+x]=1;terr[y*MW+x]=baseT;}}}
+  for(let y=Math.floor(hy-h.r-2);y<=hy+h.r+2;y++)for(let x=Math.floor(hx-h.r-2);x<=hx+h.r+2;x++){if(!inB(x,y))continue;if(Math.hypot(x+.5-hx,y+.5-hy)<=h.r){hgt[y*MW+x]=1;terr[y*MW+x]=baseT;}}}
  const cen=L.center?{...L.center,r:L.center.r*Math.sqrt(SQ)}:null;
  if(cen){for(let y=Math.floor(C0-cen.r-2);y<=C0+cen.r+2;y++)for(let x=Math.floor(C0-cen.r-2);x<=C0+cen.r+2;x++){if(!inB(x,y))continue;const dx=x+.5-C0,dy=y+.5-C0;let m=0;for(let q=0;q<8;q++){const a=q*Math.PI/4;m=Math.max(m,(dx*Math.cos(a)+dy*Math.sin(a))/0.924);}if(m<=cen.r){hgt[y*MW+x]=1;terr[y*MW+x]=baseT;}}HILLC.push([C0,C0,cen.r,1]);}
- // 4) 물: 중앙 호수 + 동서남북 강 (다리)
- const W=L.water||{},rw=W.rw||3;
- if(W.lake>0&&!cen)disc(C0,C0,W.lake*Math.sqrt(SQ),1,(t,i)=>!hgt[i]);
- if(W.rivers==='axes')for(let k=0;k<4;k++){const e=rotQ(C0,1,k),pts=forest?meander(C0,C0,e[0],e[1],1.4,3,k*1.3):[[C0,C0],e];stroke(pts,rw,1,(t,i)=>!hgt[i]);bridgesAlong(pts,ocean?7:5.5,rw+1.5,(W.lake||0)*Math.sqrt(SQ)+1.5);}
- if(L.plaza)disc(C0,C0,L.plaza*SQ,baseT,(t,i)=>!hgt[i]&&t!==1&&t!==2);
- // 5) 기지 터 정리 + 앞마당 입구(바위 벽) + 자원 배치
- const clearDisc=(x,y,r)=>disc(x,y,r,baseT,(t,i)=>t===3||t===4||t===5);
+ // 4) 기지 터 정리 + 앞마당(경사로 바로 밑) + 3번째·언덕 멀티
+ const clearDisc=(x,y,r)=>disc(x,y,r,baseT,(t,i)=>t===3||t===4||t===5||(t===1&&!hgt[i]&&false));
  const mk=(cx,cy,o)=>baseLayout({cx,cy,o,p:[-o[1],o[0]],map:name});
- for(const s of sp){const g=s.g,k=s.k;clearDisc(s.cx,s.cy,g.R+1);
-  // 앞마당: 본진 경사로 바로 밑 (경사로를 내려가자마자 사령부 자리 + 자원줄)
+ const avoid=[];// 강이 피해야 할 곳 [x,y,반경]
+ for(const s of sp){const g=s.g,k=s.k;clearDisc(s.cx,s.cy,g.R+1);avoid.push([s.cx,s.cy,g.R+3]);
   const [ax,ay]=rotQ(...g.nat,k),dl=Math.hypot(ax-s.cx,ay-s.cy)||1,ux=(ax-s.cx)/dl,uy=(ay-s.cy)/dl;
   const nx=s.cx+ux*(g.R+8.5),ny=s.cy+uy*(g.R+8.5),[ox,oy]=rotV(...g.natO,k);s.natP=[nx,ny];
-  disc(nx,ny,10,baseT,(t,i)=>!hgt[i]&&t!==1&&t!==2);
+  disc(nx,ny,10,baseT,(t,i)=>!hgt[i]&&t!==1&&t!==2);avoid.push([nx,ny,12.5]);
   {const cl=Math.hypot(C0-nx,C0-ny)||1;s.mouth=[nx+(C0-nx)/cl*12.3,ny+(C0-ny)/cl*12.3];}
   keyPts.push([nx,ny]);
   NAT.push(Object.assign({i:s.i,kind:'nat',cx:nx,cy:ny},mk(nx,ny,[ox,oy])));
-  if(g.third){const [tx3,ty3]=rotQ(...g.third,k);disc(tx3,ty3,9,baseT,(t,i)=>!hgt[i]&&t!==1&&t!==2);keyPts.push([tx3,ty3]);NAT.push(Object.assign({i:s.i,kind:'third',cx:tx3,cy:ty3},mk(tx3,ty3,rotV(...g.thirdO,k))));}}
- for(let k=0;k<4;k++)for(const h of hills){const [hx,hy]=rotQ(...h.c,k);clearDisc(hx,hy,h.r+1);keyPts.push([hx,hy]);NAT.push(Object.assign({i:-1,kind:'hill',cx:hx,cy:hy},mk(hx,hy,rotV(...h.o,k))));}
+  if(g.third){const [tx3,ty3]=rotQ(...g.third,k);disc(tx3,ty3,9,baseT,(t,i)=>!hgt[i]&&t!==1&&t!==2);keyPts.push([tx3,ty3]);avoid.push([tx3,ty3,9.5]);s.thirdP=[tx3,ty3];NAT.push(Object.assign({i:s.i,kind:'third',cx:tx3,cy:ty3},mk(tx3,ty3,rotV(...g.thirdO,k))));}}
+ for(let k=0;k<4;k++)for(const h of hills){const [hx,hy]=rotQ(...h.c,k);clearDisc(hx,hy,h.r+1);keyPts.push([hx,hy]);avoid.push([hx,hy,h.r+3]);NAT.push(Object.assign({i:-1,kind:'hill',cx:hx,cy:hy},mk(hx,hy,rotV(...h.o,k))));}
  if(cen&&cen.base){clearDisc(C0,C0,cen.r);keyPts.push([C0+3,C0+3]);NAT.push(Object.assign({i:-1,kind:'center',cx:C0,cy:C0},mk(C0,C0,[0,-1])));}
- // 6) 절벽 + 경사로
+ // 큰길: 앞마당 입구 → 중앙, 앞마당 입구 → 3번째 (장애물 없는 깔끔한 진격로)
+ const lane=(a,b)=>stroke([a,b],4.2,baseT,(t,i)=>!hgt[i]&&(t===3||t===4||t===5));
+ for(const s of sp){lane(s.mouth,[C0,C0]);if(s.thirdP)lane(s.mouth,s.thirdP);}
+ // 5) 절벽 + 경사로
  const cliff=new Uint8Array(NN);
  for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){const i=y*MW+x;if(!hgt[i])continue;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const j=(y+dy)*MW+x+dx;if(!hgt[j]){cliff[i]=1;}}}
  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const i=y*MW+x;if(hgt[i]&&(x===0||y===0||x===MW-1||y===MH-1))cliff[i]=1;}
  const carveRamp=(rx,ry,w)=>{for(let y=Math.floor(ry-3);y<=ry+3;y++)for(let x=Math.floor(rx-3);x<=rx+3;x++){if(!inB(x,y))continue;const i=y*MW+x;if(cliff[i]&&Math.hypot(x+.5-rx,y+.5-ry)<=w){cliff[i]=0;rampT[i]=1;terr[i]=baseT;}}
-  for(let y=Math.floor(ry-4);y<=ry+4;y++)for(let x=Math.floor(rx-4);x<=rx+4;x++){if(!inB(x,y))continue;const i=y*MW+x;if(!hgt[i]&&Math.hypot(x+.5-rx,y+.5-ry)<=w+2&&(terr[i]===1||terr[i]===3||terr[i]===4||terr[i]===5))terr[i]=terr[i]===1?2:baseT;}};
+  for(let y=Math.floor(ry-4);y<=ry+4;y++)for(let x=Math.floor(rx-4);x<=rx+4;x++){if(!inB(x,y))continue;const i=y*MW+x;if(!hgt[i]&&Math.hypot(x+.5-rx,y+.5-ry)<=w+2&&(terr[i]===1||terr[i]===3||terr[i]===4||terr[i]===5))terr[i]=baseT;}};
  const edgeToward=(cx,cy,tx,ty)=>{const dl=Math.hypot(tx-cx,ty-cy)||1,ux=(tx-cx)/dl,uy=(ty-cy)/dl;let rx=cx,ry=cy;for(let t=0;t<40;t+=0.25){const x=cx+ux*t,y=cy+uy*t;if(!inB(Math.floor(x),Math.floor(y))||!hgt[Math.floor(y)*MW+Math.floor(x)])break;rx=x;ry=y;}return [rx,ry];};
- // 본진 경사로: 앞마당 쪽 하나 (파이썬·파이팅 스피릿처럼)
  for(const s of sp){const r=edgeToward(s.cx,s.cy,...s.natP);s.ramp=r;carveRamp(r[0],r[1],2.4);}
  for(let k=0;k<4;k++)for(const h of hills){const [hx,hy]=rotQ(...h.c,k);for(const v of h.ramps){const [vx,vy]=rotV(...v,k);carveRamp(hx+vx*(h.r-0.3),hy+vy*(h.r-0.3),2.1);}}
  if(cen)for(let k=0;k<4;k++)for(const v of cen.ramps){const [vx,vy]=rotV(...v,k);const r=edgeToward(C0,C0,C0+vx*99,C0+vy*99);carveRamp(r[0],r[1],2.4);}
  for(let i=0;i<NN;i++)if(cliff[i])terr[i]=7;
- // 앞마당 바위 벽: 경사로 쪽과 입구만 열어 둠 (절벽 계산 뒤라 언덕은 건드리지 않음)
- for(const s of sp){if(!s.mouth)continue;const [nx,ny]=s.natP,[mox,moy]=s.mouth,[rx,ry]=s.ramp;
+ // 앞마당 바위 벽: 경사로 쪽과 입구만 열어 둠
+ for(const s of sp){const [nx,ny]=s.natP,[mox,moy]=s.mouth,[rx,ry]=s.ramp;
   for(let a=0;a<Math.PI*2;a+=0.03){const wx=nx+Math.cos(a)*12.3,wy=ny+Math.sin(a)*12.3;if(Math.hypot(wx-mox,wy-moy)<6.5||Math.hypot(wx-rx,wy-ry)<6)continue;
    const tx=Math.floor(wx),ty=Math.floor(wy);for(const [ax,ay] of [[0,0],[1,0],[0,1]]){const xx=tx+ax,yy=ty+ay;if(!inB(xx,yy))continue;const i=yy*MW+xx;if(hgt[i]||rampT[i]||terr[i]===1||terr[i]===2||terr[i]===7)continue;terr[i]=city||ruins?5:3;}}}
- // 7) 핵심 지점끼리 길이 막혔으면 장애물을 걷어 길을 냄
+ // 6) 완전 대칭: 왼쪽 위 사분면을 기준으로 나머지 셋을 맞춤
+ const symAll=()=>{for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(x<C0&&y<C0)continue;const [a,b]=canonT(x,y),i=y*MW+x,j=b*MW+a;terr[i]=terr[j];hgt[i]=hgt[j];rampT[i]=rampT[j];}};
+ symAll();
+ // 7) 물: 중앙 호수(또는 신전 둘레) → 기지·앞마당을 피해 바다까지 흐르는 강 4갈래
+ const W=L.water||{},rw=W.rw||3;
+ const lakeR=cen?0:(W.lake||5)*Math.sqrt(SQ);
+ if(lakeR>0)disc(C0,C0,lakeR,1,(t,i)=>!hgt[i]&&!rampT[i]);
+ {const pen=new Float32Array(NN);
+  for(let i=0;i<NN;i++){const x=i%MW+.5,y=((i/MW)|0)+.5;if(hgt[i]||rampT[i]||terr[i]===7){pen[i]=-1;continue;}let p=1;
+   for(const [ax,ay,ar] of avoid){const d=Math.hypot(x-ax,y-ay)-ar;if(d<0){p=-1;break;}p+=30*Math.exp(-d/3.5);}
+   if(p>0){for(const kp of keyPts){}}pen[i]=p;}
+  // 다른 강과 겹치지 않도록 대각선(45°) 근처는 비쌈
+  for(let i=0;i<NN;i++){if(pen[i]<0)continue;const dx=i%MW+.5-C0,dy=((i/MW)|0)+.5-C0;const dd=Math.abs(Math.abs(dx)-Math.abs(dy))/Math.SQRT2;if(dd<rw*2)pen[i]+=20;}
+  const D=new Float32Array(NN).fill(1e9),prev=new Int32Array(NN).fill(-1),h=[];
+  const r0=cen?cen.r+2.5:lakeR+0.5;
+  for(let i=0;i<NN;i++){const x=i%MW,y=(i/MW)|0;if(pen[i]<0)continue;const d=Math.hypot(x+.5-C0,y+.5-C0);
+   // 한 사분면(왼쪽 위 → 위쪽 가장자리 방향)에서 시작해야 4갈래가 서로 다른 곳으로 감
+   if(d<=r0&&d>r0-2.2&&x<C0&&y<C0){D[i]=0;heapPush(h,0,i);}}
+  const edgeSea=i=>{const x=i%MW,y=(i/MW)|0;return terr[i]===1&&Math.min(x,y,MW-1-x,MH-1-y)<10;};
+  let goal=-1;
+  while(h.length){const [dc,c]=heapPop(h);if(dc>D[c])continue;if(edgeSea(c)){goal=c;break;}const x=c%MW,y=(c/MW)|0;
+   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;
+    // 왼쪽 위 사분면 안에서만 (돌린 4갈래가 서로 안 겹침)
+    if(nx>=C0||ny>=C0)continue;if(pen[j]<0)continue;const w=(dx&&dy?1.414:1)*pen[j];if(D[c]+w<D[j]){D[j]=D[c]+w;prev[j]=c;heapPush(h,D[j],j);}}}
+  if(goal>=0){let raw=[];for(let c=goal;c>=0;c=prev[c])raw.push([c%MW+.5,((c/MW)|0)+.5]);raw.reverse();
+   if(lakeR>0)raw.unshift([C0,C0]);
+   let pts=raw.filter((p,k)=>k%3===0||k===raw.length-1);
+   for(let it=0;it<2;it++){const q=[pts[0]];for(let k=0;k<pts.length-1;k++){const [a,b]=pts[k],[c,d]=pts[k+1];q.push([a*.75+c*.25,b*.75+d*.25],[a*.25+c*.75,b*.25+d*.75]);}q.push(pts[pts.length-1]);pts=q;}
+   // 끝은 바다 쪽으로 조금 더 뻗음
+   const [ex,ey]=pts[pts.length-1],ee=Math.min(ex,ey,MW-ex,MH-ey);const dir=ee===ex?[-1,0]:ee===ey?[0,-1]:ee===MW-ex?[1,0]:[0,1];pts.push([ex+dir[0]*6,ey+dir[1]*6]);
+   for(let k=0;k<4;k++){const rp=pts.map(([x,y])=>rotQ(x,y,k));stroke(rp,rw,1,(t,i)=>!hgt[i]&&!rampT[i]&&t!==7);
+    const inl=rp.filter(([x,y])=>Math.min(x,y,MW-x,MH-y)>11);if(inl.length>1)bridgesAlong(inl,ocean?7:5.5,rw+1.5,lakeR+2);}}}
+ // 8) 핵심 지점끼리 길이 막혔으면 장애물을 걷어 길을 냄 (네 방향 동시에)
  const okG=t=>t===0||t===2||t===6;
  const reach=(sx,sy)=>{const seen=new Uint8Array(NN),st=Math.floor(sy)*MW+Math.floor(sx),q=[st];seen[st]=1;while(q.length){const c=q.pop(),x=c%MW,y=(c/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(!inB(nx,ny))continue;const j=ny*MW+nx;if(!seen[j]&&okG(terr[j])){seen[j]=1;q.push(j);}}}return seen;};
- const dig=(a,b)=>{const D=new Float32Array(NN).fill(1e9),prev=new Int32Array(NN).fill(-1),st=Math.floor(a[1])*MW+Math.floor(a[0]),gl=Math.floor(b[1])*MW+Math.floor(b[0]);D[st]=0;const open=[st];
+ const dig=(a,b)=>{const D=new Float32Array(NN).fill(1e9),prev=new Int32Array(NN).fill(-1),st=Math.floor(a[1])*MW+Math.floor(a[0]),gl=Math.floor(b[1])*MW+Math.floor(b[0]);D[st]=0;const h=[];heapPush(h,0,st);
   const cost=i=>{const t=terr[i];if(okG(t))return 1;if(t===3||t===4||t===5)return 3;if(t===1)return 4;return 0;};
-  while(open.length){let bi=0;for(let q=1;q<open.length;q++)if(D[open[q]]<D[open[bi]])bi=q;const c=open[bi];open[bi]=open[open.length-1];open.pop();if(c===gl)break;const x=c%MW,y=(c/MW)|0;
-   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;const j=ny*MW+nx,w=cost(j);if(!w)continue;if(D[c]+w<D[j]){if(D[j]>=1e9)open.push(j);D[j]=D[c]+w;prev[j]=c;}}}
-  for(let c=gl;c>=0;c=prev[c]){const t=terr[c];if(t===3||t===4||t===5)terr[c]=baseT;else if(t===1)terr[c]=2;}};
- for(let it=0;it<3;it++){const r=reach(sp[0].cx,sp[0].cy);let all=true;for(const kp of keyPts){if(!r[Math.floor(kp[1])*MW+Math.floor(kp[0])]){all=false;dig([sp[0].cx,sp[0].cy],kp);}}if(all)break;}
+  while(h.length){const [dc,c]=heapPop(h);if(dc>D[c])continue;if(c===gl)break;const x=c%MW,y=(c/MW)|0;
+   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;const j=ny*MW+nx,w=cost(j);if(!w)continue;if(D[c]+w<D[j]){D[j]=D[c]+w;prev[j]=c;heapPush(h,D[j],j);}}}
+  for(let c=gl;c>=0;c=prev[c]){let x=c%MW,y=(c/MW)|0;for(let k=0;k<4;k++){const j=y*MW+x,t=terr[j];if(t===3||t===4||t===5)terr[j]=baseT;else if(t===1){terr[j]=2;}[x,y]=rotT(x,y);}}};
+ for(let it=0;it<4;it++){const r=reach(sp[0].cx,sp[0].cy);let all=true;for(const kp of keyPts){if(!r[Math.floor(kp[1])*MW+Math.floor(kp[0])]){all=false;dig([sp[0].cx,sp[0].cy],kp);}}if(all)break;}
  connectWaters(sp);
  for(let i=0;i<NN;i++)if(terr[i]===2&&!BRT[i]){const x=i%MW,y=(i/MW)|0;addDeck(x+.5,y+.5,1,0,-0.4,0.4,1.6);}
  return sp;
