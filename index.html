@@ -10,6 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="version" content="1.0.0">
 <title>워 디비전</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -363,7 +364,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943</div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v1.0.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1732,14 +1733,14 @@ Object.assign(FTRAIT,{
  for(const k in BD){const d=BD[k];if(d.f==='hu'&&d.atk)d.atk.dmg=Math.round(d.atk.dmg*1.2);}
 })();
 // ===== 진영 밸런스 보정 (AI 대전 시뮬레이션으로 조정) — 전투력 배율: 체력·공격력에 각각 √배율 =====
-const FBAL={us:1.084,su:1.239,de:1.077,it:0.834,fr:1.69,uk:1.284,jp:1.339,cn:0.856,au:0.624,za:0.633,br:0.817,in:1.173,ko:1.097,hu:0.994,fi:0.833,pl:1.024};
+const FBAL={us:1.078,su:1.268,de:1.088,it:0.849,fr:1.709,uk:1.231,jp:1.354,cn:0.838,au:0.64,za:0.617,br:0.828,in:1.189,ko:1.073,hu:0.973,fi:0.845,pl:1.023};
 function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d._bh==null){d._bh=d.hp;d._bd=d.dmg||0;d._bs=d.sh||0;}const m=Math.sqrt(tb[d.f]||1);
  d.hp=Math.max(1,Math.round(d._bh*m));if(d._bs)d.sh=Math.max(1,Math.round(d._bs*m));if(d._bd)d.dmg=d._bd*m>=8?Math.round(d._bd*m):+(d._bd*m).toFixed(1);}}
 applyBal(FBAL);
 // 맵별·난이도별 진영 보정 (전투력 배율). 맵 보정은 모든 플레이어, 난이도 보정은 AI 플레이어에만 적용.
 // 피해량에 √(공격 측 배율 / 방어 측 배율)을 곱함 = 체력·공격력에 각각 √배율을 준 것과 같은 효과
 const FKEYS=['us','su','de','it','fr','uk','jp','cn','au','za','br','in','ko','hu','fi','pl'];
-let MBAL={"forest":{"us":1.027,"su":1.043,"de":0.995,"it":0.979,"fr":1.069,"uk":0.979,"jp":0.986,"cn":0.999,"au":0.946,"za":1.027,"br":0.915,"in":1.021,"ko":1.022,"hu":0.98,"fi":1.036,"pl":0.986},"ocean":{"us":1.05,"su":0.967,"de":1.054,"it":1.007,"fr":1.022,"uk":0.912,"jp":1.084,"cn":0.957,"au":0.987,"za":0.9,"br":0.998,"in":1.065,"ko":1.02,"hu":1.016,"fi":0.952,"pl":1.031},"city":{"us":0.957,"su":0.964,"de":0.979,"it":0.939,"fr":0.982,"uk":1.093,"jp":1.011,"cn":1.014,"au":0.958,"za":1.015,"br":0.993,"in":1.035,"ko":1.04,"hu":1.035,"fi":0.986,"pl":1.011},"ruins":{"us":0.98,"su":1.068,"de":0.984,"it":1.036,"fr":1.03,"uk":1.072,"jp":0.984,"cn":1.002,"au":1.019,"za":0.974,"br":1.062,"in":0.92,"ko":0.941,"hu":0.971,"fi":0.994,"pl":0.978}},DBAL={"0":{"us":1.024,"su":0.924,"de":0.987,"it":1.065,"fr":1.003,"uk":1.007,"jp":0.948,"cn":1.064,"au":1.028,"za":0.961,"br":0.979,"in":1.003,"ko":0.986,"hu":1.054,"fi":1.014,"pl":0.967},"1":{"us":1.019,"su":0.763,"de":0.93,"it":0.985,"fr":0.966,"uk":1.421,"jp":0.926,"cn":1.025,"au":0.939,"za":0.997,"br":0.936,"in":1.024,"ko":0.988,"hu":1.127,"fi":1.006,"pl":1.072},"2":{"us":1.019,"su":0.861,"de":0.926,"it":1.033,"fr":1.148,"uk":0.982,"jp":1.101,"cn":0.856,"au":0.904,"za":1.007,"br":1.088,"in":1.216,"ko":0.935,"hu":0.984,"fi":0.942,"pl":1.073},"3":{"us":1.129,"su":1.002,"de":1.024,"it":1.008,"fr":0.904,"uk":0.942,"jp":1.197,"cn":0.888,"au":1.035,"za":0.884,"br":0.99,"in":0.985,"ko":1.08,"hu":1.04,"fi":0.983,"pl":0.961},"4":{"us":0.942,"su":1.218,"de":1.173,"it":0.92,"fr":1.171,"uk":0.861,"jp":0.992,"cn":1.02,"au":1.047,"za":1.009,"br":0.933,"in":0.893,"ko":0.971,"hu":0.924,"fi":1.023,"pl":0.982},"5":{"us":0.894,"su":1.402,"de":0.989,"it":0.956,"fr":0.938,"uk":0.917,"jp":0.925,"cn":1.148,"au":0.964,"za":1.062,"br":1.045,"in":0.942,"ko":1.069,"hu":0.892,"fi":1.0,"pl":0.959}};
+let MBAL={"forest":{"us":1.037,"su":1.027,"de":1.001,"it":0.977,"fr":1.073,"uk":1.013,"jp":1.0,"cn":1.002,"au":0.953,"za":0.999,"br":0.909,"in":1.029,"ko":1.034,"hu":0.983,"fi":1.026,"pl":0.949},"ocean":{"us":1.017,"su":0.992,"de":1.08,"it":1.024,"fr":1.007,"uk":0.874,"jp":1.028,"cn":0.951,"au":0.973,"za":0.945,"br":1.029,"in":1.031,"ko":1.026,"hu":0.989,"fi":1.023,"pl":1.029},"city":{"us":0.979,"su":0.989,"de":0.984,"it":0.979,"fr":1.039,"uk":1.077,"jp":0.991,"cn":1.006,"au":0.959,"za":0.942,"br":0.994,"in":1.026,"ko":0.978,"hu":1.059,"fi":0.938,"pl":1.074},"ruins":{"us":0.978,"su":1.036,"de":0.951,"it":0.983,"fr":0.986,"uk":1.087,"jp":1.045,"cn":1.009,"au":1.032,"za":1.023,"br":1.037,"in":0.954,"ko":0.98,"hu":0.968,"fi":0.983,"pl":0.96}},DBAL={"0":{"us":1.039,"su":0.86,"de":0.972,"it":1.054,"fr":1.002,"uk":1.047,"jp":0.933,"cn":1.086,"au":1.015,"za":0.954,"br":0.954,"in":1.009,"ko":1.021,"hu":1.103,"fi":0.997,"pl":0.983},"1":{"us":1.057,"su":0.715,"de":0.913,"it":1.117,"fr":0.908,"uk":1.312,"jp":0.988,"cn":1.001,"au":1.027,"za":1.03,"br":1.074,"in":1.023,"ko":0.894,"hu":1.092,"fi":0.976,"pl":0.993},"2":{"us":1.0,"su":0.838,"de":0.864,"it":1.006,"fr":1.196,"uk":1.017,"jp":1.099,"cn":0.817,"au":0.954,"za":1.073,"br":1.009,"in":1.157,"ko":1.01,"hu":1.017,"fi":0.939,"pl":1.092},"3":{"us":1.042,"su":1.019,"de":1.109,"it":0.959,"fr":0.946,"uk":0.96,"jp":1.212,"cn":0.873,"au":0.956,"za":0.857,"br":0.997,"in":1.04,"ko":1.043,"hu":0.958,"fi":1.034,"pl":1.049},"4":{"us":0.973,"su":1.29,"de":1.16,"it":0.9,"fr":1.107,"uk":0.867,"jp":1.0,"cn":1.063,"au":1.013,"za":0.988,"br":0.942,"in":0.926,"ko":1.009,"hu":0.896,"fi":1.028,"pl":0.922},"5":{"us":0.907,"su":1.54,"de":1.025,"it":0.942,"fr":0.972,"uk":0.892,"jp":0.867,"cn":1.174,"au":0.951,"za":1.019,"br":0.994,"in":0.901,"ko":1.047,"hu":0.948,"fi":0.997,"pl":0.977}};
 let balG=null,balR=[];
 function balRoot(team){if(team==null||team<0||!G)return 1;if(balG!==G){balG=G;balR=G.pl.map(p=>{let c=1;const m=MBAL[G.cfg.map];if(m&&m[p.fac])c*=m[p.fac];if(!p.human){const d=DBAL[p.diff??G.diff];if(d&&d[p.fac])c*=d[p.fac];}return Math.sqrt(c);});}return balR[team]||1;}
 
