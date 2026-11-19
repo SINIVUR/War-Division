@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="version" content="2.1.0">
+<meta name="version" content="2.2.1">
 <title>워 디비전</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -366,7 +366,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v2.1.0</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v2.2.1</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1463,7 +1463,8 @@ let AIB=null; // 지금 생각 중인 AI 플레이어
 function aiSpend(c,must){const p=AIB;if(!p)return true;if(!must&&p.ai.apmB<0)return false;p.ai.apmB-=c;p.ai.acts=(p.ai.acts||0)+c;return true;}
 // 부대 명령: 사람이 부대 키로 한꺼번에 찍는 것처럼 동작 1번(+선택 약간)만 씀
 function grpOrder(n,fn){if(!aiSpend(0.5+Math.min(n,40)*0.01))return false;const o=AIB;AIB=null;try{fn();}finally{AIB=o;}return true;}
-function orderMove(u,x,y,am,keep){if(immov(u))return;if(!aiSpend(0.34))return;cancelSite(u);u.hold=false;if(!keep){u.patrol=null;u.wq=null;}u.target=0;u.healing=0;u.cast=null;u.state=am?'amove':'move';u.amove=am?[x,y]:null;u.repathT=0;pathTo(u,x,y);}
+function orderMove(u,x,y,am,keep){if(immov(u))return;
+ if(UD[u.kind].layer==='n'&&!pass('n',Math.floor(x/T),Math.floor(y/T))){const w=nearestPass('n',Math.floor(x/T),Math.floor(y/T),Math.floor(u.x/T),Math.floor(u.y/T),14);if(!w)return;x=(w[0]+.5)*T;y=(w[1]+.5)*T;if(dist(u.x,u.y,x,y)<u.r*2)return;}if(!aiSpend(0.34))return;cancelSite(u);u.hold=false;if(!keep){u.patrol=null;u.wq=null;}u.target=0;u.healing=0;u.cast=null;u.state=am?'amove':'move';u.amove=am?[x,y]:null;u.repathT=0;pathTo(u,x,y);}
 function orderAttack(u,t){if(u.morph>0||u.sgT>0||buildLock(u))return;if(!aiSpend(0.34))return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;const d=UD[u.kind];if(!d.dmg||!canHit(d.tg,t)){if(!u.sg)orderMove(u,t.x,t.y);return;}u.forced=1;u.state='attack';u.target=t.id;u.amove=null;u.cast=null;u.path=null;u.repathT=0;}
 function orderGather(u,r){if(!r||buildLock(u))return;if(!aiSpend(0.5))return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='gather';u.res=r.id;u.phase=u.carry?'back':'to';u.path=null;u.repathT=0;u.target=0;}
 function orderStop(u){if(u.morph>0||buildLock(u))return;cancelSite(u);u.hold=false;u.patrol=null;u.wq=null;u.state='idle';u.path=null;u.target=0;u.amove=null;u.cast=null;}
@@ -1947,6 +1948,10 @@ function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d
  if(U.in_patang)U.in_patang.cost=[75,25];mul('in_patang','dmg',0.83);
  // 대한제국: 신식군 소총병 공격 간격 0.77 → 0.85초
  mul('ko_sinsik','cd',1.1);
+ // 독일: 주력 척탄병이 에테르를 먹어 혼자 에테르가 바닥나던 문제 → 척탄병은 석탄만, 판저파우스트는 에테르 줄임
+ UD.grenadier.cost=[110,0];
+ // 독일 전 유닛 에테르 약 40% 감축 (평균 102 → 약 66, 다른 진영 수준), 줄인 만큼 석탄으로
+ Object.assign(UD.de_faust,{cost:[120,20]});UD.walker.cost=[300,90];UD.jet.cost=[180,60];UD.sub.cost=[210,60];UD.mage.cost=[110,55];UD.observer.cost=[50,45];UD.de_tesla.cost=[215,75];UD.de_panzer.cost=[270,90];UD.de_stuka.cost=[180,60];UD.de_wing.cost=[250,105];UD.de_eboot.cost=[130,40];UD.de_bismarck.cost=[370,135];
  // 2차 (새 더 포레스트 섬멸전 120판): 효율이 튀는 유닛 정리
  mul('su_rata','dmg',0.88);mul('us_halftrack','dmg',0.9);mul('pl_p11','dmg',0.9);
  mul('fr_flamme','dmg',1.15);mul('fr_flamme','hp',1.1);mul('fr_poilu','hp',1.08);mul('fi_molotov','dmg',1.12);mul('uk_commando','dmg',1.15);
@@ -2319,7 +2324,7 @@ function findSpot(team,kind,cx,cy){
    if(inside){if(!buildable(x,y))return false;}else{if(occ[i]!==0)return false;if(t===3||t===4||t===5)return false;if(!d.shore&&!P(team).human&&(t===7||t===1))return false;}}
   for(const e of ents)if(e.type==='res'&&!e.dead&&e.tx+e.w>tx-2&&e.tx<tx+w+2&&e.ty+e.h>ty-2&&e.ty<ty+h+2)return false;
   if(d.shore&&!shoreOk(tx,ty,w,h))return false;
-  if(!P(team).human&&!G._relax){for(let y=ty-2;y<ty+h+2;y++)for(let x=tx-2;x<tx+w+2;x++){if(!inB(x,y))return false;const j=y*MW+x,t2=terr[j];if(!d.shore&&(t2===7||t2===1))return false;if(occ[j]&&!d.wall&&!(BD[kind].geyser))return false;}}
+  if(!P(team).human&&!G._relax){for(let y=ty-2;y<ty+h+2;y++)for(let x=tx-2;x<tx+w+2;x++){if(!inB(x,y))return false;const j=y*MW+x,t2=terr[j];if(!d.shore&&(t2===7||t2===1||t2===3||t2===4||t2===5))return false;if(occ[j]&&!d.wall&&!(BD[kind].geyser))return false;}}
   if(d.shore&&!P(team).human&&!wideWater(tx+(w>>1),ty+(h>>1),5))return false;
   for(let y=ty-2;y<ty+h+2;y++)for(let x=tx-2;x<tx+w+2;x++)if(inB(x,y)&&rampT[y*MW+x])return false;
   if(zoneWhy(team,kind,tx,ty))return false;
@@ -2441,13 +2446,13 @@ function aiThink(p){
   // 멀티 방어는 이길 만큼 모였을 때만 한꺼번에 (하나씩 녹지 않게)
   const farT=dist(threat.x,threat.y,base.x,base.y)>900,weak=hmP<thP*0.75;
   if(farT&&weak){const sx=base.x+(WW/2-base.x)*0.16,sy=base.y+(WH/2-base.y)*0.16;for(const u of home)if(u.dfd&&u.state==='amove'&&dist(u.x,u.y,threat.x,threat.y)>350){u.dfd=0;u.stage=1;orderMove(u,sx+rnd(-70,70),sy+rnd(-70,70));}}
-  else for(const u of home)if((u.state==='idle'||u.stage||u.state==='move'&&!u.path)&&UD[u.kind].dmg){u.stage=0;u.dfd=1;orderMove(u,threat.x+rnd(-40,40),threat.y+rnd(-40,40),true);}
-  if(!(farT&&weak))for(const u of home)if(!u.stage&&u.state==='amove'&&dist(u.x,u.y,threat.x,threat.y)>900){u.stage=0;u.dfd=1;orderMove(u,threat.x,threat.y,true);}}
+  else{const lst=home.filter(u=>(u.state==='idle'||u.stage||u.state==='move'&&!u.path)&&UD[u.kind].dmg&&!(u.dfT>G.time-3)&&(layerOf(u)!=='n'||pass('n',Math.floor(threat.x/T),Math.floor(threat.y/T))));if(lst.length)grpOrder(lst.length,()=>{for(const u of lst){u.dfT=G.time;u.stage=0;u.dfd=1;orderMove(u,threat.x+rnd(-40,40),threat.y+rnd(-40,40),true);}});}
+  if(!(farT&&weak)){const lst=home.filter(u=>!u.stage&&u.state==='amove'&&dist(u.x,u.y,threat.x,threat.y)>900&&!(u.dfT>G.time-3));if(lst.length)grpOrder(lst.length,()=>{for(const u of lst){u.dfT=G.time;u.stage=0;u.dfd=1;orderMove(u,threat.x,threat.y,true);}});}}
  // 집결: 생산된 병력은 기지 앞에 모임
  const cxm=WW/2,cym=WH/2;let stx=base.x+(cxm-base.x)*0.16,sty=base.y+(cym-base.y)*0.16;
  // 팀전 아군 AI: 대기 병력을 플레이어 기지 쪽에 세워 두어 빨리 도우러 감
  if(p.id&&G.ally&&!G.camp&&friend0(p.id)&&P(0).alive){const b0=P(0).base,px=b0.x+(cxm-b0.x)*0.2,py=b0.y+(cym-b0.y)*0.2;stx+=(px-stx)*0.6;sty+=(py-sty)*0.6;}
- if(!threat)for(const u of army)if(!u.wave&&!u.reinf&&!u.raid&&u.state==='idle'&&!u.sg&&!u.morph&&dist(u.x,u.y,stx,sty)>220){u.stage=1;u.dfd=0;orderMove(u,stx+rnd(-80,80),sty+rnd(-80,80),true);}
+ if(!threat){const lst=army.filter(u=>!u.wave&&!u.reinf&&!u.raid&&u.state==='idle'&&!u.sg&&!u.morph&&layerOf(u)!=='n'&&dist(u.x,u.y,stx,sty)>220&&!(u.stgT>G.time-10));if(lst.length)grpOrder(lst.length,()=>{for(const u of lst){u.stgT=G.time;u.stage=1;u.dfd=0;orderMove(u,stx+rnd(-80,80),sty+rnd(-80,80),true);}});}
  // 공격
  const pick=()=>_c.pickOverride?_c.pickOverride():null; // 직접 본 적 건물·출발 후보지만 목표로 (맵핵 없음)
  if(G.time>=p.ai.nextWave){
@@ -2591,6 +2596,8 @@ function aiMacro(p,c){const ai=p.ai,{blds,wk,army,base,build,pending,have}=c,F=F
   else if(on.length>want){const ex=on.filter(u=>!u.carry).slice(0,on.length-want);const cl=nearestCoal(g.x,g.y);if(cl&&ex.length)grpOrder(ex.length,()=>{for(const u of ex)orderGather(u,cl);});}}
  // 1-2) 노는 일꾼은 자원이 남은 기지의 광맥으로 (자원이 바닥난 기지에서 놀지 않게)
  {const idleW=wk.filter(u=>u.state==='idle'&&!u.carry);if(idleW.length){const drops=blds.filter(b=>BD[b.kind].drop&&b.built);const cands=[];for(const d of drops){const r=nearestCoal(d.x,d.y);if(r&&dist(r.x,r.y,d.x,d.y)<10*T)cands.push(r);}
+  ai.depleted=!cands.length;
+  if(!cands.length){let best=null,bd=1e18;for(const e of ents)if(e.type==='res'&&!e.dead&&e.kind!=='geyser'&&!e.hidden){const dd=dist(e.x,e.y,base.x,base.y);if(dd<bd&&dd<45*T){bd=dd;best=e;}}if(best)cands.push(best);}
   if(cands.length)grpOrder(idleW.length,()=>{for(const u of idleW){let best=null,bd=1e18;for(const r of cands){const dd=dist(u.x,u.y,r.x,r.y);if(dd<bd){bd=dd;best=r;}}if(best)orderGather(u,best);}});}}
  // 1-3) 기지(사령부)에서 먼 광맥을 오가는 일꾼은 가까운 기지 광맥으로 옮김
  if(!ai.fmT||G.time-ai.fmT>8){ai.fmT=G.time;const drops=blds.filter(b=>BD[b.kind].drop&&b.built);const far=[];
@@ -2725,7 +2732,7 @@ function aiHuman(p,c){
  const expT=v2?[100,270,400,520,640][Math.min(4,hqs.length-1)]*(ai.style==='greedy'?0.8:ai.style==='aggro'?1.25:1):(Math.max(150,380-D*45)*(ai.style==='greedy'?0.6:ai.style==='aggro'?1.4:1)+(hqs.length-1)*150);
  const prodN2=blds.filter(b=>b.built&&BD[b.kind].train&&!BD[b.kind].drop).length;
  const myAP=army.reduce((s2,u)=>s2+upow(u),0),enAP=ai.focus!=null&&P(ai.focus)?aiEnemyPow(p,ai.focus):0;
- const safe=!v2||(prodN2>=(p.noBO?hqs.length+1:(hqs.length<=1&&G.time<260?1:hqs.length+1))&&(G.time<200||myAP>=enAP*0.8));
+const safe=!v2||ai.depleted||(prodN2>=(p.noBO?hqs.length+1:(hqs.length<=1&&G.time<260?1:hqs.length+1))&&(G.time<200||myAP>=enAP*0.8));
  ai.saveHQ=v2&&safe&&G.time>expT-15&&hqs.length<maxB&&!pending(F.hq)&&wk.length>=12&&!ai.threatNow;
  if(G.time>expT&&safe&&hqs.length<maxB&&!pending(F.hq)&&p.coal>=BD[F.hq].cost[0]+(v2?0:60)&&wk.length>=12){
   const used=new Set(G.pl.filter(q=>q.alive).map(q=>q.spawn));let best=-1,bd=1e9;
