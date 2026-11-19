@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="version" content="3.0.0">
+<meta name="version" content="3.0.1">
 <title>워 디비전</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.0.0</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.0.1</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -5184,7 +5184,7 @@ function renderHud(){try{renderRoster();renderProd();}catch(_){}
  $('rCoal').textContent=Math.floor(tm.coal);$('rEth').textContent=Math.floor(tm.ether);if(G.sg)sgHud();else sgHudOff();
  const se=$('rSup');se.textContent=`${Math.ceil(sp.used)}/${sp.cap}`;se.className=sp.used>=sp.cap?'full':'';
  const t=Math.floor(G.time);$('rTime').textContent=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
- const foes0=G.pl.filter(p=>!p.human&&enemy(0,p.id));$('rInfo').innerHTML=!PC?`<span style="color:#ff8a7a">적 ${foes0.filter(p=>p.alive).length}/${foes0.length}</span>`:G.pl.filter(p=>!p.human).map(p=>`<span style="color:${TCOL[p.id]};${p.alive?'':'text-decoration:line-through;opacity:.5'}">${enemy(0,p.id)?'■':'🤝'}${FAC[p.fac].n}</span>`).join(' ');
+ const foes0=G.pl.filter(p=>!p.human&&enemy(0,p.id));$('rInfo').innerHTML=!PC?`<span style="color:#ff8a7a">적 ${foes0.filter(p=>p.alive).length}/${foes0.length}</span>`:G.pl.filter(p=>!p.human).map(p=>`<span style="color:${TCOL[p.id]};${p.alive?'':'text-decoration:line-through;opacity:.5'}">${(enemy(0,p.id)||G.sg)?'■':'🤝'}${FAC[p.fac].n}</span>`).join(' ');
  const h=$('hint');let ht='';
  if(G.placing)ht=`${BD[G.placing].n} — 초록색 칸을 탭하거나 끌어서 놓으세요`;
  else if(G.pending)ht={gather:'채집할 광맥이나 정제소를 탭하세요 (빈 땅이면 가까운 광맥)',rally:'집결지를 탭하세요',reloc:'옮길 위치를 탭하세요',ability:'스킬을 쓸 곳을 탭하세요'}[G.pending.t];
@@ -5497,7 +5497,7 @@ function ldMapDraw(mapK){try{const c=$('ldMap'),g=c.getContext('2d');g.imageSmoo
 let ldTipT=0;function ldTips(on){clearInterval(ldTipT);if(!on)return;ldTipT=setInterval(()=>{const t=$('ldTip');t.style.opacity=0;setTimeout(()=>{t.textContent='💡 '+LD_TIPS[Math.floor(Math.random()*LD_TIPS.length)];t.style.opacity=1;},300);},2600);}
 // 화면 전환 셔터: 닫히고 → 일을 하고 → 열림
 function shutter(fn){const s=$('shutter');s.classList.add('on');setTimeout(()=>{try{fn();}finally{setTimeout(()=>s.classList.remove('on'),180);}},360);}
-function start(){if(cfg.gm==='sg'&&!CAMP)return sgStart();
+function start(){if(cfg.gm==='sg'&&!CAMP)return sgStart();{const li=[...$('ldSteps').children],tx=['지형과 강줄기를 그리는 중','자원과 멀티를 배치하는 중','진영과 부대를 배치하는 중','AI 사령부가 작전을 세우는 중'];li.forEach((e,i)=>e.textContent=tx[i]);}
  sfxInit();if(PC)pcFull();
  try{localStorage.setItem('wd_cfg',JSON.stringify(cfg));}catch(_){}
  {const myF=CAMP?CAMPAIGN[CAMP.p].f:cfg.fac,ms=CAMP?CAMPAIGN[CAMP.p].ms[CAMP.m]:null,mapK=ms?ms.map:cfg.map;
@@ -6055,7 +6055,7 @@ const sgCat=k=>{const b=SG_BASE(k);return SG_INF.includes(b)?'inf':SG_CAV.includ
   cav:{n:'마굿간',w:3,h:3,hp:1500,cost:1200,t:45,role:'veh',desc:'기병·공성 병기 생산'},
   sea:{n:'수군기지',w:3,h:2,hp:1400,cost:1200,t:45,shore:1,role:'sea',desc:'물가에만 건설 · 수군 생산'},
   tower:{n:'망루',w:2,h:2,hp:1200,cost:700,t:30,det:1,atk:{dmg:11,rng:210,cd:1.1,tg:'gn'},role:'tower',desc:'활을 쏘는 방어 시설 · 세작 탐지'},
-  gate:{n:'성문 (닫힘)',w:2,h:2,hp:9000,cost:1000,t:40,gate:1,role:'gate',desc:'엄청나게 단단한 성문 · 닫으면 아무도 못 지나감'},
+  gate:{n:'성문',w:2,h:2,hp:9000,cost:1000,t:40,gate:1,role:'gate',desc:'엄청나게 단단한 성문 · 닫으면 아무도 못 지나감'},
   gateO:{n:'성문 (열림)',w:2,h:2,hp:9000,cost:1000,t:40,gate:1,open:1,role:'gate',desc:'열린 성문 · 누구나 지나갈 수 있음'},
   wall:{n:'성벽',w:1,h:1,hp:2400,cost:100,t:8,role:'wall',desc:'길을 막는 튼튼한 성벽'},
   wallD:{n:'성벽 (내림)',w:1,h:1,hp:2400,cost:100,t:8,role:'wall',lowered:1,desc:'내린 성벽 · 누구나 지나갈 수 있음'},
@@ -6071,7 +6071,7 @@ const sgCat=k=>{const b=SG_BASE(k);return SG_INF.includes(b)?'inf':SG_CAV.includ
   const hk={gisul:'S',chang:'Q',jungbo:'W',gung:'E',musa:'R',seonbong:'A',uiwon:'D',sejak:'F',gibyeong:'Q',cheolgi:'W',seokpo:'E',tuseok:'R',sugun:'Q',sondan:'W'};
   for(const b in SGU)UHK[n+'_'+b]=hk[b];
  }
- const sk={};for(const [k,n,nm,b] of SGS){const c=sgCat(k);sk[n+c]=(sk[n+c]||0);UHK[k]='ZXC'[sk[n+c]++];}
+ const sk={inf:0,cav:0,sea:0},KEYS='ZXCVBGHJKLNMTU';for(const [k,n,nm,b] of SGS){const c=sgCat(k);UHK[k]=KEYS[sk[c]++]||'';}
 })();
 // 나라·건물 역할별 생산 목록 (특수 유닛은 해당 성을 가진 나라만)
 function sgOwnsCastle(team,name){const s=G&&G.sgSites&&G.sgSites.find(q=>q.castle&&q.name===name);return !!s&&sgSiteOwner(s)===team;}
@@ -6359,10 +6359,10 @@ function sgPaintWalls(){const g=terrC.getContext('2d');for(const i of G.sgWalls)
  miniBg.getContext('2d').drawImage(terrC,0,0,MW*2,MH*2);}
 // ======================== 삼국시대: 규칙 (세금·국가발전·점령·수리·성문·화살·수송·전군이동) ========================
 let PT=-1;const GATE=new Map(),GATEALL=new Set(),GAUTO=new Map();
-function sgRefreshGates(){const before=GATE.size;GATE.clear();GATEALL.clear();GAUTO.clear();if(!G||!G.sg)return;const L=G.sgLow||(G.sgLow=new Set());L.clear();for(const e of ents){if(e.dead||e.type!=='bld')continue;const d=BD[e.kind];if(d.gate){GATEALL.add(e.id);if(e.gAuto!==false&&e.built)GAUTO.set(e.id,e.team);}if(d.gate&&d.open&&e.built)GATE.set(e.id,e.team);else if(d.lowered)L.add(e.ty*MW+e.tx);}if(GATE.size!==before)compV++;}
+function sgRefreshGates(){const before=GATE.size;GATE.clear();GATEALL.clear();GAUTO.clear();if(!G||!G.sg)return;const L=G.sgLow||(G.sgLow=new Set());L.clear();for(const e of ents){if(e.dead||e.type!=='bld')continue;const d=BD[e.kind];if(d.gate){GATEALL.add(e.id);if(e.gAuto!==false&&e.built)GAUTO.set(e.id,e.team);}if(d.gate&&d.open&&e.built)GATE.set(e.id,e.team);else if(d.lowered)L.add(e.ty*MW+e.tx);}}
 function sgSetGate(b,open){const d=BD[b.kind];if(!d||!d.gate||!b.built||!!d.open===open)return false;const n=d.f;b.kind=n+(open?'_bgateO':'_bgate');
  if(open){GATE.set(b.id,b.team);}else{GATE.delete(b.id);for(const u of ents){if(u.dead||u.type!=='unit'||UD[u.kind].layer)continue;const tx=Math.floor(u.x/T),ty=Math.floor(u.y/T);if(tx>=b.tx&&tx<b.tx+b.w&&ty>=b.ty&&ty<b.ty+b.h){const w=nearestPass('g',tx,ty,tx,ty,4);if(w){u.x=(w[0]+.5)*T;u.y=(w[1]+.5)*T;u.path=null;}}}}
- compV++;return true;}
+ return true;}
 // 자동 개폐: 우리 병력이 가까이 움직이면 열고, 적이 가까우면 닫음
 function sgGateAuto(){for(const b of ents){if(b.dead||b.type!=='bld'||!BD[b.kind].gate||!b.built||b.gAuto===false)continue;
   let foe=false,own=false;unitsNear(b.x,b.y,8*T,v=>{if(UD[v.kind].layer==='a')return;const dd=dist(v.x,v.y,b.x,b.y);if(enemy(b.team,v.team)&&UD[v.kind].dmg&&dd<7*T)foe=true;else if(v.team===b.team&&dd<4.5*T&&(v.path||v.state==='site'||v.state==='board'))own=true;});
@@ -6441,6 +6441,7 @@ function sgShipTick(s){
 // ---- 명령 가로채기 (탑승·수리)
 {const _ca=commandAt;commandAt=function(wx,wy,am,auto){
  if(G&&G.sg){const us=ownUnits(),hit=pick(wx,wy);
+  if(G.sgTruce>0&&us.length&&hit&&hit.team>=0&&hit.team!==0&&(hit.type==='bld'||hit.type==='unit')){toast('🕊 휴전 중에는 다른 나라를 공격할 수 없어요');if(!am){moveGroup(us,wx,wy,false);mark(wx,wy,'#6cff6c');}return;}
   if(us.length&&hit&&hit.type==='unit'&&hit.team===0&&UD[hit.kind].cap&&!am){const gr=us.filter(u=>!UD[u.kind].layer);if(gr.length){let free=sgFree0(hit)-ents.filter(e=>!e.dead&&e.state==='board'&&e.target===hit.id).length;let n=0;for(const u of gr){if(free<=0)break;if(sgBoard(u,hit)){free--;n++;}}toast(n?`⛵ ${n}명 탑승하러 가요`:'배에 자리가 없어요');mark(hit.x,hit.y,'#6cff6c');return;}}
   if(us.length&&hit&&hit.type==='bld'&&hit.team===0&&hit.built&&hit.hp<hit.maxhp&&!am){const ws=us.filter(u=>UD[u.kind].worker);if(ws.length){for(const w of ws)sgRepair(w,hit);toast('🔧 수리 시작');mark(hit.x,hit.y,'#ffe070');const rest=us.filter(u=>!UD[u.kind].worker);if(!rest.length)return;}}
  }
@@ -6508,6 +6509,15 @@ function sgUnitFirst(u,dt){if(u.state!=='attack'||u.forced)return;const t=byId.g
 // ---- 도착 처리: 마지막 지점에 다른 유닛이 서 있어 맴도는 것 방지
 function sgArrive(u){if((u.state!=='amove'&&u.state!=='move')||!u.path)return;const last=u.path[u.path.length-1];if(!last)return;const d=dist(u.x,u.y,last[0],last[1]);
  if(d<1.6*T&&u.path.length-u.pi<=1){u.arrT=(u.arrT||0)+1;if(u.arrT>20){u.path=null;u.arrT=0;if(u.state==='move'||u.state==='amove'){u.state='idle';u.amove=null;}}}else u.arrT=0;}
+
+// ---- 결과 화면: 삼국시대 통계
+{const _eg=endGame;endGame=function(win,why){_eg(win,why);if(!G||!G.sg)return;try{const k=sgCounts(0),t=Math.floor(G.time),mm=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
+ $('endGrid').innerHTML=[['전투 시간',mm],['세금 턴',G.sgTurn],['성',k.c],['마을',k.v],['국가발전',P(0).dev+'/10'],['처치',G.stats.kills],['손실',G.stats.lost],['평균 APM',apmAvg()]].map(([a,b],i)=>`<div class="ec" style="animation-delay:${0.5+i*0.08}s"><span>${a}</span><b>${b}</b></div>`).join('');
+ if(why==='all'){$('endTitle').textContent='천하통일';$('endSub').textContent='UNIFICATION';}}catch(_){}};}
+// ---- 휴전 중에는 다른 나라의 유닛·건물을 공격할 수 없음
+{const _dm=damage;damage=function(t,amt,src){if(G&&G.sg&&G.sgTruce>0&&src&&src.team>=0&&t&&t.team>=0&&src.team!==t.team)return;return _dm(t,amt,src);};}
+{const _oa=orderAttack;orderAttack=function(u,t){if(G&&G.sg&&G.sgTruce>0&&t&&t.team!==u.team&&t.team>=0){if(u.team===0){const n=performance.now();if(!(sgTruceToastT>n-1500)){sgTruceToastT=n;toast('🕊 휴전 중에는 다른 나라를 공격할 수 없어요');}}return;}return _oa(u,t);};}
+let sgTruceToastT=0;
 // ======================== 삼국시대: AI ========================
 function SGAI_reset(){for(const s of G.sgSites)s.claim=null;}
 const SGW={inf:{chang:3,gung:3,jungbo:1.6,musa:1.6,seonbong:1,uiwon:0.6,sejak:0.12},cav:{gibyeong:3,cheolgi:1.6,seokpo:0.8,tuseok:0.9},sea:{sugun:1,sondan:2}};
@@ -6520,6 +6530,7 @@ function sgPickUnit(b,p,S){const r=BD[b.kind].sgRole,cat=r==='inf'?'inf':r==='ca
 function sgAI(p,dt){
  const S=p.ai.sg||(p.ai.sg={}),A=p.prof||aiProf(p.diff??2,!PC),dk=p.diff??2;
  S.t=(S.t||Math.random()*2)-dt;if(S.t>0)return;S.t=clamp(A.think*2.4,0.5,3.5)+Math.random()*0.3;
+ let ob=28;const mv=(u,x,y,am)=>{if(ob<=0)return;ob--;orderMove(u,x,y,am);};
  const blds=[],army=[],wk=[],ships=[],all=[];
  for(const e of ents){if(e.dead||e.team!==p.id)continue;if(e.type==='bld'){blds.push(e);continue;}if(e.type!=='unit')continue;const d=UD[e.kind];all.push(e);if(d.worker)wk.push(e);else if(d.layer==='n')ships.push(e);else if(d.sgBase!=='sejak')army.push(e);}
  if(!blds.length)return;
@@ -6559,8 +6570,8 @@ function sgAI(p,dt){
  // 방어
  const al=p.ai.alert;
  if(al&&G.time-al.t<8){let near=false;for(const b of blds)if(dist(b.x,b.y,al.x,al.y)<14*T){near=true;break;}
-  if(near){const ac=sgTileC(lab,al.x,al.y);const ds=field.filter(u=>dist(u.x,u.y,al.x,al.y)<40*T&&u.state!=='attack'&&sgTileC(lab,u.x,u.y)===ac);for(const u of ds)if(!u.amove||dist(u.amove[0],u.amove[1],al.x,al.y)>6*T)orderMove(u,al.x+rnd(-40,40),al.y+rnd(-40,40),true);
-   for(const u of army)if(u.sgGarr&&dist(u.x,u.y,al.x,al.y)<12*T&&u.state==='idle')orderMove(u,al.x,al.y,true);S.defT=G.time;}}
+  if(near){const ac=sgTileC(lab,al.x,al.y);const ds=field.filter(u=>dist(u.x,u.y,al.x,al.y)<40*T&&u.state!=='attack'&&sgTileC(lab,u.x,u.y)===ac);for(const u of ds)if(!u.amove||dist(u.amove[0],u.amove[1],al.x,al.y)>6*T)mv(u,al.x+rnd(-40,40),al.y+rnd(-40,40),true);
+   for(const u of army)if(u.sgGarr&&dist(u.x,u.y,al.x,al.y)<12*T&&u.state==='idle')mv(u,al.x,al.y,true);S.defT=G.time;}}
  // 공격 목표
  const first=Math.max(250,[600,480,400,330,280,250][dk]),wave=[6,8,10,12,14,16][dk];
  const tgt=S.tgt&&G.sgSites[S.tgt.i];
@@ -6574,7 +6585,7 @@ function sgAI(p,dt){
   G.sgSites.forEach((s,i)=>{if(owned(s))return;const o=sgSiteOwner(s),b=sgSiteBld(s);if(b&&!enemy(p.id,b.team))return;
    const land=sgTileC(lab,s.x,s.y)===ac;let fr=1e9;for(const q of G.sgSites)if(owned(q))fr=Math.min(fr,dist(q.x,q.y,s.x,s.y));
    let def=0;unitsNear(s.x,s.y,10*T,v=>{if(enemy(p.id,v.team)&&UD[v.kind].dmg&&!UD[v.kind].worker)def+=UD[v.kind].sup;});
-   let sc=fr+def*2.2*T-(o>=0?(hate[o]||0)*0.6*T:0)+(s.castle?-6*T:0)+(o<0?-10*T:0);if(!land)sc+=S.navOK?40*T:1e9;
+   let sc=fr+def*2.2*T-(o>=0?(hate[o]||0)*0.6*T:0)+(s.castle?-6*T:0)+(o<0?-10*T:0);if(!land)sc+=S.navOK?40*T+(s.castle?30*T:0)+def*3*T:1e9;
    if(sc<bs){bs=sc;best={i,land};}});
   if(best&&bs<1e9){S.tgt={i:best.i,t:G.time,land:best.land};for(const u of field)u.sgAtk=1;}
  }
@@ -6587,8 +6598,8 @@ function sgAI(p,dt){
    bldsNear(s.x,s.y,12*T,b=>{if(enemy(p.id,b.team)&&BD[b.kind].gate)S.gateNear=true;});
    let tx=s.x,ty=s.y;{const np=nearestPass('g',s.tx+(s.w>>1),s.ty+s.h,s.tx,s.ty+s.h+2,6);if(np){tx=(np[0]+.5)*T;ty=(np[1]+.5)*T;}}
    if(as2.length<Math.max(3,wave*0.35)&&G.time-S.tgt.t>25){// 너무 줄면 후퇴
-    for(const u of as2){u.sgAtk=0;orderMove(u,home.x+rnd(-80,80),home.y+rnd(-80,80));}S.tgt=null;}
-   else{for(const u of as2){if(u.state==='attack')continue;if(!u.amove||dist(u.amove[0],u.amove[1],tx,ty)>3*T||u.state==='idle'&&dist(u.x,u.y,tx,ty)>5*T)orderMove(u,tx+rnd(-60,60),ty+rnd(-60,60),true);}
+    for(const u of as2){u.sgAtk=0;mv(u,home.x+rnd(-80,80),home.y+rnd(-80,80));}S.tgt=null;}
+   else{for(const u of as2){if(u.state==='attack')continue;if(!u.amove||dist(u.amove[0],u.amove[1],tx,ty)>3*T||u.state==='idle'&&dist(u.x,u.y,tx,ty)>5*T)mv(u,tx+rnd(-60,60),ty+rnd(-60,60),true);}
     // 새 병력 합류
     for(const u of field)if(!u.sgAtk&&u.state==='idle'&&G.time-S.tgt.t>5&&sgTileC(lab,u.x,u.y)===tc){u.sgAtk=1;}
     // 건물을 부쉈으면 기술자 보내 점령
@@ -6596,7 +6607,7 @@ function sgAI(p,dt){
      if(w&&p.coal>=BD[kind].cost[0]&&!(s.claim&&s.claim.t>G.time)){p.coal-=BD[kind].cost[0];orderSite(w,kind,s.tx,s.ty);s.claim={team:p.id,w:w.id,t:G.time+60};}}}
   }else sgNavalOp(p,S,s,as,ships,lab,home,wk);
  }else{// 대기 병력은 본진 근처에 모임
-  for(const u of field)if(u.state==='idle'&&dist(u.x,u.y,home.x,home.y)>16*T&&!u.sgAtk&&sgTileC(lab,u.x,u.y)===homeC)orderMove(u,home.x+rnd(-120,120),home.y+rnd(-60,140));}
+  for(const u of field)if(u.state==='idle'&&dist(u.x,u.y,home.x,home.y)>16*T&&!u.sgAtk&&sgTileC(lab,u.x,u.y)===homeC)mv(u,home.x+rnd(-120,120),home.y+rnd(-60,140));}
  // 놀고 있는 배는 집 근처 바다에서 대기
  for(const sh of ships){if(sh.cargo&&sh.cargo.length&&!sh.sgUnload&&!(S.nav&&S.nav.ship===sh.id)){sgUnloadNow(sh);}}
 }
@@ -6611,9 +6622,9 @@ function sgNavalOp(p,S,site,as,ships,lab,home,wk){
   let cx=home.x,cy=home.y;if(grp.length){cx=grp.reduce((a,u)=>a+u.x,0)/grp.length;cy=grp.reduce((a,u)=>a+u.y,0)/grp.length;}
   const w=nearestPass('n',Math.floor(cx/T),Math.floor(cy/T),Math.floor(sh.x/T),Math.floor(sh.y/T),30);
   if(w&&dist(sh.x,sh.y,(w[0]+.5)*T,(w[1]+.5)*T)>3*T&&sh.state==='idle')orderMove(sh,(w[0]+.5)*T,(w[1]+.5)*T);
-  if(w&&dist(sh.x,sh.y,(w[0]+.5)*T,(w[1]+.5)*T)<6*T){let f=free-as.filter(u=>u.state==='board'&&u.target===sh.id).length;for(const u of grp.sort((a,b)=>dist(a.x,a.y,sh.x,sh.y)-dist(b.x,b.y,sh.x,sh.y))){if(f<=0)break;if(UD[u.kind].sgBase==='tuseok'||UD[u.kind].sgBase==='seokpo')continue;sgBoard(u,sh);f--;}
-   if(f>0&&!(sh.cargo||[]).some(c=>UD[c.kind].worker)&&!wk.some(w=>w.state==='board')){const w=wk.filter(w=>w.state==='idle'||w.state==='move').sort((a,b)=>dist(a.x,a.y,sh.x,sh.y)-dist(b.x,b.y,sh.x,sh.y))[0];if(w)sgBoard(w,sh);}}
-  if((free<=0||G.time-N.t>45)&&sh.cargo&&sh.cargo.length){if(sgUnloadOrderShip(sh,site.x,site.y)){N.ph='sail';N.t=G.time;}}
+  if(w&&dist(sh.x,sh.y,(w[0]+.5)*T,(w[1]+.5)*T)<6*T){const hasW=(sh.cargo||[]).some(c=>UD[c.kind].worker)||wk.some(w=>w.state==='board'&&w.target===sh.id);let f=free-as.filter(u=>u.state==='board'&&u.target===sh.id).length-(hasW?0:1);for(const u of grp.sort((a,b)=>dist(a.x,a.y,sh.x,sh.y)-dist(b.x,b.y,sh.x,sh.y))){if(f<=0)break;if(UD[u.kind].sgBase==='tuseok'||UD[u.kind].sgBase==='seokpo')continue;sgBoard(u,sh);f--;}
+   if(!hasW){const w=wk.filter(w=>w.state==='idle'||w.state==='move').sort((a,b)=>dist(a.x,a.y,sh.x,sh.y)-dist(b.x,b.y,sh.x,sh.y))[0];if(w)sgBoard(w,sh);}}
+  const cg=(sh.cargo||[]).length;if((free<=0||(cg>=Math.min(8,UD[sh.kind].cap)&&G.time-N.t>30)||G.time-N.t>80)&&cg){if(sgUnloadOrderShip(sh,site.x,site.y)){N.ph='sail';N.t=G.time;}}
   if(G.time-N.t>120){S.nav=null;S.tgt=null;}
   return;}
  if(N.ph==='sail'){if(!sh.cargo||!sh.cargo.length){N.ph='land';N.t=G.time;return;}if(!sh.sgUnload&&sh.state==='idle'){if(!sgUnloadOrderShip(sh,site.x,site.y)){sgUnloadNow(sh);}}if(G.time-N.t>150){sgUnloadNow(sh);}return;}
@@ -6657,6 +6668,8 @@ body.sggame #top .logo{display:none}body.sggame #top .res{white-space:nowrap}bod
  document.querySelectorAll('#facRow .fac').forEach(el=>el.addEventListener('click',()=>setTimeout(sgTrait,0)));
  setTimeout(apply,0);
  window.sgApplyTitle=apply;
+ {const _dh=diffHtml;diffHtml=function(v){let h=_dh(v);if(cfg.gm==='sg')h=h.replace(/ · 첫 공격 약[^<]*/,' · 삼국시대: 처음 4분 휴전, 이후 AI가 이웃 나라를 침공');return h;};}
+ seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>{try{showDiff();}catch(_){}},0)));
 })();
 function sgDrawPreview(){
  const pv=$('preview'),S=3;pv.width=MW*S/2*2;pv.height=MH*S/2*2;
@@ -6679,6 +6692,7 @@ function sgStart(){
  const tips=['마을에 보급고를 지으면 마을을, 성 자리에 성을 지으면 성을 점령해요.','1분마다 세금이 들어와요: 성 1,000원 · 마을 500원.','국가발전(2,000원)을 하면 다음 세금부터 1,000원씩 더 들어와요 (최대 10번).','전군이동 버튼(` 키)으로 수군·기술자·세작을 뺀 모든 병력을 한 번에 옮겨요.','땅 유닛을 고르고 배를 누르면 타요. 배를 고르고 「하선」으로 상륙해요.','성문은 아주 단단해요. 투석기로 부수세요.','특수 유닛은 그 성을 차지한 나라만 뽑을 수 있어요.','기술자로 부서진 건물을 누르면 수리해요.'];
  $('ldTip').textContent='💡 '+tips[Math.floor(Math.random()*tips.length)];
  try{const cv=$('ldMap'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage($('preview'),0,0,cv.width,cv.height);}catch(_){}
+ {const li=[...$('ldSteps').children],tx=['산과 강을 그리는 중','성과 마을을 세우는 중','9개 나라의 군대를 배치하는 중','각국 조정이 전략을 세우는 중'];li.forEach((e,i)=>e.textContent=tx[i]);}
  ldSet(4,'천하를 준비하는 중…');$('loading').classList.remove('hidden');$('loading').classList.remove('out');
  setTimeout(()=>ldSet(26,'산과 강을 그리는 중…'),260);setTimeout(()=>ldSet(52,'성과 마을을 세우는 중…'),620);setTimeout(()=>ldSet(76,'9개 나라의 군대를 배치하는 중…'),980);
  setTimeout(()=>{
