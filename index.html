@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.3.6</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.4.3</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1718,6 +1718,7 @@ const FTRAIT={
 function bonusMul(d,t,u){
  let m=1;const L=tgtLayer(t);
  if(d.aa&&L==='a')m*=d.aa;
+ if(d.aaw&&L==='a')m*=d.aaw;/* 보조 대공(밸런스 v3.4) */
  if(d.gndMul&&L!=='a')m*=d.gndMul;
  if(t.type==='bld'){if(d.antiBld)m*=d.antiBld;return m;}
  const td=UD[t.kind];
@@ -2479,7 +2480,7 @@ function aiThink(p){
  // 방어
  let threat=null;
  const ku=p.ai.ku;for(const e of ents){if(e.dead||!enemy(p.id,e.team)||e.type!=='unit'||!seen(e,p.id)||!(ku&&ku.get(e.id)&&ku.get(e.id).t>G.time-1.5))continue;let nb=dist(e.x,e.y,base.x,base.y)<AP.def;if(!nb)for(const b of blds)if(BD[b.kind].drop&&dist(e.x,e.y,b.x,b.y)<AP.def*0.7){nb=true;break;}if(nb){threat=e;break;}}
- if(!threat&&p.ai.alert&&G.time-p.ai.alert.t<4)threat=p.ai.alert;
+ if(!threat&&p.ai.alert&&G.time-p.ai.alert.t<4&&(p.noGA||hmOwnArea(p,p.ai.alert,blds,AP.def)))threat=p.ai.alert;/* 적진에서 맞은 건 '우리 기지 위협'이 아님 → 집 병력을 한 기씩 적진으로 보내지 않음 */
  // 사람처럼 반응 시간: 적을 처음 본 뒤 난이도별로 조금 늦게 대응
  if(threat){if(!p.ai.thSeen)p.ai.thSeen=G.time;p.ai.thLast=G.time;if(G.time-p.ai.thSeen<AP.react)threat=null;}else if(p.ai.thSeen&&G.time-(p.ai.thLast||0)>3)p.ai.thSeen=0;
  p.ai.threatNow=!!threat;
@@ -2516,7 +2517,7 @@ function aiThink(p){
     const need=(!p.noV2&&!!p.useENG?1.0:!p.noV2?0.9:G.diff>=4?0.9:G.diff>=3?0.8:0.65)*gn(p,'atk',1)*(p.ai.desp?1.35:1);if(myP<enP*need&&G.time-(p.ai.lastWave||0)<AP.gap*2.5){go=false;p.ai.nextWave=G.time+12;}}
    if(go){grpOrder(ready.length,()=>launchWave(p,ready,t));p.ai.lastWave=G.time;p.ai.waveSize=Math.min(p.ai.waveSize+AP.grow,AP.size+AP.grow*4);p.ai.nextWave=G.time+AP.gap;}}
  }
- {let lst=army.filter(u=>u.wave&&u.state==='idle'&&!u.sg&&!(u.cohT>G.time-1.5));
+ {let lst=army.filter(u=>u.wave&&u.state==='idle'&&!u.sg&&!(u.cohT>G.time-1.5));if(!p.noGA)lst=hmStragglers(p,army,lst,base);
   if(!p.noV2&&!!p.useTRK&&lst.length&&p.ai.joinPt){const wv=army.filter(u=>u.wave);let cx=0,cy=0;for(const u of wv){cx+=u.x;cy+=u.y;}cx/=wv.length||1;cy/=wv.length||1;
    const far=lst.filter(u=>dist(u.x,u.y,cx,cy)>700);if(far.length){const jp=p.ai.joinPt;grpOrder(far.length,()=>{for(const u of far)orderMove(u,jp[0]+rnd(-50,50),jp[1]+rnd(-50,50),true);});lst=lst.filter(u=>!far.includes(u));}}
   if(lst.length){
@@ -2526,7 +2527,7 @@ function aiThink(p){
   else{const t=pick();if(t)grpOrder(lst.length,()=>{for(const u of lst)orderMove(u,t.x+rnd(-40,40),t.y+rnd(-40,40),true);});}}}
  // 노는 병력 없애기: 공격 중인 부대가 있으면 대기 병력이 4기 이상 모일 때마다 증원으로 합류, 아니면 본진·멀티 순찰
  if(!threat&&G.diff>=1){const waveOn=army.some(u=>u.wave);const idle=army.filter(u=>!u.wave&&!u.reinf&&!u.raid&&!u.sg&&!u.sup&&!u.morph&&UD[u.kind].dmg&&(u.state==='idle'||(u.stage&&u.state!=='move'&&u.state!=='amove')));
-  if(waveOn&&p.ai.crush&&idle.length){const t=pick();if(t)grpOrder(idle.length,()=>{for(const u of idle){u.wave=1;u.stage=0;orderMove(u,t.x+rnd(-60,60),t.y+rnd(-60,60),true);}});}
+  if(waveOn&&p.ai.crush&&idle.length>=(p.noGA?1:6)){const t=pick();if(t)grpOrder(idle.length,()=>{for(const u of idle){u.wave=1;u.stage=0;orderMove(u,t.x+rnd(-60,60),t.y+rnd(-60,60),true);}});}
   else if(waveOn&&idle.length>=(p.noGA?4:hmReinfMin(p,army))){const jp=p.ai.joinPt;if(jp)grpOrder(idle.length,()=>{for(const u of idle){u.reinf=1;u.stage=0;orderMove(u,jp[0]+rnd(-60,60),jp[1]+rnd(-60,60),true);}});}
   else if(!p.noHM&&!p.noHMg&&p.ai.rp){const rp=p.ai.rp,far=idle.filter(u=>u.state==='idle'&&layerOf(u)!=='n'&&dist(u.x,u.y,rp[0],rp[1])>320);if(far.length){let k=0;const n0=idle.filter(u=>dist(u.x,u.y,rp[0],rp[1])<=320).length;for(const u of far){const i=n0+k++,a=i*2.4,r=26*Math.sqrt(i);orderMove(u,rp[0]+Math.cos(a)*r,rp[1]+Math.sin(a)*r,true);u.patrol=null;}}}
   else{const hqs=blds.filter(b=>BD[b.kind].drop&&b.built);for(const u of idle){if(u.state!=='idle'||u.patrol)continue;if(Math.random()<0.25){const h=hqs[Math.floor(Math.random()*hqs.length)]||{x:stx,y:sty};const ax=u.x,ay=u.y;orderMove(u,h.x+(stx-h.x)*0.5+rnd(-90,90),h.y+(sty-h.y)*0.5+rnd(-90,90),true);u.patrol={a:[ax,ay],b:[h.x+(stx-h.x)*0.5,h.y+(sty-h.y)*0.5]};}}}}
@@ -2816,7 +2817,7 @@ const safe=!ai.desp&&(!v2||ai.depleted)||!ai.desp&&(prodN2>=(p.noBO?hqs.length+1
   let fk=f?knownOf(f.id):null;
   // 고수식: 상대 본진이 아닌, 본대에서 가장 먼 멀티의 일꾼을 노림
   if(f&&!p.noV2){let bd=-1;for(const [id,k] of ai.kb){if(k.team!==f.id||!k.drop)continue;const d=dist(k.x,k.y,f.base.x,f.base.y);if(d>bd){bd=d;fk=k;}}}
-  if(fast.length>=3&&fk){const cl=nearestCoal(fk.x,fk.y),tx=cl?(cl.x+fk.x)/2:fk.x,ty=cl?(cl.y+fk.y)/2:fk.y;for(const u of fast){u.raid=1;u.stage=0;}if(!hmRaidRoute(p,fast,tx,ty))for(const u of fast)orderMove(u,tx+rnd(-30,30),ty+rnd(-30,30),true);}
+  if(fast.length>=3&&fk&&(p.noGA||!f||dist(fk.x,fk.y,f.base.x,f.base.y)>900)){const cl=nearestCoal(fk.x,fk.y),tx=cl?(cl.x+fk.x)/2:fk.x,ty=cl?(cl.y+fk.y)/2:fk.y;for(const u of fast){u.raid=1;u.stage=0;}if(!hmRaidRoute(p,fast,tx,ty))for(const u of fast)orderMove(u,tx+rnd(-30,30),ty+rnd(-30,30),true);}
  }
  const v2r=!p.noV2;
  for(const u of army)if(u.raid){if(u.hp<u.maxhp*0.45){u.raid=0;orderMove(u,base.x+rnd(-60,60),base.y+rnd(-60,60));}
@@ -6337,6 +6338,45 @@ function hmReinfMin(p,army){const wv=army.filter(u=>u.wave).length;if(p.ai.holdT
 function hmAirOnly(u,x,y){const tg=UD[u.kind].tg||'g';if(tg.includes('a'))return false;let air=0,gnd=0;
  unitsNear(x,y,450,v=>{if(!enemy(u.team,v.team)||!seen(v,u.team))return;if(layerOf(v)==='a'){if(UD[v.kind].dmg)air++;}else if(canHit(tg,v))gnd++;});
  if(air&&!gnd){for(const b of ents)if(!b.dead&&b.type==='bld'&&enemy(u.team,b.team)&&dist(b.x,b.y,x,y)<450){gnd++;break;}}return air>0&&gnd===0;}
+
+// 14) 밸런스 v3.4: 전투기 사거리 하향 + 대공·대함 가능 유닛 확대
+(function(){const out={airRng:[],addA:[],addN:[],addNa:[]};
+ for(const k in UD){const d=UD[k];if(!d.dmg||d.worker||d.suicide)continue;const L=d.layer||'g';let tg=d.tg||'g';
+  if(L==='a'){// 공중 공격기: 사거리가 길면 20% 줄임 (기본 소총병보다 짧게, 최소 95), 지상을 치면 배도 칠 수 있게
+   if(d.rng>=100){const r=Math.max(95,Math.round(d.rng*0.8));if(r<d.rng){out.airRng.push(k);d.rng=r;}}
+   if(tg.includes('g')&&!tg.includes('n')){tg+='n';out.addNa.push(k);}}
+  else if(L==='g'){// 지상: 일반 사거리(근접·장거리포 제외) 유닛은 공중도 쏠 수 있게(공중 상대 피해 60%), 사거리 100 이상이면 배도
+   if(!tg.includes('a')&&d.rng>=90&&d.rng<=240){tg+='a';d.aaw=0.6;out.addA.push(k);}
+   if(!tg.includes('n')&&d.rng>=100){tg+='n';out.addN.push(k);}}
+  else if(L==='n'){if(!tg.includes('a')&&!d.cloak){tg+='a';d.aaw=0.6;out.addA.push(k);}}// 잠수함(은신)은 제외
+  d.tg=tg;}
+ if(typeof window!=='undefined')window.BAL34=out;})();
+// 15) 밸런스 v3.4: 모든 포탑(공격하는 건물) 사거리 2배, 공격 속도 2배
+(function(){const o=[];for(const k in BD){const a=BD[k].atk;if(!a)continue;a.rng=Math.round(a.rng*2);a.cd=+(a.cd/2).toFixed(3);o.push(k);}if(typeof window!=='undefined')window.BAL34T=o;})();
+
+// 16) 낙오·잔존 병력 회수: 원정 부대가 6기 아래로 줄었거나, 본대에서 떨어진 소수(6기 미만)는 혼자 적진에 들어가지 않고 집결지로 돌아와 다음 공격에 합류
+function hmStragglers(p,army,lst,base){const ai=p.ai,rp=ai.rp||[base.x+(WW/2-base.x)*0.16,base.y+(WH/2-base.y)*0.16];
+ const home=u=>{u.wave=0;u.reinf=0;u.stage=1;orderMove(u,rp[0]+rnd(-70,70),rp[1]+rnd(-70,70),false);};
+ const wv=army.filter(u=>u.wave);if(!wv.length)return lst;
+ if(wv.length<6&&!ai.crush){for(const u of wv)if(u.state!=='attack'||dist(u.x,u.y,base.x,base.y)>1500)home(u);return [];}
+ let cx=0,cy=0;for(const u of wv){cx+=u.x;cy+=u.y;}cx/=wv.length;cy/=wv.length;const core=wv.filter(u=>dist(u.x,u.y,cx,cy)<700);
+ if(core.length>=3){cx=0;cy=0;for(const u of core){cx+=u.x;cy+=u.y;}cx/=core.length;cy/=core.length;}
+ const far=lst.filter(u=>dist(u.x,u.y,cx,cy)>800);if(far.length&&far.length<6&&!ai.crush){for(const u of far)home(u);return lst.filter(u=>!far.includes(u));}
+ return lst;}
+
+function hmOwnArea(p,pt,blds,def){for(const b of blds)if(dist(pt.x,pt.y,b.x,b.y)<Math.max(500,def*0.7))return true;return false;}
+// 17) 밸런스 v3.4.1: 너무 싼 공중 공격기 가격 인상 (기본 전투기 100/50·보급 2 기준)
+(function(){const P={su_rata:[[100,50],2,22],au_wirraway:[[90,40],2,20],in_patang:[[90,40],2,20],pl_p11:[[100,50],2,22],cn_kite:[[90,50],1,20],cn_lantern:[[90,50],1,20],fi_fokker:[[90,50],1,20]};
+ for(const k in P)if(UD[k]){UD[k].cost=P[k][0];UD[k].sup=P[k][1];UD[k].t=Math.max(UD[k].t,P[k][2]);}})();
+// 18) 밸런스 v3.4.1: 느린 기갑(지상 기계) 유닛 속도 상향 — 62(보병 중간값)보다 느리면 그 차이의 55%만큼 빠르게 (30→48, 40→52, 50→57)
+(function(){for(const k in UD){const d=UD[k];if(!d.mech||(d.layer||'g')!=='g'||d.worker)continue;if(d.sp<62)d.sp=Math.round(d.sp+(62-d.sp)*0.55);}})();
+// 19) 밸런스 v3.4.2: 폭격기·공격기 등 대공이 안 되던 공중 유닛도 약하게 대공 가능 (공중 상대 피해 50%)
+(function(){const o=[];for(const k in UD){const d=UD[k];if(!d.dmg||d.suicide||(d.layer||'g')!=='a')continue;const tg=d.tg||'g';if(!tg.includes('a')){d.tg=tg+'a';d.aaw=0.5;o.push(k);}}if(typeof window!=='undefined')window.BAL342=o;})();
+// 20) 밸런스 v3.4.3: 독일 유닛 가격 15% 인하(일꾼 제외), 모든 포탑 사거리 25% 추가 (원래 대비 2.5배)
+(function(){for(const k in UD){const d=UD[k];if(d.f!=='de'||d.worker)continue;d.cost=d.cost.map(c=>Math.round(c*0.85/5)*5);}
+ for(const k in BD){const a=BD[k].atk;if(a)a.rng=Math.round(a.rng*1.25);}})();
+// 포탑 시야를 사거리만큼 넓힘 (사거리가 시야보다 길면 늘어난 사거리를 못 쓰므로)
+{const _so=sightOf;sightOf=function(e){const s=_so(e);if(e&&e.type==='bld'&&e.built){const a=BD[e.kind].atk;if(a)return Math.max(s,Math.ceil(a.rng/T)+1);}return s;};}
 
 </script>
 </body>
