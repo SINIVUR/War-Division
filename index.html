@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.4.3</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.5.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1572,7 +1572,7 @@ function idleTick(u,dt){
 function amoveTick(u,dt){
  const d=UD[u.kind];
  if(d.dmg){u.scanT-=dt;if(u.scanT<=0){u.scanT=0.25;const t=findTarget(u,d.worker?120:acqRange(u),d.minr||0);if(t){u.target=t.id;u.state='attack';u.path=null;return;}}}
- if(followPath(u,dt)){u.state='idle';u.amove=null;nextWay(u);}
+ if(followPath(u,dt)){/* 길이 중간에 끝났으면(안개 속 목적지 등) 멈추지 말고 다시 길을 찾아 계속 감 */if(u.amove&&dist(u.x,u.y,u.amove[0],u.amove[1])>140&&G.time-(u.amReT||-9)>1.5){u.amReT=G.time;u.repathT=0;pathTo(u,u.amove[0],u.amove[1]);if(u.path&&u.path.length&&dist(u.path[u.path.length-1][0],u.path[u.path.length-1][1],u.x,u.y)>40)return;}u.state='idle';u.amove=null;nextWay(u);}
 }
 function nextWay(u){
  if(u.wq&&u.wq.length){const w=u.wq.shift(),q=u.wq;orderMove(u,w[0],w[1],w[2],true);u.wq=q;return;}
@@ -2094,7 +2094,7 @@ function gatherTick(u,dt){
   if(r.type==='res'&&Math.random()<dt*3&&u.team===0)play('mine',u.x,u.y,0.5);
   if(r.type==='res'&&Math.random()<dt*3)part(u.x+Math.cos(u.face)*10,u.y+Math.sin(u.face)*10,rnd(-30,30),rnd(-30,10),0.3,1.5,'#ffd27a');
   if(u.timer<=0){
-   if(r.type==='res'){const n=Math.min((P(u.team).fac==='cn'||P(u.team).fac==='za')?10:8,r.amount);r.amount-=n;u.carry=n;u.carryT='coal';if(r.amount<=0){r.dead=true;setOcc(r,0);}}
+   if(r.type==='res'){const n=Math.min(Math.round(((P(u.team).fac==='cn'||P(u.team).fac==='za')?10:8)*techGatherMul(u)),r.amount);r.amount-=n;u.carry=n;u.carryT='coal';if(r.amount<=0){r.dead=true;setOcc(r,0);}}
    else{u.carry=(P(u.team).fac==='cn'||P(u.team).fac==='za')?10:8;u.carryT='ether';}
    u.phase='back';u.path=null;u.repathT=0;
   }
@@ -2255,7 +2255,7 @@ function updBld(b,dt){
  const pw=isPowered(b);b.unpowered=!pw;
  if(!pw)return;
  if(b.rs){b.rs.p+=dt/(upTime(b.rs.lv)*(P(b.team).fac==='ko'?0.7:1));if(b.rs.p>=1){const pl=P(b.team);pl.up[b.rs.ly]=Math.max(pl.up[b.rs.ly],b.rs.lv);if(pl.human){toast(`${UPN[b.rs.ly]} 무기 ${b.rs.lv}단계 완료`);play('done');}b.rs=null;}}
- if(b.queue.length){b.qp+=dt/UD[b.queue[0]].t;if(b.qp>=1){b.qp=0;spawnFrom(b,b.queue.shift());}}
+ if(b.queue.length){b.qp+=dt/UD[b.queue[0]].t*techProdMul(b);if(b.qp>=1){b.qp=0;spawnFrom(b,b.queue.shift());}}
  if(d.atk){
   if(b.cd>0)b.cd-=dt;b.scanT-=dt;
   let t=byId.get(b.target);
@@ -2413,7 +2413,7 @@ function aiSpot(p,kind,base){const r=roleOf(kind),cx=WW/2,cy=WH/2,dl=dist(base.x
  for(const h of hqs2){const q=findSpot(p.id,kind,h.x+rnd(-3,3)*T,h.y+rnd(-3,3)*T);if(q)return q;}
  G._relax=1;try{sp0=findSpot(p.id,kind,base.x,base.y);if(!sp0)for(const h of hqs2){sp0=findSpot(p.id,kind,h.x,h.y);if(sp0)break;}}finally{G._relax=0;}return sp0;}
 function aiThink(p){
- const AP=p.prof||AIP[G.diff],F=FAC[p.fac],PL=PLAN[p.fac],tm=p;
+ const AP=p.prof||AIP[G.diff],F=FAC[p.fac],PL=p.plan||PLAN[p.fac],tm=p;
  const blds=[],units=[];for(const e of ents)if(!e.dead&&e.team===p.id)(e.type==='bld'?blds:units).push(e);
  if(!blds.length)return;
  const hq=blds.find(b=>b.kind===F.hq)||blds[0];
@@ -2636,7 +2636,7 @@ function aiLogistics(p,c){const ai=p.ai,{blds,army,base}=c,D=G.diff;if(D<1)retur
 // ======== 고수식 운영 (PC AI): 가스 일꾼 조절, 남는 석탄은 기본 보병·추가 병영으로, 쉬는 생산 건물 없게 ========
 // 넓게 트인 물 (5×5 중 22칸 이상이 물) 가운데 가장 가까운 칸 — 배가 좁은 물길 끝에 끼지 않게
 function wideWater(cx,cy,R){for(let r=0;r<=R;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const x=cx+dx,y=cy+dy;if(!pass('n',x,y))continue;let n=0;for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++)if(pass('n',x+xx,y+yy))n++;if(n>=22)return [x,y];}return null;}
-function aiMacro(p,c){const ai=p.ai,{blds,wk,army,base,build,pending,have}=c,F=FAC[p.fac],PL=PLAN[p.fac];
+function aiMacro(p,c){const ai=p.ai,{blds,wk,army,base,build,pending,have}=c,F=FAC[p.fac],PL=p.plan||PLAN[p.fac];
  if(ai.mcT&&G.time-ai.mcT<1.5)return;ai.mcT=G.time;
  const sup=supplyOf(p.id);
  // 1) 가스(에테르) 일꾼: 에테르가 모자라고 석탄이 남으면 가스에 더 붙임 (사람도 똑같이 할 수 있음)
@@ -2781,7 +2781,7 @@ function aiHuman(p,c){
  const hqs=blds.filter(b=>BD[b.kind].drop);
  const v2=!p.noV2;
  const maxB=v2?6:2+(D>=2?1:0)+(D>=4?1:0)+(D>=5?1:0)+(ai.style==='greedy'?1:0);
- const expT=v2?[100,270,400,520,640][Math.min(4,hqs.length-1)]*(ai.style==='greedy'?0.8:ai.style==='aggro'?1.25:1):(Math.max(150,380-D*45)*(ai.style==='greedy'?0.6:ai.style==='aggro'?1.4:1)+(hqs.length-1)*150);
+ const expT=(ai.bxp||1)*(v2?[100,270,400,520,640][Math.min(4,hqs.length-1)]*(ai.style==='greedy'?0.8:ai.style==='aggro'?1.25:1):(Math.max(150,380-D*45)*(ai.style==='greedy'?0.6:ai.style==='aggro'?1.4:1)+(hqs.length-1)*150));
  const prodN2=blds.filter(b=>b.built&&BD[b.kind].train&&!BD[b.kind].drop).length;
  const myAP=army.reduce((s2,u)=>s2+upow(u),0),enAP=ai.focus!=null&&P(ai.focus)?aiEnemyPow(p,ai.focus):0;
 const safe=!ai.desp&&(!v2||ai.depleted)||!ai.desp&&(prodN2>=(p.noBO?hqs.length+1:(hqs.length<=1&&G.time<260?1:hqs.length+1))&&(G.time<200||myAP>=enAP*0.8));
@@ -2811,7 +2811,7 @@ const safe=!ai.desp&&(!v2||ai.depleted)||!ai.desp&&(prodN2>=(p.noBO?hqs.length+1
  if(defK&&p.coal>700+D*50&&reqMet(p.id,defK)&&have(defK)<2+D*2&&!pending(defK)){const hh=hqs[Math.floor(Math.random()*hqs.length)]||{x:base.x,y:base.y};const tx=hh.x+(WW/2-hh.x)*0.08,ty=hh.y+(WH/2-hh.y)*0.08;const sp=findSpot(p.id,defK,tx,ty);const w=wk.find(u=>u.state==='gather'&&!u.carry);if(sp&&w){p.coal-=BD[defK].cost[0];p.ether-=BD[defK].cost[1];orderSite(w,defK,sp[0],sp[1]);}}
  // --- 견제: 빠른 유닛 몇 기로 상대 일꾼 습격
  if(D>=3&&G.time>240&&G.time>(ai.raidT||0)){
-  ai.raidT=G.time+((110-D*12)+rnd(0,30))*(ai.desp?0.5:1);
+  ai.raidT=G.time+((110-D*12)+rnd(0,30))*(ai.desp?0.5:1)*(ai.bRaid||1);
   const fast=army.filter(u=>!u.wave&&!u.raid&&UD[u.kind].dmg&&spd(u)>=78&&!UD[u.kind].suicide).sort((a,b)=>spd(b)-spd(a)).slice(0,3+D);
   const f=ai.focus!=null?P(ai.focus):null;
   let fk=f?knownOf(f.id):null;
@@ -2928,7 +2928,7 @@ function update(dt){
  for(const b of G.barriers)b.t-=dt;G.barriers=G.barriers.filter(b=>b.t>0);
  // AI
  for(const p of G.pl){if(p.human||!p.alive)continue;{const A=p.prof||aiProf(p.diff??G.diff,!PC),r=A.apm/60;p.ai.apmB=Math.min(r*4,(p.ai.apmB??r*2)+r*dt);}p.ai.thinkT-=dt;if(p.ai.thinkT<=0){const gd=G.diff;const A=p.prof||aiProf(p.diff??gd,!PC);G.diff=A.sk;p.ai.thinkT=A.think;AIB=p;try{aiThink(p);}finally{G.diff=gd;AIB=null;}}}
- trTick(dt);for(const p of G.pl){if(p.human||!p.alive)continue;try{trAI(p,dt);hmPost(p,dt);}catch(err){console.error(err);}}
+ trTick(dt);techTick(dt);for(const p of G.pl){if(p.human||!p.alive)continue;try{trAI(p,dt);hmPost(p,dt);}catch(err){console.error(err);}}
  updFx(dt);
  if(ents.some(e=>e.dead)){for(const e of ents)if(e.dead)byId.delete(e.id);ents=ents.filter(e=>!e.dead);G.sel=G.sel.filter(id=>byId.has(id));}
  G.endT-=dt;
@@ -4828,7 +4828,7 @@ function moveGroup(us,wx,wy,am){
   sorted.forEach((u,i)=>{
    let tx=wx+slots[i][0],ty=wy+slots[i][1];if(L!=='a'&&(!pass(L,Math.floor(tx/T),Math.floor(ty/T))||!los(L,wx,wy,tx,ty,4))){tx=wx;ty=wy;}
    if(immov(u))return;cancelSite(u);
-   u.target=0;u.healing=0;u.cast=null;u.state=am?'amove':'move';u.amove=am?[tx,ty]:null;u.repathT=0;
+   u.hold=false;u.amReT=-9;u.target=0;u.healing=0;u.cast=null;u.state=am?'amove':'move';u.amove=am?[tx,ty]:null;u.repathT=0;
    if(shared&&shared.length>2){let j=-1;for(let k=0;k<Math.min(8,shared.length);k++)if(los(L,u.x,u.y,shared[k][0],shared[k][1])){j=k;}
     if(j>=0){const pts=shared.slice(j);const lt=[Math.floor(tx/T),Math.floor(ty/T)];pts[pts.length-1]=pass(L,lt[0],lt[1])?[tx,ty]:pts[pts.length-1];u.path=smooth(L,u.x,u.y,pts);u.pi=0;return;}}
    pathTo(u,tx,ty);
@@ -5204,6 +5204,7 @@ function renderHud(){try{renderRoster();renderProd();}catch(_){}
    html+='</div>';
    if(e.type==='bld'&&e.team===0&&e.rs){html+=`<div class="q"><span class="chip" data-rs="1">${UPN[e.rs.ly]} ${e.rs.lv}단계 ✕<b style="width:${e.rs.p*100}%"></b></span></div>`;}
    if(e.type==='unit'){const lv=(P(e.team).up||{})[upLy(e)]||0;if(lv)html=html.replace('</div>',` <span style="color:#ffe08a;font-size:10px">▲${lv}</span></div>`);html+=unitStatHtml(e);}
+   else if(e.type==='bld'&&BD[e.kind].advLab&&e.team===0){html+=techHtml(e);}
    else if(e.type==='bld'&&BD[e.kind].atk&&e.built){const a=BD[e.kind].atk;html+=`<div class="ustat"><span title="방어 건물 무기">⚔ ${a.dmg} · 사거리 ${Math.round(a.rng/T*10)/10}</span>${tgHtml(a.tg)}</div>`;}
    if(e.type==='bld'&&e.team===0&&e.queue.length){html+='<div class="q">'+e.queue.map((k,i)=>`<span class="chip" data-q="${i}">${short(UD[k].n)}${UD[k].pair?' ×2':''}${i===0?`<b style="width:${e.qp*100}%"></b>`:''}</span>`).join('')+'</div>';}
   }
@@ -6377,6 +6378,98 @@ function hmOwnArea(p,pt,blds,def){for(const b of blds)if(dist(pt.x,pt.y,b.x,b.y)
  for(const k in BD){const a=BD[k].atk;if(a)a.rng=Math.round(a.rng*1.25);}})();
 // 포탑 시야를 사거리만큼 넓힘 (사거리가 시야보다 길면 늘어난 사거리를 못 쓰므로)
 {const _so=sightOf;sightOf=function(e){const s=_so(e);if(e&&e.type==='bld'&&e.built){const a=BD[e.kind].atk;if(a)return Math.max(s,Math.ceil(a.rng/T)+1);}return s;};}
+
+// ===================== 고급 업그레이드 (진영별 고급 연구소 + 고유 연구 5개) =====================
+// 효과 종류: sp 이동속도, dm 피해, hp 최대 체력, cd 공격 속도, regen 초당 회복, prod 생산 속도, sight 시야(칸), gather 채집량
+// 대상: inf 보병, mech 기갑(지상 기계), air 공중, navy 해군, army 전투 유닛 전체, wk 일꾼
+const TECH_BLD={us:'펜타곤 연구 본부',su:'인민 기술원',de:'룬 비밀 연구소',it:'왕립 공학원',fr:'국립 공예원',uk:'블레츨리 연구소',jp:'육해군 기술본부',cn:'천공원',au:'왕립 오지 연구소',za:'희망봉 공창',br:'아마존 연구소',in:'비마나 연구원',ko:'기기창 고등 연구소',hu:'도나우 기술 아카데미',fi:'시수 훈련 본부',pl:'에니그마 암호국'};
+const TECHS={
+ us:[['기계화 보병','보병 이동 +20%',[['sp','inf',.2]]],['증기 터빈 개량','기갑 이동 +20%',[['sp','mech',.2]]],['대량 생산 체계','모든 유닛 생산 +25%',[['prod','army',.25]]],['자동 화기 보급','보병 공격 속도 +20%',[['cd','inf',.2]]],['항공 정비창','공중 체력 +20% · 초당 1 회복',[['hp','air',.2],['regen','air',1]]]],
+ su:[['동계 행군','보병 이동 +20%',[['sp','inf',.2]]],['T-34 엔진','기갑 이동 +20%',[['sp','mech',.2]]],['인민의 물결','보병 생산 +40% · 체력 +10%',[['prod','inf',.4],['hp','inf',.1]]],['경사 장갑','기갑 체력 +25%',[['hp','mech',.25]]],['카츄샤 일제사격','기갑 공격 속도 +20%',[['cd','mech',.2]]]],
+ de:[['전격전','기갑 이동 +25%',[['sp','mech',.25]]],['돌격대 훈련','보병 이동 +15%',[['sp','inf',.15]]],['룬 조준경','모든 피해 +10%',[['dm','army',.1]]],['에테르 제트 엔진','공중 이동 +20% · 피해 +10%',[['sp','air',.2],['dm','air',.1]]],['룬 재생 장갑','기갑 초당 1.5 회복',[['regen','mech',1.5]]]],
+ it:[['베르살리에리 행군','보병 이동 +25%',[['sp','inf',.25]]],['고속 경전차','기갑 이동 +25%',[['sp','mech',.25]]],['해군 포술','해군 피해 +20%',[['dm','navy',.2]]],['연금술 탄약','모든 피해 +8%',[['dm','army',.08]]],['MAS 고속정 엔진','해군 이동 +20%',[['sp','navy',.2]]]],
+ fr:[['외인부대 훈련','보병 피해 +15%',[['dm','inf',.15]]],['르노 엔진','기갑 이동 +20%',[['sp','mech',.2]]],['마지노 정신','기갑 체력 +20% · 보병 체력 +10%',[['hp','mech',.2],['hp','inf',.1]]],['포병 학교','기갑 피해 +15%',[['dm','mech',.15]]],['관측 기구망','모든 유닛 시야 +2칸',[['sight','army',2]]]],
+ uk:[['근위대 행진','보병 이동 +20%',[['sp','inf',.2]]],['크롬웰 엔진','기갑 이동 +20%',[['sp','mech',.2]]],['해군 전통','해군 피해 +15% · 체력 +15%',[['dm','navy',.15],['hp','navy',.15]]],['레이더 관제','공중 피해 +15% · 시야 +2칸',[['dm','air',.15],['sight','air',2]]],['근위대 전통','보병 체력 +20%',[['hp','inf',.2]]]],
+ jp:[['반자이 돌격','보병 피해 +15% · 이동 +10%',[['dm','inf',.15],['sp','inf',.1]]],['치하 엔진','기갑 이동 +20%',[['sp','mech',.2]]],['제로센 경량화','공중 이동 +25%',[['sp','air',.25]]],['함대 결전','해군 피해 +15%',[['dm','navy',.15]]],['무사도','보병 공격 속도 +20%',[['cd','inf',.2]]]],
+ cn:[['인해전술','보병 생산 +40%',[['prod','inf',.4]]],['장정 행군','보병 이동 +20%',[['sp','inf',.2]]],['대운하 수송','기갑 이동 +20%',[['sp','mech',.2]]],['흑색 화약 개량','모든 피해 +10%',[['dm','army',.1]]],['만리장성 축성술','일꾼 채집 +20%',[['gather','wk',.2]]]],
+ au:[['사막의 쥐','보병 이동 +20% · 체력 +10%',[['sp','inf',.2],['hp','inf',.1]]],['오지 정비창','기갑 이동 +20%',[['sp','mech',.2]]],['장거리 초계','공중 체력 +20%',[['hp','air',.2]]],['부시 레인저 사격','보병 공격 속도 +15%',[['cd','inf',.15]]],['광활한 대륙','모든 유닛 시야 +2칸',[['sight','army',2]]]],
+ za:[['코만도 기동','보병 이동 +25%',[['sp','inf',.25]]],['광산 장갑판','기갑 체력 +25%',[['hp','mech',.25]]],['초원 엔진','기갑 이동 +20%',[['sp','mech',.2]]],['금광 자본','모든 유닛 생산 +15% · 채집 +10%',[['prod','army',.15],['gather','wk',.1]]],['보어 명사수','보병 피해 +15%',[['dm','inf',.15]]]],
+ br:[['정글 전투','보병 피해 +15%',[['dm','inf',.15]]],['열대 행군','보병 이동 +20%',[['sp','inf',.2]]],['고무 타이어','기갑 이동 +25%',[['sp','mech',.25]]],['아마존 함대','해군 체력 +20% · 이동 +10%',[['hp','navy',.2],['sp','navy',.1]]],['열대 약초','보병 초당 1 회복',[['regen','inf',1]]]],
+ in:[['요가 수련','보병 체력 +20% · 초당 0.5 회복',[['hp','inf',.2],['regen','inf',.5]]],['구르카 행군','보병 이동 +20%',[['sp','inf',.2]]],['코끼리 기갑','기갑 체력 +20%',[['hp','mech',.2]]],['비마나 비행술','공중 피해 +15% · 이동 +10%',[['dm','air',.15],['sp','air',.1]]],['인도 철도망','기갑 이동 +20%',[['sp','mech',.2]]]],
+ ko:[['별기군 훈련','보병 피해 +15%',[['dm','inf',.15]]],['광무 증기 엔진','기갑 이동 +20%',[['sp','mech',.2]]],['철갑 거북선','해군 체력 +25%',[['hp','navy',.25]]],['신기전 개량','모든 피해 +10%',[['dm','army',.1]]],['천리 행군','보병 이동 +20%',[['sp','inf',.2]]]],
+ hu:[['후사르 기동','보병 이동 +20% · 기갑 이동 +10%',[['sp','inf',.2],['sp','mech',.1]]],['투란 장갑','기갑 체력 +20%',[['hp','mech',.2]]],['도나우 함대','해군 피해 +15%',[['dm','navy',.15]]],['님로드 사격통제','기갑 공격 속도 +20%',[['cd','mech',.2]]],['푸스타 기병 전술','기갑 이동 +15%',[['sp','mech',.15]]]],
+ fi:[['시수','보병 체력 +20%',[['hp','inf',.2]]],['스키 부대','보병 이동 +25%',[['sp','inf',.25]]],['모티 전술','보병 피해 +15%',[['dm','inf',.15]]],['하얀 죽음의 사격','보병 공격 속도 +15%',[['cd','inf',.15]]],['노획 전차 정비','기갑 이동 +20% · 체력 +10%',[['sp','mech',.2],['hp','mech',.1]]]],
+ pl:[['날개 기병 돌격','보병 피해 +15%',[['dm','inf',.15]]],['7TP 엔진 개량','기갑 이동 +20%',[['sp','mech',.2]]],['에니그마 해독','공중 이동 +20% · 모든 유닛 시야 +1칸',[['sp','air',.2],['sight','army',1]]],['보병 행군 훈련','보병 이동 +20%',[['sp','inf',.2]]],['조국 수호','모든 유닛 체력 +10%',[['hp','army',.1]]]],
+};
+const TECH_COST=[[150,100,45],[150,100,45],[200,150,60],[250,200,75],[300,250,90]];
+const TECH_KEYS=['Q','W','E','R','T'];
+function techCat(k){const d=UD[k];if(!d)return null;if(d.worker)return 'wk';const L=d.layer||'g';if(L==='a')return 'air';if(L==='n')return 'navy';return d.mech?'mech':'inf';}
+function techV(team,type,kind){const p=G&&P(team);if(!p||!p.tech)return 0;const fac=p.fac,L=TECHS[fac];if(!L)return 0;const c=kind?techCat(kind):null;let s=0;
+ for(let i=0;i<L.length;i++){if(!p.tech[i])continue;for(const [t,cat,v] of L[i][2])if(t===type&&(cat===c||cat==='army'&&c&&c!=='wk'||cat===null))s+=v;}return s;}
+function techApplyUnit(u){if(!u||u.type!=='unit')return;const sp=techV(u.team,'sp',u.kind),hp=techV(u.team,'hp',u.kind);
+ u.spMul=1+sp;const base=UD[u.kind].hp,want=Math.round(base*(1+hp));if(u.maxhp!==want){const r=u.hp/Math.max(1,u.maxhp);u.maxhp=want;u.hp=Math.max(1,Math.round(want*r));}}
+// 연구소 건물을 각 진영에 추가 (무기 연구소가 있어야 지을 수 있음)
+(function(){for(const f in TECH_BLD){const F=FAC[f];if(!F)continue;const upK=F.build.find(k=>BD[k].up);if(!upK)continue;const key=f+'_advlab';
+ BD[key]={f,n:TECH_BLD[f],w:2,h:2,hp:700,cost:[150,150],t:50,req:upK,advLab:1,desc:'진영 고유 고급 업그레이드 5종'};ROLE[key]=ROLE[upK]||'lab';if(!F.build.includes(key))F.build.push(key);}})();
+// 효과 적용
+{const _au=addUnit;addUnit=function(){const u=_au.apply(this,arguments);try{if(G&&u)techApplyUnit(u);}catch(e){}return u;};}
+{const _dm=dmgMul;dmgMul=function(u){const m=_dm(u);const t=techV(u.team,'dm',u.kind);return t?m*(1+t):m;};}
+{const _fi=fire;fire=function(u,t){const r=_fi.apply(this,arguments);const a=techV(u.team,'cd',u.kind);if(a&&u.cd>0)u.cd/=1+a;return r;};}
+{const _so=sightOf;sightOf=function(e){const s=_so(e);if(e&&e.type==='unit'){const a=techV(e.team,'sight',e.kind);if(a)return s+a;}return s;};}
+function techProdMul(b){const k=b.queue&&b.queue[0];return k?1+techV(b.team,'prod',k):1;}
+function techGatherMul(u){return 1+techV(u.team,'gather',u.kind);}
+let techRegT=0;
+function techTick(dt){if(!G)return;
+ for(const b of ents){if(b.dead||b.type!=='bld'||!BD[b.kind].advLab||!b.tr)continue;const p=P(b.team);const L=TECHS[p.fac];const c=TECH_COST[b.tr.i];
+  b.tr.p+=dt/c[2];if(b.tr.p>=1){p.tech=p.tech||{};p.tech[b.tr.i]=true;const nm=L[b.tr.i][0];b.tr=null;for(const u of ents)if(!u.dead&&u.team===p.id&&u.type==='unit')techApplyUnit(u);if(p.human){toast(`고급 연구 완료: ${nm}`);play('done');}}}
+ techRegT-=dt;if(techRegT<=0){techRegT=0.5;for(const u of ents){if(u.dead||u.type!=='unit'||u.team<0||u.hp>=u.maxhp)continue;const r=techV(u.team,'regen',u.kind);if(r)u.hp=Math.min(u.maxhp,u.hp+r*0.5);}}}
+function techStart(b,i,silent){const p=P(b.team),L=TECHS[p.fac];if(!L||!L[i]||!b.built||b.tr)return false;p.tech=p.tech||{};if(p.tech[i])return false;
+ if(ents.some(e=>!e.dead&&e.team===b.team&&e.tr&&e.tr.i===i))return false;const c=TECH_COST[i];if(p.coal<c[0]||p.ether<c[1]){if(!silent&&p.human){toast('자원이 부족해요');play('err');}return false;}
+ p.coal-=c[0];p.ether-=c[1];b.tr={i,p:0};return true;}
+// 건물 메뉴: 연구 버튼 5개
+{const _cl=cmdList;cmdList=function(){const o=_cl();if(!G||G.placing||G.pending)return o;const s=selEnts();if(s.length!==1||s[0].team!==0||s[0].type!=='bld'||!BD[s[0].kind].advLab)return o;
+ const b=s[0],p=P(0),L=TECHS[p.fac]||[];if(!b.built)return o;p.tech=p.tech||{};const out=[];
+ L.forEach((t,i)=>{const c=TECH_COST[i],done=p.tech[i],busy=b.tr&&b.tr.i===i,other=ents.some(e=>!e.dead&&e.team===0&&e!==b&&e.tr&&e.tr.i===i);
+  out.push({k:TECH_KEYS[i],l:done?`✔ ${t[0]}`:busy?`${t[0]} ${Math.round(b.tr.p*100)}%`:t[0],s:done?'완료':`${c[0]}/${c[1]}`,dis:done||busy||other||!!b.tr||p.coal<c[0]||p.ether<c[1],f:()=>{if(techStart(b,i))play('build');}});});
+ if(b.tr)out.push({k:'Escape',l:'연구 취소',s:'자원 돌려받음',f:()=>{const c=TECH_COST[b.tr.i];p.coal+=c[0];p.ether+=c[1];b.tr=null;}});
+ return out;};}
+// AI: 무기 연구소가 있고 여유가 있으면 고급 연구소를 짓고 순서대로 연구
+{const _ah=aiHuman;aiHuman=function(p,c){const r=_ah.apply(this,arguments);try{if(!p.human&&G.diff>=2&&G.time>(p.ai.bAdv||420)){const key=p.fac+'_advlab';if(BD[key]&&c.have(key)<1&&!c.pending(key)&&reqMet(p.id,key)&&p.coal>=350&&p.ether>=220)c.build(key);
+  for(const b of c.blds)if(b.kind===key&&b.built&&!b.tr){const L=TECHS[p.fac];p.tech=p.tech||{};for(let i=0;i<L.length;i++){if(p.tech[i])continue;const cc=TECH_COST[i];if(p.coal>=cc[0]+150&&p.ether>=cc[1]+60)techStart(b,i,true);break;}}}}catch(e){console.error(e);}return r;};}
+
+function techHtml(b){const p=P(b.team),L=TECHS[p.fac]||[];p.tech=p.tech||{};
+ return '<div class="ustat" style="display:block;line-height:1.5">'+L.map((t,i)=>{const done=p.tech[i],busy=b.tr&&b.tr.i===i;
+  return `<span style="display:block;color:${done?'#7fd38a':busy?'#ffd060':'#c9b88f'}">${done?'✔':busy?'⏳':'·'} <b>${t[0]}</b> — ${t[1]}${busy?' ('+Math.round(b.tr.p*100)+'%)':''}</span>`;}).join('')+'</div>';}
+
+// ===================== AI 빌드 오더 12종 (프로 RTS 운영을 이 게임의 건물 역할로 옮김) =====================
+// ord: 지을 건물 순서(역할) · xp: 확장 시점 배율(작을수록 빠름) · first: 첫 공격 시각(초) · size: 첫 공격 규모 · gap: 공격 간격 · wk: 일꾼 목표 가감 · raid: 견제 주기 배율 · adv: 고급 연구소 시각
+const AI_BUILDS=[
+ {id:'dbl',n:'생더블 (빠른 확장)',ord:['inf','gas','veh','up','inf','air','veh','sea','def','inf'],xp:0.55,first:420,size:26,gap:90,wk:8,sty:'greedy'},
+ {id:'rax2',n:'2병영 러시',ord:['inf','inf','gas','veh','inf','up','air','veh','sea','def'],xp:1.6,first:170,size:8,gap:70,wk:-12,sty:'aggro'},
+ {id:'rax3',n:'3병영 올인',ord:['inf','inf','inf','gas','inf','veh','up','air','sea','def'],xp:2.2,first:230,size:14,gap:60,wk:-10,sty:'aggro'},
+ {id:'air',n:'빠른 공중 운영',ord:['inf','gas','air','air','up','veh','inf','sea','def','air'],xp:1,first:330,size:12,gap:80,wk:0},
+ {id:'mech',n:'기갑 타이밍 러시',ord:['inf','gas','veh','veh','up','inf','air','sea','def','veh'],xp:1.1,first:320,size:14,gap:80,wk:0},
+ {id:'std',n:'원병영 더블 (정석)',ord:['inf','gas','veh','inf','up','air','veh','sea','def','inf'],xp:0.8,first:300,size:18,gap:85,wk:2},
+ {id:'upg',n:'업그레이드 타이밍',ord:['inf','gas','up','veh','inf','up','air','sea','def','veh'],xp:0.9,first:420,size:22,gap:90,wk:2},
+ {id:'navy',n:'해군 장악',ord:['inf','gas','sea','sea','up','veh','air','sea','def','inf'],xp:0.9,first:360,size:16,gap:90,wk:0,sea:1},
+ {id:'turtle',n:'수비 후 트리플',ord:['inf','gas','def','def','veh','up','inf','air','sea','veh'],xp:0.5,first:600,size:34,gap:110,wk:12,sty:'greedy'},
+ {id:'harass',n:'견제 운영',ord:['inf','gas','air','veh','inf','up','air','sea','def','inf'],xp:0.9,first:300,size:14,gap:75,wk:0,raid:0.5},
+ {id:'biomech',n:'보병·기갑 혼합 타이밍',ord:['inf','inf','gas','veh','up','inf','veh','air','sea','def'],xp:1,first:290,size:18,gap:80,wk:0},
+ {id:'tech',n:'고급 연구 테크',ord:['inf','gas','veh','up','inf','air','veh','sea','def','inf'],xp:0.9,first:480,size:26,gap:100,wk:4,adv:240},
+];
+function bldOfRole(f,role){const F=FAC[f];if(!F)return null;const ks=F.build;
+ if(role==='up')return ks.find(k=>BD[k].up)||null;if(role==='def')return ks.find(k=>BD[k].atk)||null;
+ const want=role==='air'?['air','hang']:[role];return ks.find(k=>want.includes(ROLE[k]))||null;}
+function aiPickBuild(p){const oc=G.cfg&&G.cfg.map==='ocean';const L=AI_BUILDS.filter(b=>!b.sea||oc);return L[Math.floor(Math.random()*L.length)];}
+function aiApplyBuild(p,b){const base=PLAN[p.fac];if(!base||!b)return;
+ // 원래 순서에 있는 진영 전용 건물(예: 소련 변이 실험실, 독일 아카데미)은 뒤에 붙여 그대로 둠
+ const ord=[];for(const r of b.ord){const k=bldOfRole(p.fac,r);if(k)ord.push(k);}
+ for(const k of base.order){const need=base.order.filter(x=>x===k).length;if(ord.filter(x=>x===k).length<need)ord.push(k);}
+ p.plan={order:ord,army:base.army};
+ const pr=p.prof=Object.assign({},p.prof||aiProf(p.diff??G.diff,!PC));const sk=Math.min(1,(p.prof.workers||20)/34);
+ pr.first=Math.round(b.first*(0.85+0.3*(1-sk)));pr.size=Math.max(6,Math.round(b.size*Math.max(0.5,sk)));pr.gap=b.gap;pr.workers=Math.max(10,(pr.workers||20)+Math.round(b.wk*sk));
+ if(b.sty)p.ai.style=b.sty;p.ai.nextWave=pr.first;p.ai.waveSize=pr.size;p.ai.bxp=b.xp;p.ai.bRaid=b.raid||1;p.ai.bAdv=b.adv||420;p.ai.buildId=b.id;p.ai.buildName=b.n;}
+{const _ng2=newGame;newGame=function(cfg){const r=_ng2.apply(this,arguments);try{if(G&&!G.camp)for(const p of G.pl){if(p.human||p.noBLD||(p.diff??G.diff)<2)continue;aiApplyBuild(p,aiPickBuild(p));}}catch(e){console.error(e);}return r;};}
 
 </script>
 </body>
