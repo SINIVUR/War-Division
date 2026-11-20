@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.5.0</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.5.2</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1391,10 +1391,10 @@ function followPath(u,dt){
  if(!last&&d<Math.max(14,u.r*0.9)){u.pi++;p=u.path[u.pi];dx=p[0]-u.x;dy=p[1]-u.y;d=Math.hypot(dx,dy);}
  u.mv=true;
  // 끼임 감지: 진척이 없으면 재탐색, 그래도 막히면 근처 도착으로 처리
- u.stT=(u.stT||0)+dt;if(u.stT>=0.6){const mvd=dist(u.x,u.y,u.stX||0,u.stY||0);if(mvd<spd(u)*0.6*0.2){u.stuck=(u.stuck||0)+1;if(u.stuck>=2&&u.path){const g=u.path[u.path.length-1];if(dist(u.x,u.y,g[0],g[1])<Math.max(70,u.r*4)||u.stuck>=6){u.path=null;u.stuck=0;return true;}const L=layerOf(u);if(L!=='a'){const pts=rawPath(L,u.x,u.y,g[0],g[1]);if(pts&&pts.length){u.path=smooth(L,u.x,u.y,pts,Math.max(7,Math.min(u.r*0.8,16)));u.pi=0;}}}}else u.stuck=0;u.stT=0;u.stX=u.x;u.stY=u.y;}
+ u.stT=(u.stT||0)+dt;if(u.stT>=0.6){const mvd=dist(u.x,u.y,u.stX||0,u.stY||0);if(mvd<spd(u)*0.6*0.2){u.stuck=(u.stuck||0)+1;if(u.stuck>=2&&u.path){hmUnstick(u);const g=u.path[u.path.length-1];if(dist(u.x,u.y,g[0],g[1])<Math.max(70,u.r*4)||u.stuck>=6){u.path=null;u.stuck=0;return true;}const L=layerOf(u);if(L!=='a'){const pts=rawPath(L,u.x,u.y,g[0],g[1]);if(pts&&pts.length){u.path=smooth(L,u.x,u.y,pts,Math.max(7,Math.min(u.r*0.8,16)));u.pi=0;}}}}else u.stuck=0;u.stT=0;u.stX=u.x;u.stY=u.y;}
  if(d>0.5){const ta=Math.atan2(dy,dx);u.face=turn(u.face,ta,UD[u.kind].layer?5*dt:14*dt);}
  if(d<=step+0.5){u.x=p[0];u.y=p[1];u.pi++;if(u.pi>=u.path.length){u.path=null;return true;}}
- else{const L=layerOf(u),nx=u.x+dx/d*step,ny=u.y+dy/d*step;if(L==='a'||losPt(L,nx,ny)){u.x=nx;u.y=ny;}else{if(losPt(L,nx,u.y))u.x=nx;else if(losPt(L,u.x,ny))u.y=ny;}}
+ else{const L=layerOf(u),nx=u.x+dx/d*step,ny=u.y+dy/d*step;if(L!=='a'&&HM_STEP){hmStep(u,L,dx/d,dy/d,step);}else if(L==='a'||losPt(L,nx,ny)){u.x=nx;u.y=ny;}else{if(losPt(L,nx,u.y))u.x=nx;else if(losPt(L,u.x,ny))u.y=ny;}}
  return false;
 }
 function turn(a,b,mx){let d=b-a;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return a+clamp(d,-mx,mx);}
@@ -6123,6 +6123,28 @@ function fxFriendlyAtk(wx,wy){const us=ownUnits(),hit=pick(wx,wy);if(!hit||hit.t
  const out=o.slice();const btn={k:'X',l:'아군 건물 공격',s:'끼었을 때',f:()=>{G.pending={t:'fatk'};toast('부술 아군 건물을 누르세요');}};
  const i=out.findIndex(x=>!x);if(i>=0)out[i]=btn;else if(out.length<9)out.push(btn);else out[out.length-1]=btn;return out;};}
 
+// ===== 건물·지형에 막히면 옆으로 스윽 비켜 가기 =====
+// 앞이 막히면(가는 길에 건물이 새로 생겼거나 모서리에 걸림) 1.2초 기다리지 않고 바로 길을 다시 찾고,
+// 그 사이엔 막힌 면을 따라 미끄러지듯 옆으로 이동 (좌우 중 목적지 쪽)
+var HM_STEP=true;
+function hmStep(u,L,ux,uy,step){
+ const nx=u.x+ux*step,ny=u.y+uy*step;
+ if(losPt(L,nx,ny)){u.x=nx;u.y=ny;return;}
+ // 바로 다시 길 찾기 (0.5초에 한 번까지)
+ const wp=u.path&&u.path[u.pi];if(u.path&&wp&&(u.pv||0)!==(G.bv||0)&&!los(L,u.x,u.y,wp[0],wp[1])&&G.time-(u.rpT||-9)>0.5){/* 다음 경유점까지 길이 막혔을 때만 (새로 생긴 건물) */u.rpT=G.time;const g=u.path[u.path.length-1],old=u.path,opi=u.pi;pathTo(u,g[0],g[1]);if(!u.path||!u.path.length){u.path=old;u.pi=opi;}}
+ // 축 방향으로 미끄러지기: 두 축 다 되면 목적지에 가까워지는 쪽
+ if(losPt(L,nx,u.y)){u.x=nx;return;}if(losPt(L,u.x,ny)){u.y=ny;return;}
+}
+
+// 건물이 새로 생길 때마다 번호를 올리고, 길을 찾을 때 그 번호를 기억 → 길을 찾은 뒤에 생긴 건물에 막혔을 때만 즉시 다시 찾음
+{const _ab=addBuilding;addBuilding=function(){const b=_ab.apply(this,arguments);if(G)G.bv=(G.bv||0)+1;return b;};}
+{const _pt=pathTo;pathTo=function(u){const r=_pt.apply(this,arguments);if(G&&u)u.pv=G.bv||0;return r;};}
+// 끼어서 진척이 없을 때(0.6초×2) 빠져나오기: 막힌 면 기준으로 좌우·뒤 중 뚫린 쪽으로 반 칸 비켜선 뒤 다시 길 찾기
+function hmUnstick(u){const L=layerOf(u);if(L==='a'||!u.path)return;const p=u.path[u.pi]||u.path[u.path.length-1];let dx=p[0]-u.x,dy=p[1]-u.y;const d=Math.hypot(dx,dy)||1;dx/=d;dy/=d;
+ const rr=Math.min(u.r*0.75,16),free=(x,y)=>losPt(L,x,y)&&losPt(L,x+rr,y)&&losPt(L,x-rr,y)&&losPt(L,x,y+rr)&&losPt(L,x,y-rr);
+ const g=u.path[u.path.length-1];const cands=[];for(const [vx,vy] of [[-dy,dx],[dy,-dx],[-dy*0.7-dx*0.7,dx*0.7-dy*0.7],[dy*0.7-dx*0.7,-dx*0.7-dy*0.7],[-dx,-dy]])for(const m of [14,24]){const x=u.x+vx*m,y=u.y+vy*m;if(free(x,y))cands.push([x,y,dist(x,y,g[0],g[1])]);}
+ if(!cands.length)return;cands.sort((a,b)=>a[2]-b[2]);u.x=u.x+(cands[0][0]-u.x)*0.6;u.y=u.y+(cands[0][1]-u.y)*0.6;u.unstuckN=(u.unstuckN||0)+1;}
+
 // =====================================================================
 //  AI 사람다움 2단계: 명령 중복 제거 · 덩어리 이동 · 후퇴 판단 고정
 // =====================================================================
@@ -6378,6 +6400,8 @@ function hmOwnArea(p,pt,blds,def){for(const b of blds)if(dist(pt.x,pt.y,b.x,b.y)
  for(const k in BD){const a=BD[k].atk;if(a)a.rng=Math.round(a.rng*1.25);}})();
 // 포탑 시야를 사거리만큼 넓힘 (사거리가 시야보다 길면 늘어난 사거리를 못 쓰므로)
 {const _so=sightOf;sightOf=function(e){const s=_so(e);if(e&&e.type==='bld'&&e.built){const a=BD[e.kind].atk;if(a)return Math.max(s,Math.ceil(a.rng/T)+1);}return s;};}
+// 21) 밸런스 v3.5.1: 포탑 사거리를 보병보다 확실히 길되 적당히 — 모든 포탑 180 (프랑스는 진영 특성으로 198). 공격 속도 2배는 유지
+(function(){for(const k in BD){const a=BD[k].atk;if(!a)continue;a.rng=BD[k].f==='fr'?198:180;}})();
 
 // ===================== 고급 업그레이드 (진영별 고급 연구소 + 고유 연구 5개) =====================
 // 효과 종류: sp 이동속도, dm 피해, hp 최대 체력, cd 공격 속도, regen 초당 회복, prod 생산 속도, sight 시야(칸), gather 채집량
