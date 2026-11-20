@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.0.2</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.3.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1223,7 +1223,7 @@ function pass(L,tx,ty){
  const i=ty*MW+tx,t=terr[i];
  if(L==='a')return true;
  if(L==='n')return t===1||t===2;
- if(occ[i])return false;
+ if(occ[i]&&occ[i]!==PB)return false;
  if(t===0||t===2||t===6)return true;
  if(t===1)return iceT[i]>0;
  if(t===4)return L==='w';
@@ -1539,6 +1539,7 @@ function updUnit(u,dt){
  if(fc0==='cn'&&!u.maxsh){u.shT+=dt;if(u.shT>3&&u.hp<u.maxhp)u.hp=Math.min(u.maxhp,u.hp+1.2*dt);}if(u.flash>0)u.flash-=dt;if(u.abCd>0)u.abCd-=dt;if(u.slowT>0)u.slowT-=dt;if(u.revealT>0)u.revealT-=dt;
  if(u.maxsh){u.shT+=dt;if(u.shT>(fc0==='de'?3:5)&&u.sh<u.maxsh)u.sh=Math.min(u.maxsh,u.sh+(fc0==='de'?6:3)*(u.kind==='de_eboot'?2:1)*dt);}
  if(d.regen&&u.hp<u.maxhp)u.hp=Math.min(u.maxhp,u.hp+d.regen*dt);
+ if(u.state==='board'){trBoardTick(u,dt);return;}
  if(d.slowImmune)u.slowT=0;
  if(u.burnT>0){u.burnT-=dt;u.burnAcc=(u.burnAcc||0)+dt;if(u.burnAcc>=0.5){u.burnAcc=0;damage(u,3,byId.get(u.burnSrc));if(Math.random()<0.6)part(u.x+rnd(-6,6),u.y-u.r,0,-20,0.4,2,'#ff8a2a');}if(u.dead)return;}
  if(u.morph>0){u.morph-=dt;if(u.morph<=0)finishMorph(u);return;}
@@ -2438,7 +2439,7 @@ function aiThink(p){
  {// 보급: 생산 건물 수만큼 여유를 두고, 막힐 것 같으면 두 채까지 동시에
   const prodN=blds.filter(b=>b.built&&PL.army[b.kind]).length+blds.filter(b=>b.built&&BD[b.kind].drop).length,margin=G.diff<=1?(G.diff===0?1:2):(G.time>240?4+prodN*2:4);
   const pendN=blds.filter(b=>b.kind===F.sup&&!b.built).length+wk.filter(u=>u.state==='site'&&u.site&&u.site.kind===F.sup).length;
-  const v2s=!p.noV2&&!p.noSUP,mg2=v2s&&G.time>150?Math.max(margin,5+prodN*2.5):margin,pmax=v2s?1+Math.floor(prodN/4):2;
+  const v2s=!p.noV2&&!p.noSUP,mg2=v2s&&G.time>(p.noHM?150:110)?Math.max(margin,(p.noHM?5:6)+prodN*(p.noHM?2.5:gn(p,'sm',3.2))):margin,pmax=v2s?1+Math.floor(prodN/4):2;
   if(!acted&&sup.cap<200&&sup.cap-sup.used<=mg2&&(pendN===0||pendN<pmax&&(v2s||sup.cap-sup.used<=margin/2&&G.time>240))){build(F.sup);acted=true;}}
  const wkMin=p.fac==='su'?11:6; // 소련: 노동자가 건물로 사라지므로 일꾼을 먼저 충분히
  if(!acted&&wk.length>=wkMin){
@@ -2512,8 +2513,8 @@ function aiThink(p){
   if(!waveAlive&&readyGo){const t=pick();
    // 상대 병력보다 확실히 약하면 조금 더 모은 뒤 한 번에 (인구가 꽉 차면 바로)
    let go=!!t;if(t&&G.diff>=2&&sup.used<165){const myP=ready.reduce((s2,u)=>s2+upow(u),0);const enP=t.team>=0?aiEnemyPow(p,t.team):0;
-    const need=!p.noV2&&!!p.useENG?1.0:!p.noV2?0.9:G.diff>=4?0.9:G.diff>=3?0.8:0.65;if(myP<enP*need&&G.time-(p.ai.lastWave||0)<AIP[G.diff].gap*2.5){go=false;p.ai.nextWave=G.time+12;}}
-   if(go){grpOrder(ready.length,()=>launchWave(p,ready,t));p.ai.lastWave=G.time;p.ai.waveSize=Math.min(p.ai.waveSize+AP.grow,AP.size+AP.grow*4);p.ai.nextWave=G.time+AIP[G.diff].gap;}}
+    const need=(!p.noV2&&!!p.useENG?1.0:!p.noV2?0.9:G.diff>=4?0.9:G.diff>=3?0.8:0.65)*gn(p,'atk',1);if(myP<enP*need&&G.time-(p.ai.lastWave||0)<AP.gap*2.5){go=false;p.ai.nextWave=G.time+12;}}
+   if(go){grpOrder(ready.length,()=>launchWave(p,ready,t));p.ai.lastWave=G.time;p.ai.waveSize=Math.min(p.ai.waveSize+AP.grow,AP.size+AP.grow*4);p.ai.nextWave=G.time+AP.gap;}}
  }
  {let lst=army.filter(u=>u.wave&&u.state==='idle'&&!u.sg&&!(u.cohT>G.time-1.5));
   if(!p.noV2&&!!p.useTRK&&lst.length&&p.ai.joinPt){const wv=army.filter(u=>u.wave);let cx=0,cy=0;for(const u of wv){cx+=u.x;cy+=u.y;}cx/=wv.length||1;cy/=wv.length||1;
@@ -2527,6 +2528,7 @@ function aiThink(p){
  if(!threat&&G.diff>=1){const waveOn=army.some(u=>u.wave);const idle=army.filter(u=>!u.wave&&!u.reinf&&!u.raid&&!u.sg&&!u.sup&&!u.morph&&UD[u.kind].dmg&&(u.state==='idle'||(u.stage&&u.state!=='move'&&u.state!=='amove')));
   if(waveOn&&p.ai.crush&&idle.length){const t=pick();if(t)grpOrder(idle.length,()=>{for(const u of idle){u.wave=1;u.stage=0;orderMove(u,t.x+rnd(-60,60),t.y+rnd(-60,60),true);}});}
   else if(waveOn&&idle.length>=4){const jp=p.ai.joinPt;if(jp)grpOrder(idle.length,()=>{for(const u of idle){u.reinf=1;u.stage=0;orderMove(u,jp[0]+rnd(-60,60),jp[1]+rnd(-60,60),true);}});}
+  else if(!p.noHM&&!p.noHMg&&p.ai.rp){const rp=p.ai.rp,far=idle.filter(u=>u.state==='idle'&&layerOf(u)!=='n'&&dist(u.x,u.y,rp[0],rp[1])>320);if(far.length){let k=0;const n0=idle.filter(u=>dist(u.x,u.y,rp[0],rp[1])<=320).length;for(const u of far){const i=n0+k++,a=i*2.4,r=26*Math.sqrt(i);orderMove(u,rp[0]+Math.cos(a)*r,rp[1]+Math.sin(a)*r,true);u.patrol=null;}}}
   else{const hqs=blds.filter(b=>BD[b.kind].drop&&b.built);for(const u of idle){if(u.state!=='idle'||u.patrol)continue;if(Math.random()<0.25){const h=hqs[Math.floor(Math.random()*hqs.length)]||{x:stx,y:sty};const ax=u.x,ay=u.y;orderMove(u,h.x+(stx-h.x)*0.5+rnd(-90,90),h.y+(sty-h.y)*0.5+rnd(-90,90),true);u.patrol={a:[ax,ay],b:[h.x+(stx-h.x)*0.5,h.y+(sty-h.y)*0.5]};}}}}
  // 일꾼 대응: 소수 견제는 일꾼으로 막고, 큰 병력이 오면 다른 기지로 대피
  if(G.diff>=2){const drops=blds.filter(b=>BD[b.kind].drop&&b.built);
@@ -2638,7 +2640,7 @@ function aiMacro(p,c){const ai=p.ai,{blds,wk,army,base,build,pending,have}=c,F=F
  const sup=supplyOf(p.id);
  // 1) 가스(에테르) 일꾼: 에테르가 모자라고 석탄이 남으면 가스에 더 붙임 (사람도 똑같이 할 수 있음)
  const gas=blds.filter(b=>BD[b.kind].geyser&&b.built);
- let want=G.time<200&&!p.noBO?2:3;if(p.ether<150&&p.coal>300)want=5;if(p.ether<80&&p.coal>700)want=7;if(p.ether<60&&p.coal>1500)want=9;if(p.ether>p.coal+250)want=2;if(p.ether>p.coal*2+500)want=1;ai.gasWant=want;
+ let want=G.time<200&&!p.noBO?2:3;if(p.ether<150&&p.coal>300)want=5;if(p.ether<80&&p.coal>700)want=7;if(p.ether<60&&p.coal>1500)want=9;if(p.ether>p.coal+250)want=2;if(p.ether>p.coal*2+500)want=1;want=Math.max(0,Math.round(want*gn(p,'gas',1)));ai.gasWant=want;
  for(const g of gas){const on=wk.filter(u=>u.state==='gather'&&u.res===g.id);
   if(on.length<want){const cand=wk.filter(u=>u.state==='gather'&&!u.carry&&byId.get(u.res)?.type==='res'&&dist(u.x,u.y,g.x,g.y)<11*T).sort((a,b)=>dist(a.x,a.y,g.x,g.y)-dist(b.x,b.y,g.x,g.y)).slice(0,want-on.length);
    if(cand.length)grpOrder(cand.length,()=>{for(const u of cand)orderGather(u,g);});}
@@ -2695,7 +2697,7 @@ function aiCombat(p,c,army,base){
  if(D>=1&&en>=3&&!engaged&&!ai.form&&dist(cx,cy,ex,ey)>200){
   const need=D>=4?0.95:D>=2?0.8:0;
   if(D>=2&&mP<eP*need*0.85){ // 불리: 들어가지 않고 물러나 증원을 기다림
-   if(!(ai.holdT>G.time)){ai.holdT=G.time+6;const bx=cx+(cx-ex)/dist(cx,cy,ex,ey)*220,by=cy+(cy-ey)/dist(cx,cy,ex,ey)*220;const mv=()=>{for(const u of wv)if(u.state!=='attack')orderMove(u,bx+rnd(-60,60),by+rnd(-60,60));};if(v3)grpOrder(wv.length,mv);else mv();ai.nextWave=Math.max(ai.nextWave,G.time+20);}
+   if(!(ai.holdT>G.time)){const hmR=!p.noHM;ai.holdT=G.time+(hmR?gn(p,'ht',12):6);const hb=hmR?gn(p,'hb',380):220,bx=cx+(cx-ex)/dist(cx,cy,ex,ey)*hb,by=cy+(cy-ey)/dist(cx,cy,ex,ey)*hb;const mv=()=>{for(const u of wv)if(u.state!=='attack')orderMove(u,bx+rnd(-60,60),by+rnd(-60,60));};if(v3)grpOrder(wv.length,mv);else mv();ai.nextWave=Math.max(ai.nextWave,G.time+20);}
   }else if(D>=2){
    const dd=dist(cx,cy,ex,ey),ux=(ex-cx)/dd,uy=(ey-cy)/dd,px=-uy,py=ux,R=Math.min(dd-40,260),fx=ex-ux*R,fy=ey-uy*R;
    const sorted=wv.slice().sort((a,b)=>((a.x-cx)*px+(a.y-cy)*py)-((b.x-cx)*px+(b.y-cy)*py));
@@ -2766,7 +2768,7 @@ function aiHuman(p,c){
    for(const u of ai.ku.values())if(u.team===ai.focus&&dist(u.x,u.y,b.x,b.y)<650)def+=u.pw;
    const sc=def+dist(b.x,b.y,base.x,base.y)*0.6;if(sc<bs){bs=sc;best=b;}}
   ai.wbR=best;return best;};
- const focusTarget=()=>{const t=(!ai.crush&&weakBase())||knownOf(ai.focus)||knownOf(null);return t?reachFix(t):nextSpot();};
+ const focusTarget=()=>{const t=(!ai.crush&&weakBase())||knownOf(ai.focus)||knownOf(null);return t?reachFix(t):(nextSpot()||(!p.noHM&&!p.noHMs?hmSweep(p,base):null));};
  c.pickOverride=focusTarget;
  // --- 정찰: 초반에 일꾼 하나를 상대 기지로
  if(!ai.scouted&&G.time>(D>=3?45:120)+rnd(0,20)&&D>=2){
@@ -2834,8 +2836,8 @@ const safe=!v2||ai.depleted||(prodN2>=(p.noBO?hqs.length+1:(hqs.length<=1&&G.tim
   unitsNear(cx,cy,460,v=>{if(enemy(p.id,v.team)&&seen(v,p.id)&&!UD[v.kind].worker)theirs+=upow(v);});}
   for(const b of ents)if(!b.dead&&b.type==='bld'&&enemy(p.id,b.team)&&BD[b.kind].atk&&dist(b.x,b.y,cx,cy)<460&&seen(b,p.id)){const a=BD[b.kind].atk;theirs+=(b.hp+(b.sh||0))*(1+a.dmg/(a.cd||1)/8)*0.45;}
   const ratio=theirs>0?mine/theirs:9;
-  const allP=army.reduce((s2,u)=>s2+upow(u),0),kAll=ai.ku?aiEnemyPow(p,null):0,crush=allP>Math.max(1,kAll)*2.5&&army.length>=20;ai.crush=crush;
-  if(theirs>300&&ratio<(v3?0.75:D>=4?0.7:0.55)&&!crush){ // 후퇴 (압도적으로 유리하면 밀어붙여 끝냄)
+  const allP=army.reduce((s2,u)=>s2+upow(u),0),kAll=ai.ku?aiEnemyPow(p,null):0,crush=allP>Math.max(1,kAll)*gn(p,'crush',2.5)&&army.length>=20;ai.crush=crush;
+  if(theirs>300&&(p.noHM?ratio<(v3?0.75:D>=4?0.7:0.55):p.noFS?ratio<(v3?gn(p,'ret',0.75):D>=4?gn(p,'ret',0.7):0.55):hmLose(p,wave,cx,cy,ratio))&&!crush){ // 후퇴 (압도적으로 유리하면 밀어붙여 끝냄)
    const sx=v3&&ai.rp?ai.rp[0]:base.x+(WW/2-base.x)*0.16,sy=v3&&ai.rp?ai.rp[1]:base.y+(WH/2-base.y)*0.16;
    grpOrder(wave.length,()=>{for(const u of wave){u.wave=0;u.stage=1;orderMove(u,sx+rnd(-70,70),sy+rnd(-70,70));}});
    ai.nextWave=G.time+AIP[D].gap*0.45;ai.retreats=(ai.retreats||0)+1;
@@ -2850,7 +2852,7 @@ const safe=!v2||ai.depleted||(prodN2>=(p.noBO?hqs.length+1:(hqs.length<=1&&G.tim
    let fight=false;unitsNear(cx,cy,480,v=>{if(!fight&&enemy(p.id,v.team)&&seen(v,p.id)&&UD[v.kind].dmg)fight=true;});
    if(!fight)for(const b of ents)if(!b.dead&&b.type==='bld'&&enemy(p.id,b.team)&&BD[b.kind].atk&&dist(b.x,b.y,cx,cy)<460){fight=true;break;}
    if(!fight&&wv.length>=3)for(const u of wv){if(u.state==='attack'||u.sg||u.state==='cast'||u.helpT>G.time-8)continue;const ahead=(u.x-cx)*ux+(u.y-cy)*uy,side=Math.abs((u.x-cx)*-uy+(u.y-cy)*ux);
-    if(ahead>240){if(u.state!=='idle'){u.path=null;u.state='idle';u.amove=null;}u.cohT=G.time;} // 앞서 나간 유닛: 제자리에서 본대 기다림
+    if(ahead>240){if(!p.noHM&&wv.length>=5)continue;if(u.state!=='idle'){u.path=null;u.state='idle';u.amove=null;}u.cohT=G.time;} // 앞서 나간 유닛: 제자리에서 본대 기다림
     else if(side>360&&!(u.cohT>G.time-2)){u.cohT=G.time;orderMove(u,cx+ux*60+rnd(-50,50),cy+uy*60+rnd(-50,50),true);}}}
   else ai.joinPt=null;
   for(const u of army)if(u.reinf){
@@ -2891,7 +2893,7 @@ function separate(){
  }
  for(const u of ents){if(u.type!=='unit'||u.dead)continue;u.x=clamp(u.x,4,WW-4);u.y=clamp(u.y,4,WH-4);
   const L=layerOf(u);if(L==='a')continue;
-  const tx=Math.floor(u.x/T),ty=Math.floor(u.y/T);if(!pass(L,tx,ty)){const n=nearestPass(L,tx,ty,tx,ty,12);if(n){const gx=(n[0]+.5)*T,gy=(n[1]+.5)*T,dd=dist(u.x,u.y,gx,gy);if(dd<T){u.x+=(gx-u.x)*0.35;u.y+=(gy-u.y)*0.35;}else{u.x=gx;u.y=gy;u.path=null;u.repathT=0;}}continue;}
+  const tx=Math.floor(u.x/T),ty=Math.floor(u.y/T);if(!pass(L,tx,ty)&&!(u.homeB&&inB(tx,ty)&&occ[ty*MW+tx]===u.homeB)){const n=nearestPass(L,tx,ty,tx,ty,12);if(n){const gx=(n[0]+.5)*T,gy=(n[1]+.5)*T,dd=dist(u.x,u.y,gx,gy);if(dd<T){u.x+=(gx-u.x)*0.35;u.y+=(gy-u.y)*0.35;}else{u.x=gx;u.y=gy;u.path=null;u.repathT=0;}}continue;}
   const rr=Math.min(u.r*0.7,16);let px=0,py=0;if(!losPt(L,u.x+rr,u.y))px-=1;if(!losPt(L,u.x-rr,u.y))px+=1;if(!losPt(L,u.x,u.y+rr))py-=1;if(!losPt(L,u.x,u.y-rr))py+=1;
   if(px||py){const nx=u.x+px*1.2,ny=u.y+py*1.2;if(losPt(L,nx,u.y))u.x=nx;if(losPt(L,u.x,ny))u.y=ny;}}
 }
@@ -2925,6 +2927,7 @@ function update(dt){
  for(const b of G.barriers)b.t-=dt;G.barriers=G.barriers.filter(b=>b.t>0);
  // AI
  for(const p of G.pl){if(p.human||!p.alive)continue;{const A=p.prof||aiProf(p.diff??G.diff,!PC),r=A.apm/60;p.ai.apmB=Math.min(r*4,(p.ai.apmB??r*2)+r*dt);}p.ai.thinkT-=dt;if(p.ai.thinkT<=0){const gd=G.diff;const A=p.prof||aiProf(p.diff??gd,!PC);G.diff=A.sk;p.ai.thinkT=A.think;AIB=p;try{aiThink(p);}finally{G.diff=gd;AIB=null;}}}
+ trTick(dt);for(const p of G.pl){if(p.human||!p.alive)continue;try{trAI(p,dt);hmPost(p,dt);}catch(err){console.error(err);}}
  updFx(dt);
  if(ents.some(e=>e.dead)){for(const e of ents)if(e.dead)byId.delete(e.id);ents=ents.filter(e=>!e.dead);G.sel=G.sel.filter(id=>byId.has(id));}
  G.endT-=dt;
@@ -4867,6 +4870,8 @@ function handleTap(sx,sy){
   if(p.t==='patrol'){const us=ownUnits();for(const u of us){const ax=u.x,ay=u.y;orderMove(u,wx,wy,true);u.patrol={a:[ax,ay],b:[wx,wy]};}play('cmd');mark(wx,wy,'#ffe070');return;}
   if(p.t==='gather'){const h=pick(wx,wy);const tgt=h&&((h.type==='res'&&!h.hidden)||(h.type==='bld'&&h.team===0&&BD[h.kind].geyser&&h.built))?h:null;for(const u of ownUnits())if(UD[u.kind].worker){const c=tgt||nearestCoal(u.x,u.y);if(c)orderGather(u,c);}mark(wx,wy,'#ffe070');return;}
   if(p.t==='rally'){commandAt(wx,wy,false);return;}
+  if(p.t==='unload'){trUnloadSel(wx,wy);return;}
+  if(p.t==='fatk'){fxFriendlyAtk(wx,wy);return;}
   if(p.t==='ability'){const cs=ownUnits().filter(u=>UD[u.kind].abil===p.ab&&u.abCd<=0);if(!cs.length){toast('준비된 유닛이 없어요');return;}const c=cs.sort((a,b)=>dist(a.x,a.y,wx,wy)-dist(b.x,b.y,wx,wy))[0];c.state='cast';c.cast={ab:p.ab,x:wx,y:wy};c.path=null;c.repathT=0;mark(wx,wy,'#bff4ff');return;}
   if(p.t==='reloc'){const b=byId.get(p.id);if(!b)return;ghostFor(wx,wy);const g=G.ghost;G.ghost=null;
    if(!relocOk(b,g.tx,g.ty)){toast('그곳으로는 옮길 수 없어요');return;}
@@ -5968,6 +5973,238 @@ resize();drawPreview();requestAnimationFrame(frame);
 {const st=['사령부에 연결하는 중…','16개 진영 편성표를 불러오는 중…','지도와 지형을 그리는 중…','유닛 도트를 칠하는 중…','출격 준비 완료'];let i=0;
  const tick=()=>{$('btBar').style.width=Math.min(100,(i+1)*20)+'%';$('btMsg').textContent=st[Math.min(i,st.length-1)];i++;if(i<=st.length)setTimeout(tick,260);else{$('boot').classList.add('out');setTimeout(()=>$('boot').remove(),650);}};tick();}
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){try{navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(_){}}
+</script>
+<script>
+'use strict';
+// =====================================================================
+//  수송: 모든 진영에 공중 수송 1종 · 해상 수송 1종 (태우기 · 하선 · AI 드롭)
+// =====================================================================
+const TRN={
+ us:['C-47 스카이트레인','LST 상륙함'],su:['수송 비행선','상륙 바지선'],de:['Ju 52 수송기','마르스 상륙정'],it:['SM.75 수송기','MZ 상륙정'],
+ fr:['수송 비행선','상륙 수송함'],uk:['다코타 수송기','LCT 상륙정'],jp:['수송 비행정','다이하쓰 상륙정'],cn:['화물 비행선','정크 수송선'],
+ au:['선덜랜드 수송기','상륙정'],za:['로드스타 수송기','상륙정'],br:['수송 비행선','상륙정'],in:['코끼리 수송기','상륙선'],
+ ko:['학 수송기','판옥 수송선'],hu:['수송기','도나우 수송선'],fi:['설원 수송기','얼음 수송선'],pl:['수송기','상륙정'],
+};
+(function trDefine(){
+ for(const f in FAC){if(!TRN[f])continue;const F=FAC[f];
+  const airB=F.build.find(k=>['air','hang'].includes(ROLE[k])),seaB=F.build.find(k=>ROLE[k]==='sea');
+  const ka=f+'_airtr',ks=f+'_seatr';
+  UD[ka]={f,n:TRN[f][0],layer:'a',hp:280,ar:1,sp:96,r:15,dmg:0,cost:[150,100],t:30,sup:2,mech:1,cap:8,trAir:1,desc:'공중 수송 · 땅 유닛 8명 · 비무장 (유닛을 고르고 수송기를 누르면 탑승)'};
+  UD[ks]={f,n:TRN[f][1],layer:'n',hp:450,ar:2,sp:72,r:17,dmg:0,cost:[150,50],t:30,sup:2,mech:1,cap:12,desc:'해상 수송 · 땅 유닛 12명 · 비무장 (유닛을 고르고 수송선을 누르면 탑승)'};
+  const pick=(b,k)=>{const used=new Set((BD[b].train||[]).map(u=>UHK[u]));UHK[k]=['V','X','Z','N','K','O','L','Q','W','E'].find(x=>!used.has(x));(BD[b].train=BD[b].train||[]).push(k);};
+  if(airB)pick(airB,ka);if(seaB)pick(seaB,ks);
+  SHAPE_SKIP.add(ka);SHAPE_SKIP.add(ks);
+ }
+ // 그림
+ const air=(f)=>[34,20,'air',(p,fr)=>{const body=f==='su'||f==='fr'||f==='br'||f==='cn'?'blimp':'plane';const c=({us:'#6b7344',su:'#8a7650',de:'#5d6470',it:'#7a7a54',fr:'#7d96b8',uk:'#9a8458',jp:'#8e7e4c',cn:'#a82e22',au:'#8a7a50',za:'#a08a5a',br:'#2a8a40',in:'#c8a040',ko:'#7a3a8a',hu:'#5a7a4a',fi:'#e0e4e8',pl:'#8a8a6a'})[f]||'#6a6a5a';
+  if(body==='blimp'){p.el(17,8,16,7,c);p.el(14,6,9,3,shade(c,0.3));p.r(12,14,10,4,'#3a3a34');p.r(13,15,8,2,'#ffe08a');p.poly([[1,8],[5,3],[5,13]],shade(c,-0.2));p.r(6,8,22,1,TMc);p.r(28,7,4,2,'#2a2a26');}
+  else{p.el(17,10,15,3.5,c);p.r(4,9,26,3,c);p.el(28,10,4,3,shade(c,0.2));p.r(29,9,3,2,'#a8d0e8');p.poly([[11,10],[21,10],[17,1],[13,1]],shade(c,-0.15));p.poly([[11,11],[21,11],[17,19],[13,19]],shade(c,-0.25));
+   for(const y of [4,16])p.r(18,y,4,2,'#2a2a26');p.ci(22,4,1.5,'#888');p.poly([[2,10],[6,6],[7,10]],shade(c,-0.2));p.r(5,9,22,1,TMc);for(let x=8;x<26;x+=3)p.p(x,11,'#ffe08a');}}];
+ const sea=(f)=>[38,22,'sea',(p,fr)=>{const h=({de:'#5d6470',jp:'#6a6a64',cn:'#7a3a22',ko:'#6a4a2a',fi:'#d0d8e0'})[f]||'#6a6e66';const d=14;
+  p.poly([[0,d],[38,d],[34,21],[3,21]],h);p.r(1,d,36,1,shade(h,0.35));p.r(3,d+3,32,1,TMc);
+  p.r(2,d-6,4,6,shade(h,-0.15));p.r(2,d-6,4,1,shade(h,0.3));// 앞 경사판
+  p.r(26,d-9,9,9,shade(h,0.1));p.r(27,d-8,7,3,'#a8d0e8');p.r(30,d-14,2,5,'#2a2a26');
+  for(let x=8;x<24;x+=4){p.r(x,d-3,3,3,'#4a4a3e');p.p(x+1,d-4,'#e0b088');}
+  if(f==='ko'||f==='cn'){p.r(17,0,1,d,'#3a2a1a');p.r(12,1,11,10,f==='ko'?'#e0d4b0':'#b8402a');p.r(12,1,11,1,TMc);}}];
+ for(const f in TRN){if(UD[f+'_airtr'])ART[f+'_airtr']=air(f);if(UD[f+'_seatr'])ART[f+'_seatr']=sea(f);}
+})();
+STATE_TXT.board='수송기·수송선에 타러 가는 중';
+// ---- 탑승
+const trFree=s=>(UD[s.kind].cap||0)-(s.cargo?s.cargo.length:0);
+function trBoard(u,ship){if(!ship||ship.dead||UD[u.kind].layer||u.team!==ship.team)return false;cancelSite(u);u.state='board';u.target=ship.id;u.path=null;u.repathT=0;u.amove=null;u.hold=false;u.boardT=0;return true;}
+function trBoardTick(u,dt){const s=byId.get(u.target);u.boardT=(u.boardT||0)+dt;
+ if(!s||s.dead||trFree(s)<=0||u.boardT>30){u.state='idle';u.target=0;u.path=null;u.boardT=0;if(u.team===0&&s&&!s.dead&&trFree(s)>0)toast('수송선에 닿을 수 없어요 — 땅 가까이 옮기세요');return;}
+ const air=UD[s.kind].layer==='a';
+ if(dist(u.x,u.y,s.x,s.y)<=s.r+u.r+(air?40:70)){(s.cargo=s.cargo||[]).push(u);u.dead=true;u.trBoarded=true;u.state='idle';u.path=null;u.target=0;if(u.team===0)play('select',u.x,u.y,0.4);return;}
+ u.repathT-=dt;if(u.repathT<=0||!u.path){let ax=s.x,ay=s.y;if(!air){const ap=approachPoint(s,u);ax=ap[0];ay=ap[1];}pathTo(u,ax,ay);u.repathT=air?0.6:1.2;}followPath(u,dt);}
+// ---- 하선
+function trUnloadOrder1(s,wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);const land=nearestPass('g',tx,ty,tx,ty,10);if(!land)return false;
+ const air=UD[s.kind].layer==='a';let mx=(land[0]+.5)*T,my=(land[1]+.5)*T;
+ if(!air){const w=nearestPass('n',land[0],land[1],Math.floor(s.x/T),Math.floor(s.y/T),12);if(!w)return false;mx=(w[0]+.5)*T;my=(w[1]+.5)*T;}
+ s.trUnload={lx:land[0],ly:land[1],t:G.time};const o=AIB;AIB=null;s._unl=1;try{orderMove(s,mx,my);}finally{AIB=o;s._unl=0;}return true;}
+function trUnloadNow(s){if(!s.cargo||!s.cargo.length)return 0;const sx=Math.floor(s.x/T),sy=Math.floor(s.y/T);
+ const near=nearestPass('g',sx,sy,sx,sy,UD[s.kind].layer==='a'?3:5);if(!near)return 0;let k=0;const used=new Set();
+ for(const u of s.cargo){let spot=null;for(let r=0;r<5&&!spot;r++)for(let dy=-r;dy<=r&&!spot;dy++)for(let dx=-r;dx<=r;dx++){const x=near[0]+dx,y=near[1]+dy,key=x*1000+y;if(used.has(key)||!pass('g',x,y))continue;used.add(key);spot=[x,y];break;}
+  if(!spot)spot=near;u.dead=false;u.trBoarded=false;u.x=(spot[0]+.5)*T+rnd(-5,5);u.y=(spot[1]+.5)*T+rnd(-5,5);u.state='idle';u.path=null;u.target=0;ents.push(u);byId.set(u.id,u);k++;}
+ s.cargo=[];s.trUnload=null;if(s.team===0){toast(`🪂 ${k}명 하선!`);play('cmd');}return k;}
+function trShipTick(s){if(!s.trUnload)return;const u=s.trUnload,lx=(u.lx+.5)*T,ly=(u.ly+.5)*T,d=dist(s.x,s.y,lx,ly),air=UD[s.kind].layer==='a';
+ if((air&&d<1.2*T)||(!air&&(d<4.2*T||(s.state==='idle'&&d<7*T)))){trUnloadNow(s);return;}
+ if(s.state==='idle'&&G.time-u.t>2){if(air){const o=AIB;AIB=null;s._unl=1;try{orderMove(s,lx,ly);}finally{AIB=o;s._unl=0;}}else{s.trUnload=null;if(s.team===0)toast('수송선이 그 땅에 닿을 수 없어요');}}}
+function trUnloadSel(wx,wy){const ss=ownUnits().filter(u=>u.cargo&&u.cargo.length);let ok=0;for(const s of ss)if(trUnloadOrder1(s,wx,wy))ok++;if(!ok)toast('그곳에는 내릴 수 없어요');else play('cmd');mark(wx,wy,'#6cff6c');}
+{const _om=orderMove;orderMove=function(u,x,y,am,keep){if(u.trUnload&&!u._unl)u.trUnload=null;return _om(u,x,y,am,keep);};}
+{const _so=supplyOf;supplyOf=function(team){const r=_so(team);for(const e of ents)if(!e.dead&&e.team===team&&e.cargo&&e.cargo.length)for(const c of e.cargo)r.used+=UD[c.kind].sup;return r;};}
+{const _k=kill;kill=function(e,src){if(e&&!e.dead&&e.cargo&&e.cargo.length){const n=e.cargo.length;if(e.team===0){G.stats.lost+=n;toast(`💥 수송 중이던 ${n}명을 잃었어요`);}else if(src&&src.team===0)G.stats.kills+=n;e.cargo=[];}return _k(e,src);};}
+// ---- 명령: 땅 유닛을 고르고 우리 수송기/수송선을 누르면 탑승
+{const _ca=commandAt;commandAt=function(wx,wy,am,auto){if(G){const us=ownUnits(),hit=pick(wx,wy);
+ if(us.length&&hit&&hit.type==='unit'&&hit.team===0&&UD[hit.kind].cap&&!am){const gr=us.filter(u=>!UD[u.kind].layer);if(gr.length){let free=trFree(hit)-ents.filter(e=>!e.dead&&e.state==='board'&&e.target===hit.id).length,n=0;for(const u of gr){if(free<=0)break;if(trBoard(u,hit)){free--;n++;}}toast(n?`🪂 ${n}명 탑승하러 가요`:'자리가 없어요');mark(hit.x,hit.y,'#6cff6c');if(UD[hit.kind].layer==='a'&&n){const o=AIB;AIB=null;try{const cx=gr.reduce((a,u)=>a+u.x,0)/gr.length,cy=gr.reduce((a,u)=>a+u.y,0)/gr.length;if(dist(hit.x,hit.y,cx,cy)>3*T)orderMove(hit,cx,cy);}finally{AIB=o;}}return;}}}
+ return _ca(wx,wy,am,auto);};}
+{const _cl=cmdList;cmdList=function(){let o=_cl();if(!G)return o;const s=selEnts();if(!s.length||s[0].team!==0||s[0].type!=='unit')return o;
+ const ships=s.filter(e=>e.type==='unit'&&e.team===0&&e.cargo&&e.cargo.length),caps=s.filter(e=>e.type==='unit'&&e.team===0&&UD[e.kind].cap);
+ if(ships.length){const n=ships.reduce((a,e)=>a+e.cargo.length,0);o=o.filter(x=>x).slice(0,7);o.push({k:'U',l:'하선',s:n+'명 탑승',f:()=>{G.pending={t:'unload'};toast('내릴 곳(땅)을 찍으세요');}});
+  const near=ships.some(e=>UD[e.kind].layer==='a'||nearestPass('g',Math.floor(e.x/T),Math.floor(e.y/T),Math.floor(e.x/T),Math.floor(e.y/T),4));
+  if(near)o.push({k:'J',l:'바로 하선',s:'지금 자리',f:()=>{for(const e of ships)trUnloadNow(e);}});}
+ else if(caps.length){o=o.filter(x=>x).slice(0,8);o.push({l:'수송',s:'0명',dis:true,f:()=>toast('땅 유닛을 고른 뒤 수송기·수송선을 누르면 타요')});}
+ return o;};}
+function trTick(dt){for(const e of ents)if(!e.dead&&e.type==='unit'&&e.cargo&&e.trUnload)trShipTick(e);}
+// =====================================================================
+//  AI 수송 운용: 공중 드롭으로 일꾼 견제, 바다 건너 상륙
+// =====================================================================
+function trAI(p,dt){const ai=p.ai,D=p.prof?p.prof.sk:G.diff;if(D<2||G.camp||p.noTR)return;ai.trT=(ai.trT||0)-dt;if(ai.trT>0)return;ai.trT=1.5;
+ const mine=[],ships=[];for(const e of ents){if(e.dead||e.team!==p.id||e.type!=='unit')continue;if(UD[e.kind].cap)ships.push(e);else mine.push(e);}
+ const F=FAC[p.fac],base=p.base;if(!base)return;
+ // 생산: 공중 수송 1 (고수 2), 해상은 바다 맵에서 1
+ const ka=p.fac+'_airtr',ks=p.fac+'_seatr';
+ const want={[ka]:G.time>300?(D>=4?2:1):0,[ks]:G.time>360&&['ocean'].includes(THM(G.cfg.map))?1:0};
+ for(const k in want){if(!UD[k])continue;const have=ships.filter(s=>s.kind===k).length+ents.filter(b=>!b.dead&&b.team===p.id&&b.type==='bld'&&b.queue.includes(k)).length;
+  if(have<want[k]&&p.coal>=UD[k].cost[0]+60&&p.ether>=UD[k].cost[1]){const b=ents.find(b=>!b.dead&&b.team===p.id&&b.type==='bld'&&b.built&&(BD[b.kind].train||[]).includes(k)&&b.queue.length<2);if(b)tryTrain(b,k,true);}}
+ // 드롭 작전
+ const op=ai.drop;
+ if(!op){if(G.time<(ai.dropT||420-D*30))return;const s=ships.find(s=>!s.cargo||!s.cargo.length);if(!s)return;
+  let f=ai.focus!=null?P(ai.focus):null;if(!f||!f.alive)f=G.pl.filter(q=>q.alive&&enemy(p.id,q.id)&&q.base).sort((a,b)=>dist(a.base.x,a.base.y,base.x,base.y)-dist(b.base.x,b.base.y,base.x,base.y))[0];if(!f)return;let fk=null,bd=-1;if(ai.kb)for(const [id,k] of ai.kb){if(k.team!==f.id||!k.drop)continue;const d=dist(k.x,k.y,f.base.x,f.base.y);if(d>bd){bd=d;fk=k;}}if(!fk)fk=f.base;
+  const pool=mine.filter(u=>!UD[u.kind].worker&&!u.wave&&!u.raid&&!u.morph&&!u.sg&&UD[u.kind].dmg&&(UD[u.kind].sup||1)<=3&&dist(u.x,u.y,s.x,s.y)<40*T&&u.state!=='attack'&&u.state!=='board').sort((a,b)=>dist(a.x,a.y,s.x,s.y)-dist(b.x,b.y,s.x,s.y));
+  if(pool.length<4)return;const n=Math.min(UD[s.kind].cap,4+D);const grp=pool.slice(0,n);
+  const cl=nearestCoal(fk.x,fk.y),tx=cl?(cl.x+fk.x)/2:fk.x,ty=cl?(cl.y+fk.y)/2:fk.y;
+  // 해상 수송은 물가로만 갈 수 있음
+  if(UD[s.kind].layer==='n'){const w=nearestPass('n',Math.floor(tx/T),Math.floor(ty/T),Math.floor(s.x/T),Math.floor(s.y/T),16);if(!w)return;}
+  const cx=grp.reduce((a,u)=>a+u.x,0)/grp.length,cy=grp.reduce((a,u)=>a+u.y,0)/grp.length;
+  for(const u of grp){u.raid=1;trBoard(u,s);}
+  if(UD[s.kind].layer==='a')orderMove(s,cx,cy);else{const w=nearestPass('n',Math.floor(cx/T),Math.floor(cy/T),Math.floor(s.x/T),Math.floor(s.y/T),20);if(w)orderMove(s,(w[0]+.5)*T,(w[1]+.5)*T);}
+  ai.drop={ship:s.id,tx,ty,ph:'load',t:G.time,n:grp.length};return;}
+ const s=byId.get(op.ship);if(!s||s.dead){ai.drop=null;ai.dropT=G.time+150;return;}
+ if(op.ph==='load'){const boarding=ents.filter(e=>!e.dead&&e.state==='board'&&e.target===s.id).length;
+  if((s.cargo||[]).length>=op.n||(!boarding&&(s.cargo||[]).length>=3)||G.time-op.t>40){if(!(s.cargo||[]).length){ai.drop=null;ai.dropT=G.time+90;return;}
+   // 공중: 적 방공을 피해 가장자리로 돌아감 (중간 경유점)
+   if(UD[s.kind].layer==='a'){const ex=op.tx<WW/2?T*2:WW-T*2,ey=op.ty<WH/2?T*2:WH-T*2;const vx=Math.abs(op.tx-ex)<Math.abs(op.ty-ey)?ex:op.tx,vy=Math.abs(op.tx-ex)<Math.abs(op.ty-ey)?op.ty:ey;op.wp=[vx,vy];orderMove(s,vx,vy);op.ph='fly';}
+   else{if(!trUnloadOrder1(s,op.tx,op.ty)){trUnloadNow(s);ai.drop=null;return;}op.ph='sail';}
+   op.t=G.time;}return;}
+ if(op.ph==='fly'){if(s.hp<s.maxhp*0.5){trUnloadNow(s);op.ph='home';return;}
+  if(op.wp&&dist(s.x,s.y,op.wp[0],op.wp[1])<2*T){op.wp=null;trUnloadOrder1(s,op.tx,op.ty);}
+  else if(!op.wp&&!s.trUnload&&s.cargo&&s.cargo.length)trUnloadOrder1(s,op.tx,op.ty);
+  if(!s.cargo||!s.cargo.length){op.ph='home';for(const u of mine)if(u.raid&&dist(u.x,u.y,op.tx,op.ty)<6*T)orderMove(u,op.tx+rnd(-40,40),op.ty+rnd(-40,40),true);}
+  if(G.time-op.t>90){trUnloadNow(s);op.ph='home';}return;}
+ if(op.ph==='sail'){if(!s.cargo||!s.cargo.length){op.ph='home';for(const u of mine)if(u.raid&&dist(u.x,u.y,op.tx,op.ty)<10*T)orderMove(u,op.tx+rnd(-40,40),op.ty+rnd(-40,40),true);return;}if(G.time-op.t>120){trUnloadNow(s);op.ph='home';}return;}
+ if(op.ph==='home'){orderMove(s,base.x+rnd(-80,80),base.y+rnd(-80,80));ai.drop=null;ai.dropT=G.time+(150-D*15)+rnd(0,40);}
+}
+LD_TIPS.push('모든 진영에 공중 수송(비행장)과 해상 수송(조선소)이 있어요. 땅 유닛을 고른 뒤 수송기를 누르면 타요.','수송기를 고르고 「하선」을 누른 뒤 땅을 찍으면 그곳에 내려요. 상대 일꾼 라인에 드롭해 보세요.');
+
+// =====================================================================
+//  끼임 방지: 자기를 생산한 건물은 통과 · 넓게 트인 곳에서 생산 · 아군 건물 공격 버튼
+// =====================================================================
+let PB=0;
+{const _pt=pathTo;pathTo=function(u,x,y){const o=PB;PB=u.homeB||0;try{return _pt(u,x,y);}finally{PB=o;}};}
+{const _fp=followPath;followPath=function(u,dt){const o=PB;PB=u.homeB||0;try{return _fp(u,dt);}finally{PB=o;}};}
+// 생산 직후: 유닛 크기만큼 비어 있는 땅을 건물 둘레에서 찾아 그곳에 내보냄
+function fxOpenSpot(b,u){const L=layerOf(u);if(L==='a')return null;const need=Math.max(0,Math.ceil(u.r/T-0.35));const tgt=b.rally&&!b.rally.res?[b.rally.x,b.rally.y]:[b.x,b.y+b.h*T];
+ const ok=(tx,ty)=>{for(let dy=-need;dy<=need;dy++)for(let dx=-need;dx<=need;dx++)if(!pass(L,tx+dx,ty+dy))return false;let crowd=0;unitsNear((tx+.5)*T,(ty+.5)*T,u.r*2+16,v=>{if(v!==u&&layerOf(v)===L&&dist(v.x,v.y,(tx+.5)*T,(ty+.5)*T)<u.r+v.r)crowd++;});if(b._res)for(const q of b._res)if(G.time-q[2]<4&&dist(q[0],q[1],(tx+.5)*T,(ty+.5)*T)<u.r+q[3]+6)crowd++;return crowd===0;};
+ let best=null,bd=1e9;
+ for(let r=1;r<9&&!best;r++){for(let ty=b.ty-r;ty<b.ty+b.h+r;ty++)for(let tx=b.tx-r;tx<b.tx+b.w+r;tx++){if(tx>b.tx-r&&tx<b.tx+b.w+r-1&&ty>b.ty-r&&ty<b.ty+b.h+r-1)continue;if(!ok(tx,ty))continue;const d=dist((tx+.5)*T,(ty+.5)*T,tgt[0],tgt[1]);if(d<bd){bd=d;best=[tx,ty];}}}
+ if(best){(b._res=(b._res||[]).filter(q=>G.time-q[2]<4)).push([(best[0]+.5)*T,(best[1]+.5)*T,G.time,u.r]);}
+ return best;}
+{const _sf=spawnFrom;spawnFrom=function(b,kind){const id0=nextId;_sf(b,kind);
+ for(const u of ents){if(u.id<id0||u.type!=='unit'||u.dead)continue;u.homeB=b.id;const sp=fxOpenSpot(b,u);if(!sp)continue;
+  const gx=(sp[0]+.5)*T+rnd(-4,4),gy=(sp[1]+.5)*T+rnd(-4,4);
+  // 건물 가장자리(문)에서 나타나 트인 곳으로 걸어 나옴
+  const nv=layerOf(u)==='n';// 배는 물 위에서 바로 나타남 (건물 안은 땅이라 배가 못 움직임)
+  const ex=nv?gx:clamp(gx,b.x-b.w*T/2+u.r,b.x+b.w*T/2-u.r),ey=nv?gy:clamp(gy,b.y-b.h*T/2+u.r,b.y+b.h*T/2-u.r);
+  const hasOrder=u.path&&u.path.length&&(u.state==='move'||u.state==='amove'||u.state==='gather');const goal=hasOrder?u.path[u.path.length-1]:null;
+  u.x=ex;u.y=ey;
+  if(goal&&u.state!=='gather')pathTo(u,goal[0],goal[1]);
+  else if(u.state==='gather'){u.path=null;u.repathT=0;}
+  else{const o=AIB;AIB=null;try{orderMove(u,gx,gy);}finally{AIB=o;}}}};}
+// 아군 건물 공격 (PC·모바일 공통 버튼): 끼인 유닛 빼내기
+function fxFriendlyAtk(wx,wy){const us=ownUnits(),hit=pick(wx,wy);if(!hit||hit.type!=='bld'||hit.team!==0){toast('공격할 아군 건물을 누르세요');return;}
+ let n=0;for(const u of us){if(UD[u.kind].dmg&&canHit(UD[u.kind].tg,hit)){orderAttack(u,hit);n++;}}toast(n?'🔨 아군 건물 강제 공격':'선택한 유닛은 그 건물을 공격할 수 없어요');mark(hit.x,hit.y,'#ff5a4a');}
+{const _cl=cmdList;cmdList=function(){const o=_cl();if(!G||G.placing||G.pending||G.buildMenu)return o;const s=selEnts();if(!s.length||s[0].team!==0||s[0].type!=='unit')return o;
+ if(!s.some(u=>u.type==='unit'&&UD[u.kind].dmg&&canHit(UD[u.kind].tg,{type:'bld'})))return o;
+ const out=o.slice();const btn={k:'X',l:'아군 건물 공격',s:'끼었을 때',f:()=>{G.pending={t:'fatk'};toast('부술 아군 건물을 누르세요');}};
+ const i=out.findIndex(x=>!x);if(i>=0)out[i]=btn;else if(out.length<9)out.push(btn);else out[out.length-1]=btn;return out;};}
+
+// =====================================================================
+//  AI 사람다움 2단계: 명령 중복 제거 · 덩어리 이동 · 후퇴 판단 고정
+// =====================================================================
+// 1) 같은 곳으로 다시 내리는 이동 명령은 무시 (사람은 이미 가고 있는 유닛에게 같은 명령을 반복하지 않음)
+{const _om=orderMove;orderMove=function(u,x,y,am,keep){
+ if(G&&u&&!u.dead&&u.team>=0&&u.type==='unit'&&!P(u.team).human&&!P(u.team).noHM){
+  const cur=u.state==='amove'&&u.amove?u.amove:(u.state==='move'&&u.path&&u.path.length?u.path[u.path.length-1]:null);
+  if(cur&&!!am===(u.state==='amove')&&dist(cur[0],cur[1],x,y)<110&&!keep)return;
+  if(u.state==='idle'&&dist(u.x,u.y,x,y)<(am&&u.wave?190:55))return;
+  const lo=u.hmLast;if(lo&&dist(lo[0],lo[1],x,y)<160&&((G.time-lo[2]<8&&dist(u.x,u.y,lo[0],lo[1])<300)||(u.state==='idle'&&G.time-lo[2]<4)))return;
+  u.hmLast=[x,y,G.time];
+  if(u.state==='attack'&&am&&u.target){const t=byId.get(u.target);if(t&&!t.dead&&dist(t.x,t.y,x,y)<420)return;}}
+ if(G&&G._oc&&u&&u.team>=0&&!UD[u.kind].worker)G._oc[u.team]=(G._oc[u.team]||0)+1;
+ return _om(u,x,y,am,keep);};}
+// 2) 덩어리 이동: 공격 부대가 이동 중이면 앞선 유닛은 늦추고 처진 유닛은 제 속도로 → 사람이 부대를 끌고 가는 모양
+function hmCohesion(p){const ai=p.ai;if(p.noHM||p.noHMc)return;
+ const all=[];for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='unit'&&e.wave&&!UD[e.kind].worker&&layerOf(e)!=='n')all.push(e);
+ const clr=u=>{if(u.hmCap){u.capSp=0;u.hmCap=0;}};
+ // 목적지별로 묶어서 (부대를 나눠 보냈으면 각 무리마다 따로) 처리
+ const grp=new Map();for(const u of all){const t=u.state==='amove'&&u.amove?u.amove:u.state==='move'&&u.path&&u.path.length?u.path[u.path.length-1]:null;if(!t||u.state==='attack'){clr(u);continue;}
+  const k=Math.round(t[0]/600)+','+Math.round(t[1]/600);if(!grp.has(k))grp.set(k,{t,us:[]});grp.get(k).us.push(u);}
+ for(const g of grp.values()){const wv=g.us;if(wv.length<5){wv.forEach(clr);continue;}
+  let cx=0,cy=0;for(const u of wv){cx+=u.x;cy+=u.y;}cx/=wv.length;cy/=wv.length;
+  const core=wv.filter(u=>dist(u.x,u.y,cx,cy)<600);if(core.length>=wv.length*0.4){cx=0;cy=0;for(const u of core){cx+=u.x;cy+=u.y;}cx/=core.length;cy/=core.length;}
+  let foe=false;unitsNear(cx,cy,700,v=>{if(!foe&&enemy(p.id,v.team)&&UD[v.kind].dmg&&!UD[v.kind].worker)foe=true;});if(foe){wv.forEach(clr);continue;}
+  const dx=g.t[0]-cx,dy=g.t[1]-cy,dl=Math.hypot(dx,dy)||1;if(dl<350){wv.forEach(clr);continue;}const ux=dx/dl,uy=dy/dl;
+  const sps=wv.map(u=>UD[u.kind].sp).sort((a,b)=>a-b);const slow=Math.max(50,sps[Math.floor(sps.length*0.25)]);
+  const spread=Math.max(160,Math.sqrt(wv.length)*45);
+  for(const u of wv){const ahead=(u.x-cx)*ux+(u.y-cy)*uy;
+   let cap=slow*1.08;if(ahead>spread)cap=slow*0.5;else if(ahead>spread*0.5)cap=slow*0.8;else if(ahead<-spread*0.5)cap=0;
+   if(cap&&cap<UD[u.kind].sp){u.capSp=cap;u.capT=G.time;u.hmCap=1;}else clr(u);}}}
+// 3) 매 판단 뒤 처리
+// 4) 남은 적 찾기: 아는 적 건물이 없으면 오래 안 가 본 지역부터 훑음 (사람이 마지막 건물을 찾아다니듯)
+const HMC=640;
+function hmSeen(p){const ai=p.ai,nx=Math.ceil(WW/HMC),ny=Math.ceil(WH/HMC);if(!ai.swv||ai.swv.length!==nx*ny)ai.swv=new Float32Array(nx*ny).fill(-1e4);
+ for(const e of ents){if(e.dead||e.team!==p.id)continue;const i=Math.floor(e.y/HMC)*nx+Math.floor(e.x/HMC);if(i>=0&&i<ai.swv.length)ai.swv[i]=G.time;}}
+function hmSweep(p,base){const ai=p.ai;if(!ai.swv)hmSeen(p);const nx=Math.ceil(WW/HMC),ny=Math.ceil(WH/HMC);let best=null,bs=-1e9;
+ for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const age=Math.min(600,G.time-ai.swv[j*nx+i]);if(age<60)continue;const x=(i+.5)*HMC,y=(j+.5)*HMC;
+  const n=nearestPass('g',Math.floor(x/T),Math.floor(y/T),Math.floor(x/T),Math.floor(y/T),8);if(!n)continue;const sc=age-dist(x,y,base.x,base.y)*0.05;if(sc>bs){bs=sc;best={x:(n[0]+.5)*T,y:(n[1]+.5)*T,team:-1,fake:true};}}
+ return best;}
+function hmPost(p,dt){p.ai.hmT=(p.ai.hmT||0)-dt;if(p.ai.hmT>0)return;p.ai.hmT=0.5;hmCohesion(p);p.ai.hsT=(p.ai.hsT||0)-0.5;if(p.ai.hsT<=0){p.ai.hsT=2;hmSeen(p);}}
+
+// 5) 진화 유전자: 경기장 진화 모드가 찾은 값을 진영별로 적용 (없으면 기본값)
+function gn(p,k,d){const g=p.gn;return g&&g[k]!=null?g[k]:d;}
+// 유전자 목록 [이름, 최소, 최대, 기본]
+const GENES=[['atk',0.6,1.6,1],['fs',1,3,1.6],['fsc',0.8,2.5,1.3],['crush',1.6,4,2.5],['ht',4,24,12],['hb',150,700,380],['gas',0.5,1.6,1],['sm',1.5,5,3.2],
+ ['gap',30,240,null],['size',8,40,null],['grow',2,14,null],['first',60,420,null],['def',600,1800,null],['workers',20,60,null],['sty',0,2.99,null]];
+const STY=['standard','aggro','greedy'];
+function gnClear(p){if(p.prof0)p.prof=p.prof0;p.gn=null;}
+function gnApply(p,g){if(!g)return;if(!p.prof0)p.prof0=p.prof;p.gn=Object.assign({},g);const pr=p.prof=Object.assign({},p.prof||aiProf(G.diff));
+ for(const k of ['gap','size','grow','first','def','workers'])if(g[k]!=null)pr[k]=k==='def'||k==='gap'||k==='first'?g[k]:Math.round(g[k]);
+ if(g.sty!=null)p.ai.style=STY[Math.floor(g.sty)];
+ if(g.first!=null)p.ai.nextWave=g.first*(p.ai.style==='aggro'?0.75:p.ai.style==='greedy'?1.3:1);if(g.size!=null)p.ai.waveSize=Math.round(g.size);}
+// 출시본에 굽힌 진영별 최적 유전자 (진화 결과로 채움)
+const GN_BAKED={};
+{const _ng=newGame;newGame=function(cfg){const r=_ng.apply(this,arguments);try{if(G&&!G.camp)for(const p of G.pl)if(!p.human&&GN_BAKED[p.fac])gnApply(p,GN_BAKED[p.fac]);}catch(e){console.error(e);}return r;};}
+
+// 6) 전투 예측: 근처 양쪽 병력으로 몇 초 앞을 계산해 보고, 지는 싸움이면 뺌 (점수 합산 대신 실제 피해 계산)
+function hmUnitStat(e){if(e.type==='bld'){const a=BD[e.kind].atk;return a?{e,hp:e.hp+(e.sh||0),mx:e.hp+(e.sh||0),dmg:a.dmg,cd:a.cd||1,rng:a.rng||200,sp:0,tg:a.tg||'g',val:(BD[e.kind].cost||[100,0])[0]+(BD[e.kind].cost||[0,0])[1],spl:0,bld:1}:null;}
+ const d=UD[e.kind];return {e,hp:e.hp+(e.sh||0),mx:(d.hp||e.hp)+(d.sh||0),dmg:d.dmg||0,cd:d.cd||1,rng:d.rng||30,sp:d.sp||50,tg:d.tg||'g',val:(d.cost?d.cost[0]+d.cost[1]:50),spl:d.spl||0};}
+function hmPerHit(a,b){// a가 b를 한 번 때릴 때 실제 피해
+ const u=a.e,t=b.e;if(!a.dmg||!canHit(a.tg,t))return 0;let m=1;if(!a.bld){try{m=dmgMul(u)*bonusMul(UD[u.kind],t,u);}catch(e){m=1;}}
+ const ar=t.type==='unit'?(UD[t.kind].ar||0)+((P(t.team).up||{})[upLy(t)]||0):1;return Math.max(0.5,a.dmg*m-ar);}
+function hmFight(A,B,T0){// 결과: 양쪽 잃은 가치, 남은 가치
+ const S=[A.map(hmUnitStat).filter(Boolean),B.map(hmUnitStat).filter(Boolean)];
+ for(let s=0;s<2;s++){const me=S[s],en=S[1-s];for(const a of me){a.ph=en.map(b=>hmPerHit(a,b));a.start=0;let dm=1e9;for(let j=0;j<en.length;j++)if(a.ph[j]>0)dm=Math.min(dm,dist(a.e.x,a.e.y,en[j].e.x,en[j].e.y));
+  a.start=dm>=1e9?1e9:Math.max(0,(dm-a.rng-24)/Math.max(20,a.sp||0.001));if(!a.sp&&dm>a.rng+40)a.start=1e9;a.tgt=-1;}}
+ const dt=0.5,T=T0||14;for(let t=0;t<T;t+=dt){let any=false;const dmg=[S[0].map(()=>0),S[1].map(()=>0)];
+  for(let s=0;s<2;s++){const me=S[s],en=S[1-s];for(const a of me){if(a.hp<=0||a.start>t)continue;
+    if(a.tgt<0||en[a.tgt].hp<=0){let bj=-1,bh=1e9;for(let j=0;j<en.length;j++)if(en[j].hp>0&&a.ph[j]>0){const h=en[j].hp-dmg[1-s][j];if(h>0&&h<bh){bh=h;bj=j;}}if(bj<0){for(let j=0;j<en.length;j++)if(en[j].hp>0&&a.ph[j]>0){bj=j;break;}}a.tgt=bj;}
+    if(a.tgt<0)continue;any=true;const x=a.ph[a.tgt]*dt/a.cd;dmg[1-s][a.tgt]+=x;
+    if(a.spl>0){let k=0;for(let j=0;j<en.length&&k<2;j++)if(j!==a.tgt&&en[j].hp>0&&a.ph[j]>0&&dist(en[j].e.x,en[j].e.y,en[a.tgt].e.x,en[a.tgt].e.y)<a.spl){dmg[1-s][j]+=x*0.5;k++;}}}}
+  for(let s=0;s<2;s++)S[s].forEach((u,i)=>{u.hp-=dmg[s][i];});
+  if(!any&&t>3)break;if(S[0].every(u=>u.hp<=0)||S[1].every(u=>u.hp<=0))break;}
+ const R=S.map(arr=>{let lost=0,left=0;for(const u of arr){const f=Math.max(0,u.hp)/Math.max(1,u.mx);const ini=Math.min(1,(u.e.hp+(u.e.sh||0))/Math.max(1,u.mx));lost+=u.val*(ini-f);left+=u.val*f;}return {lost,left,alive:arr.filter(u=>u.hp>0&&(u.dmg>0)).length};});
+ return {my:R[0],en:R[1]};}
+function hmLose(p,wave,cx,cy,ratio){const ai=p.ai;if(ai.fsT&&G.time-ai.fsT<1&&ai.fsC)return ai.fsR;
+ const A=[];for(const u of ents)if(!u.dead&&u.team===p.id&&u.type==='unit'&&!UD[u.kind].worker&&UD[u.kind].dmg&&dist(u.x,u.y,cx,cy)<520)A.push(u);
+ const B=[];unitsNear(cx,cy,620,v=>{if(enemy(p.id,v.team)&&seen(v,p.id)&&!UD[v.kind].worker&&v.type==='unit')B.push(v);});
+ for(const b of ents)if(!b.dead&&b.type==='bld'&&enemy(p.id,b.team)&&BD[b.kind].atk&&b.built&&dist(b.x,b.y,cx,cy)<560&&seen(b,p.id))B.push(b);
+ let lose;if(!B.length)lose=false;else{const r=hmFight(A,B,14);ai.fsLast=r;
+  // 적이 남고 내가 더 많이 잃으면 짐 (fs: 감수할 손해 비율)
+  const myL=r.my.left/Math.max(1,r.my.left+r.my.lost),enL=r.en.left/Math.max(1,r.en.left+r.en.lost);
+  lose=ratio<gn(p,'fsc',1.3)&&r.en.alive>0&&(r.my.lost>r.en.lost*gn(p,'fs',1.6)&&myL<enL||r.my.alive===0);}
+ ai.fsT=G.time;ai.fsC=1;ai.fsR=lose;return lose;}
+
 </script>
 </body>
 </html>
