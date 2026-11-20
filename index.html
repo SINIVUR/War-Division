@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.3.4</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.3.5</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -4778,7 +4778,7 @@ function centerOn(x,y){cam.x=x-VW/cam.z/2;cam.y=y-(VH-BOTH-TOPH)/cam.z/2-TOPH/ca
 const s2w=(sx,sy)=>[cam.x+sx/cam.z,cam.y+sy/cam.z];
 function zoomAt(sx,sy,nz){const w=s2w(sx,sy);cam.z=PC?clamp(nz,0.45,2.4):clamp(nz,0.4,1.8);cam.x=w[0]-sx/cam.z;cam.y=w[1]-sy/cam.z;clampCam();}
 function pick(wx,wy){
- const tol=(PC?22:(G.sel&&G.sel.length?12:20))/cam.z;// 모바일: 유닛을 고른 상태에서는 몸통 근처만 집어서 이동 명령이 유닛 선택으로 바뀌지 않게let best=null,bd=1e9;
+ const tol=(PC?22:(G.sel&&G.sel.length?12:20))/cam.z;/* 모바일: 유닛을 고른 상태에서는 몸통 근처만 집어서 이동 명령이 유닛 선택으로 바뀌지 않게 */let best=null,bd=1e9;
  for(const e of ents){if(e.dead||e.type!=='unit'||!vis0(e))continue;const L=UD[e.kind].layer,air=L==='a',oy=air?12:L==='n'?4:e.r*0.55;const d=dist(e.x,e.y-oy,wx,wy)-e.r*(L?1:1.1)-(air?4:0);if(d<tol&&d<bd){bd=d;best=e;}}
  if(best)return best;
  for(const e of ents){if(e.dead||e.type!=='bld'||!vis0(e))continue;if(edgeDist(e,wx,wy)<4)return e;}
@@ -5469,12 +5469,12 @@ const DIFFHUMAN_PC=[
  ['프로게이머급','APM 360. 0.2초 반응, 거의 쉬지 않는 생산과 컨트롤, 가장 빠른 확장과 압박이에요.'],
 ];
 const DIFFHUMAN_MB=[
- ['터치 RTS를 처음 해 보는 수준','APM 30. 기초 병력 컨트롤도 몰라서 병력이 흩어져 싸우고, 위험해도 빼지 않아요.'],
- ['모바일 초보','APM 45. 병력을 모아서 움직이는 것만 알아요. 진형이나 후퇴는 못 해요.'],
- ['모바일 평균 — 당신과 비슷한 실력','APM 60. 교전 전에 펼치고, 불리하면 물러나요. 다친 유닛을 빼고, 너무 멀리 쫓아가지 않아요.'],
- ['모바일 숙련자 — 당신보다 확실히 잘함','APM 85. 표적을 나눠 집중 사격하고, 무빙샷을 해요. 일꾼 견제와 멀티 방어를 함께 챙겨요.'],
- ['모바일 고수','APM 115. 빠른 확장과 쉬지 않는 생산, 양 갈래 공격, 다친 유닛을 일찍 빼는 운영을 해요.'],
- ['모바일 최상위','APM 160. 0.45초 안에 반응하고, 범위 공격 상대 산개와 표적 분배까지 해요.'],
+ ['터치 RTS를 처음 해 보는 수준','APM 26. 기초 병력 컨트롤도 몰라서 병력이 흩어져 싸우고, 위험해도 빼지 않아요.'],
+ ['모바일 초보','APM 38. 병력을 모아서 움직이는 것만 알아요. 진형이나 후퇴는 못 해요.'],
+ ['모바일 평균 — 당신과 비슷한 실력','APM 51. 교전 전에 펼치고, 불리하면 물러나요. 다친 유닛을 빼고, 너무 멀리 쫓아가지 않아요.'],
+ ['모바일 숙련자 — 당신보다 확실히 잘함','APM 72. 표적을 나눠 집중 사격하고, 무빙샷을 해요. 일꾼 견제와 멀티 방어를 함께 챙겨요.'],
+ ['모바일 고수','APM 98. 빠른 확장과 쉬지 않는 생산, 양 갈래 공격, 다친 유닛을 일찍 빼는 운영을 해요.'],
+ ['모바일 최상위','APM 136. 0.6초 안에 반응하고, 범위 공격 상대 산개와 표적 분배까지 해요.'],
 ];
 function diffHtml(v){const mob=!PC,d=(mob?DIFFHUMAN_MB:DIFFHUMAN_PC)[v]||DIFFHUMAN_PC[2],a=aiProf(v,mob);return `<b style="color:#ffd27a">▶ ${a.n} (${mob?'모바일':'PC'} 기준): ${d[0]}</b><br>${d[1]}<br><span style="color:#a89a78">APM ${a.apm} · 반응 ${a.react}초 · 자원·능력치는 사람과 똑같음 · 판단 주기 ${a.think}초 · 첫 공격 약 ${Math.floor(a.first/60)}분${a.first%60?(' '+a.first%60+'초'):''}</span>`;}
 function showDiff(){for(const [seg,box] of [['diffSeg','diffInfo'],['campDiff','campDiffInfo']]){const on=document.querySelector('#'+seg+' button.on'),el=$(box);if(on&&el)el.innerHTML=diffHtml(+on.dataset.v);}}
@@ -5904,10 +5904,10 @@ document.querySelectorAll('#aiSeg button').forEach(b=>b.addEventListener('click'
 setTimeout(teamSummary,0);
 $('startBtn').addEventListener('click',()=>{CAMP=null;start();});
 // ---- 화면 맞춤: 창 내용이 화면보다 크면 자동으로 줄여서 위아래가 잘리지 않게 (갤럭시 S23 가로 기준) ----
-function fitOverlay(o){if(!o||o.classList.contains('hidden'))return;const kids=[...o.children].filter(c=>!c.classList.contains('end-fx')&&!c.classList.contains('ld-rays'));
+function fitOverlay(o){if(!o||o.classList.contains('hidden'))return;const kids=[...o.children].filter(c=>!c.classList.contains('end-fx')&&!c.classList.contains('ld-rays')&&!/absolute|fixed/.test(getComputedStyle(c).position));/* 장식(절대 위치)은 크기 계산에서 뺌 */
  for(const c of kids)c.style.zoom='';const H=o.clientHeight-12,W=o.clientWidth-12;let h=0,w=0;
  for(const c of kids){const r=c.getBoundingClientRect(),cs=getComputedStyle(c);h+=r.height+parseFloat(cs.marginTop||0)+parseFloat(cs.marginBottom||0);w=Math.max(w,r.width);}
- const z=Math.min(1,H/Math.max(1,h),W/Math.max(1,w));if(z<0.995)for(const c of kids)c.style.zoom=z.toFixed(3);}
+ const zMax=o.id==='loading'&&!PC?1.6:1;/* 모바일 로딩 화면은 크게 */const z=Math.min(zMax,H/Math.max(1,h),W/Math.max(1,w));if(z<0.995||z>1.005)for(const c of kids)c.style.zoom=z.toFixed(3);}
 function fitAll(){for(const id of ['title','pause','end','camp','teamDlg','brief','tips','loading'])fitOverlay($(id));}
 let fitReq=0;const fitSoon=()=>{if(fitReq)return;fitReq=requestAnimationFrame(()=>{fitReq=0;fitAll();});};
 addEventListener('resize',()=>{fitSoon();setTimeout(fitAll,250);});addEventListener('orientationchange',()=>setTimeout(fitAll,300));
