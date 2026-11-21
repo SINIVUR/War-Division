@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.1</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.2</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -7827,6 +7827,41 @@ const FBAL2={de:0.86,br:0.96,cn:0.98,au:1.13,fr:1.13,pl:1.11,ko:1.06,uk:1.07,jp:
 // 영웅 표시 보강: 발밑에 금색 고리 (같은 병종 일반 유닛과 바로 구분)
 {const _du=drawUnit;drawUnit=function(u){try{const d=UD[u.kind];if(d&&d.hero&&!u.dead){ctx.save();ctx.strokeStyle='rgba(255,210,74,'+(0.55+0.25*Math.sin((G?G.time:0)*4))+')';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(u.x,u.y+u.r*0.6,u.r*1.3,u.r*0.55,0,0,7);ctx.stroke();ctx.restore();}}catch(e){}return _du.apply(this,arguments);};}
 
+// ===================== F.V.1.0.2 자동 검수(172판) 결과 반영 =====================
+// 1) 진영 밸런스: 그리스 12%·대한제국 18%·스페인·남아공 24% 승률 → 상향, 캐나다 59% → 소폭 하향
+Object.assign(FBAL2,{gr:1.12,ko:(FBAL2.ko||1)*1.07,es:1.08,za:1.07,ca:0.95,mn:0.97,th:0.97,se:0.97});
+// 2) 처치/손실 효율이 지나치게 높거나 낮은 유닛
+(function(){const mul=(k,f,v)=>{if(UD[k]&&UD[k][f])UD[k][f]=+(UD[k][f]*v).toFixed(1);};
+ mul('jp_kamikaze','dmg',0.85);mul('se_bofors','dmg',0.85);mul('hu_nimrod','dmg',0.88);mul('mx_p47','dmg',0.9);mul('se_hemvarn','dmg',0.92);mul('tr_janissary','dmg',0.92);
+ for(const k of ['th_matchanu','th_kinnari','fi_fokker','nz_lrdg','ko_mugung','za_scout','gr_papanikolis','ph_pt','bg_torpedo','ro_delfinul','mn_fire','ch_patrol','tr_sub','nz_ml']){mul(k,'hp',1.15);mul(k,'dmg',1.15);}
+})();
+// 3) AI 운영
+{const _ah=aiHuman;aiHuman=function(p,c){const r=_ah.apply(this,arguments);try{if(p.human||!p.alive)return r;const ai=p.ai,F=FAC[p.fac],sup=supplyOf(p.id);
+ // 인구 막힘: 보급 건물을 미리 (8초마다, 자원 규모와 무관하게)
+ if(!(ai._supT>G.time)){ai._supT=G.time+8;if(F.sup&&sup.cap<200&&sup.used>=sup.cap-3&&p.coal>=(BD[F.sup].cost||[100])[0]&&!c.pending(F.sup))c.build(F.sup);}
+ // 석탄만 쌓이고 에테르가 모자라 생산이 멈출 때: 석탄만 드는 유닛을 뽑음
+ if(!(ai._coalT>G.time)&&p.coal>1500&&sup.used<Math.min(200,sup.cap)-2){ai._coalT=G.time+6;
+  for(const b of ents){if(b.dead||b.team!==p.id||b.type!=='bld'||!b.built||!BD[b.kind].train||BD[b.kind].drop||b.queue.length>=2)continue;
+   const L=BD[b.kind].train.filter(k=>UD[k]&&!UD[k].worker&&(UD[k].cost||[0,0])[1]<=Math.max(0,p.ether-20));if(!L.length)continue;
+   tryTrain(b,L[Math.floor(Math.random()*L.length)],true);}}
+ // 자원이 아주 많이 쌓이면 생산 건물을 더 (상한 18)
+ if(!(ai._xtraT>G.time)&&p.coal>2500){ai._xtraT=G.time+20;const prod=Object.keys((p.plan||PLAN[p.fac]).army||{}).filter(k=>reqMet(p.id,k)&&!BD[k].shore&&!(BD[k].cost||[0,0])[1]);
+  const n=prod.reduce((s,k)=>s+c.have(k),0);if(prod.length&&n<18&&!prod.some(k=>c.pending(k)))c.build(prod[Math.floor(Math.random()*prod.length)]);
+  const defK=F.build.find(k=>BD[k].atk&&!BD[k].drop);if(sup.used>=Math.min(200,sup.cap)-2&&defK&&reqMet(p.id,defK)&&!c.pending(defK)&&c.have(defK)<14)c.build(defK);}
+ // 10분이 지나도 공격을 한 번도 안 갔으면 병력이 모였을 때 출발
+ if(!G.camp&&G.time>600&&!(ai._goT>G.time)){ai._goT=G.time+90;let n=0;for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='unit'&&!UD[e.kind].worker)n++;
+  if(n>=10&&!(ai._hitT>G.time-240))ai.nextWave=Math.min(ai.nextWave||1e9,G.time+2);}
+}catch(e){console.error(e);}return r;};}
+// AI가 마지막으로 적 건물을 친 시각 기록 (위 '공격 안 감' 판정용)
+{const _dm=damage;damage=function(t,amt,src){try{if(t&&t.type==='bld'&&src&&src.team!=null&&t.team!==src.team&&G){const pl=P(src.team);if(pl&&pl.ai&&!pl.human)pl.ai._hitT=G.time;}}catch(e){}return _dm.apply(this,arguments);};}
+
+// 일꾼을 지나치게 많이 뽑지 않게 (AI 44명 상한) — 200 인구 중 60명이 일꾼이라 군대가 작고 석탄만 쌓이던 문제
+{const _tt=_tryTrain;_tryTrain=function(b,k,silent){try{const tm=P(b.team);if(tm&&!tm.human&&UD[k]&&UD[k].worker){let n=0;for(const e of ents)if(!e.dead&&e.team===b.team&&e.type==='unit'&&UD[e.kind].worker)n++;for(const e of ents)if(!e.dead&&e.team===b.team&&e.queue)for(const q of e.queue)if(UD[q]&&UD[q].worker)n++;if(n>=44)return false;}}catch(e){}return _tt.apply(this,arguments);};}
+// 에테르가 바닥나고 석탄만 많으면 에테르 시설을 더
+{const _ah2=aiHuman;aiHuman=function(p,c){const r=_ah2.apply(this,arguments);try{if(p.human||!p.alive||!p.ai)return r;const ai=p.ai,F=FAC[p.fac];
+ if(!(ai._gasT>G.time)&&p.ether<120&&p.coal>1200&&F.gas){ai._gasT=G.time+25;if(!c.pending(F.gas)&&c.have(F.gas)<6)c.build(F.gas);}
+}catch(e){console.error(e);}return r;};}
+
 // ===================== 역사 캠페인 (1939–1945, 20장 · 연합국 10 / 추축국 10) =====================
 // 미션 정의는 HIST 배열 (hist_data.js). 이 파일은 엔진: 영웅, 영웅 능력, 위치 지정, 이벤트·대사, 새 목표, 별 평가, 화면.
 
@@ -9568,6 +9603,43 @@ try{ // 52장 도나우 강의 겨울: 대피소가 첫 공세에 무너짐(난�
  const b=H('budapest');for(const sp of (b.setup||[]))if(sp.tag==='shelter')sp.hp=Math.max(sp.hp||1,3);
 }catch(e){console.error('fix budapest',e);}
 })();
+// ===================== 미니맵 목표 강조 (F.V.1.0.2) =====================
+// 지금 목표의 지점(노란 원)·파괴 대상(빨간 표적)·지켜야 할 시설(초록 방패)·호위 대상(하늘색)을 미니맵에 표시
+(function(){
+const _rm=renderMini;
+renderMini=function(){_rm.apply(this,arguments);try{
+ const c=G&&G.camp;if(!c||G.over||!c.def||!c.def.g)return;const gl=c.def.g[c.gi];
+ const mw=mini.width,mh=mini.height,sx=mw/WW,sy=mh/WH,t=performance.now()/1000,pul=(Math.sin(t*5)+1)/2;
+ mctx.save();
+ const target=(x,y,col)=>{const X=x*sx,Y=y*sy,r=4+pul*2;mctx.strokeStyle='#000';mctx.lineWidth=3;mctx.beginPath();mctx.arc(X,Y,r,0,7);mctx.stroke();mctx.strokeStyle=col;mctx.lineWidth=1.6;mctx.beginPath();mctx.arc(X,Y,r,0,7);mctx.stroke();
+  mctx.beginPath();mctx.moveTo(X-r-3,Y);mctx.lineTo(X-r+1,Y);mctx.moveTo(X+r-1,Y);mctx.lineTo(X+r+3,Y);mctx.moveTo(X,Y-r-3);mctx.lineTo(X,Y-r+1);mctx.moveTo(X,Y+r-1);mctx.lineTo(X,Y+r+3);mctx.stroke();};
+ const shield=(x,y,col)=>{const X=x*sx,Y=y*sy;mctx.fillStyle='#000';mctx.beginPath();mctx.moveTo(X-4.5,Y-4.5);mctx.lineTo(X+4.5,Y-4.5);mctx.lineTo(X+4.5,Y);mctx.lineTo(X,Y+5.5);mctx.lineTo(X-4.5,Y);mctx.fill();mctx.fillStyle=col;mctx.beginPath();mctx.moveTo(X-3.2,Y-3.4);mctx.lineTo(X+3.2,Y-3.4);mctx.lineTo(X+3.2,Y-0.3);mctx.lineTo(X,Y+3.8);mctx.lineTo(X-3.2,Y-0.3);mctx.fill();};
+ const zone=(xy,r,col)=>{const X=xy[0]*sx,Y=xy[1]*sy,R=Math.max(5,r*sx);mctx.fillStyle=col.replace('1)',(0.18+pul*0.12)+')');mctx.beginPath();mctx.arc(X,Y,R,0,7);mctx.fill();mctx.setLineDash([3,2]);mctx.strokeStyle=col;mctx.lineWidth=1.6;mctx.beginPath();mctx.arc(X,Y,R,0,7);mctx.stroke();mctx.setLineDash([]);
+  mctx.strokeStyle=col;mctx.globalAlpha=1-pul;mctx.beginPath();mctx.arc(X,Y,R+pul*6,0,7);mctx.stroke();mctx.globalAlpha=1;};
+ if(gl){
+  // 지점 목표
+  if(gl.at&&['reach','hold','evac','escort'].includes(gl.g)&&typeof hZone==='function'){const xy=gl.g==='escort'&&gl._xyn?gl._xyn:hZone(gl);zone(xy,gl.r||(gl.g==='hold'?140:110),'rgba(255,210,74,1)');}
+  // 파괴 대상
+  if(gl.g==='destroy'&&gl.tag){for(const e of ents)if(!e.dead&&e.htag===gl.tag&&e.team!==0)target(e.x,e.y,'#ff4a3a');}
+  // 적 본진
+  if(gl.g==='killhq'||gl.g==='kill'){const es=G.pl.filter(p=>enemy(0,p.id)&&p.alive);for(const e of ents)if(!e.dead&&e.type==='bld'&&es.some(p=>p.id===e.team)&&(gl.g==='kill'?BD[e.kind].drop:e.kind===FAC[P(e.team).fac].hq))target(e.x,e.y,'#ff4a3a');}
+  // 호위 대상
+  if(gl.g==='escort'&&gl.tag){for(const e of ents)if(!e.dead&&e.htag===gl.tag&&e.team===0){mctx.fillStyle='#000';mctx.fillRect(e.x*sx-3,e.y*sy-3,6,6);mctx.fillStyle='#7ae8ff';mctx.fillRect(e.x*sx-2,e.y*sy-2,4,4);}}
+ }
+ // 지켜야 할 시설 (패배 조건 tag:… 또는 protect 목표)
+ const keep=new Set((c.def.lose||[]).filter(l=>typeof l==='string'&&l.startsWith('tag:')).map(l=>l.slice(4)));if(gl&&gl.g==='protect'&&gl.tag)keep.add(gl.tag);
+ if(gl&&gl.g==='escort')keep.delete(gl.tag);
+ for(const e of ents)if(!e.dead&&e.htag&&keep.has(e.htag)&&e.team===0)shield(e.x,e.y,e.hp<e.maxhp*0.4?'#ff8a5a':'#6cff8a');
+ // 꼭 살아야 하는 영웅
+ const vit=c.def.vital||[];for(const e of ents)if(!e.dead&&e.team===0&&e.hid&&vit.includes(e.hid)){mctx.fillStyle='#000';mctx.beginPath();mctx.arc(e.x*sx,e.y*sy,3.6,0,7);mctx.fill();mctx.fillStyle='#ffd24a';mctx.beginPath();mctx.arc(e.x*sx,e.y*sy,2.4,0,7);mctx.fill();}
+ mctx.restore();
+}catch(e){}};
+})();
+// 목표 창에 미니맵 표시 안내 한 줄
+(function(){const _cp=campPanel;campPanel=function(){const r=_cp.apply(this,arguments);try{const c=G&&G.camp;if(!c||!c.def||!c.def.g)return r;const gl=c.def.g[c.gi];if(!gl)return r;const o=$('obj');if(!o||o.querySelector('.mmlg'))return r;
+ const it=[];if(gl.g==='destroy'||gl.g==='killhq'||gl.g==='kill')it.push('<b style="color:#ff6a5a">◎</b> 공격 목표');if(gl.at&&['reach','hold','evac','escort'].includes(gl.g))it.push('<b style="color:#ffd24a">◯</b> 목표 지점');
+ if(gl.g==='escort')it.push('<b style="color:#7ae8ff">■</b> 호위 대상');if((c.def.lose||[]).some(l=>typeof l==='string'&&l.startsWith('tag:'))||gl.g==='protect')it.push('<b style="color:#6cff8a">⛊</b> 지킬 시설');if((c.def.vital||[]).length)it.push('<b style="color:#ffd24a">●</b> 핵심 영웅');
+ if(it.length){const d=document.createElement('div');d.className='mmlg';d.style.cssText='font-size:10px;opacity:.85;margin-top:2px';d.innerHTML='미니맵: '+it.join(' · ');o.appendChild(d);}}catch(e){}return r;};})();
 
 </script>
 </body>
