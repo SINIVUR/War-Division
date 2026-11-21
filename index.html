@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.5.4</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">v3.6.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -437,7 +437,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
       <div class="lbl">난이도</div>
       <div class="seg" id="diffSeg"><button data-v="0">입문</button><button data-v="1">쉬움</button><button data-v="2" class="on">보통</button><button data-v="3">어려움</button><button data-v="4">매우 어려움</button><button data-v="5">초극한급</button></div>
       <div id="diffInfo" class="diffInfo" style="font-size:11px;line-height:1.35;color:#d8c8a0;margin:4px 0 2px;min-height:30px;max-width:min(94vw,640px)"></div>
-      <div id="homeBtns" style="display:flex;gap:10px;align-items:flex-end"><button class="big camp" id="campBtn">📜 캠페인</button><button class="big" id="startBtn">⚔ 출격</button></div>
+      <div id="homeBtns" style="display:flex;gap:10px;align-items:flex-end"><button class="big camp" id="histBtn">🎖 역사 캠페인</button><button class="big camp" id="campBtn">📜 훈련</button><button class="big" id="startBtn">⚔ 출격</button></div>
     </div>
     <div class="right">
       <div class="seg" id="mapSeg" style="margin-bottom:6px;display:grid;grid-template-columns:repeat(2,auto);gap:4px"><button data-v="forest" class="on">더 포레스트 <small>4인</small></button><button data-v="ruins">더 루인스 <small>4인</small></button><button data-v="city">더 시티 <small>4인</small></button><button data-v="ocean">디 오션 <small>4인</small></button><button data-v="hunters">헌팅 그라운드 <small>8인</small></button><button data-v="bighunt">빅 헌트 <small>8인</small></button><button data-v="grandforest">그랜드 포레스트 <small>12인</small></button><button data-v="grandruins">그랜드 루인스 <small>12인</small></button></div>
@@ -1077,7 +1077,7 @@ function genLayout(name,L){
  if(cen){for(let y=Math.floor(C0-cen.r-2);y<=C0+cen.r+2;y++)for(let x=Math.floor(C0-cen.r-2);x<=C0+cen.r+2;x++){if(!inB(x,y))continue;const dx=x+.5-C0,dy=y+.5-C0;let m=0;for(let q=0;q<8;q++){const a=q*Math.PI/4;m=Math.max(m,(dx*Math.cos(a)+dy*Math.sin(a))/0.924);}if(m<=cen.r){hgt[y*MW+x]=1;terr[y*MW+x]=baseT;}}HILLC.push([C0,C0,cen.r,1]);}
  // 4) 기지 터 정리 + 앞마당(경사로 바로 밑) + 3번째·언덕 멀티
  const clearDisc=(x,y,r)=>disc(x,y,r,baseT,(t,i)=>t===3||t===4||t===5||(t===1&&!hgt[i]&&false));
- const mk=(cx,cy,o)=>baseLayout({cx,cy,o,p:[-o[1],o[0]],map:name});
+ const mk=(cx,cy,o,gf)=>baseLayout({cx,cy,o,p:[-o[1],o[0]],map:name,gf});
  const avoid=[];// 강이 피해야 할 곳 [x,y,반경]
  for(const s of sp){const g=s.g,k=s.k;clearDisc(s.cx,s.cy,g.R+1);avoid.push([s.cx,s.cy,g.R+3]);
   const [ax,ay]=rotQ(...g.nat,k),dl=Math.hypot(ax-s.cx,ay-s.cy)||1,ux=(ax-s.cx)/dl,uy=(ay-s.cy)/dl;
@@ -1085,7 +1085,7 @@ function genLayout(name,L){
   disc(nx,ny,10,baseT,(t,i)=>!hgt[i]&&t!==1&&t!==2);avoid.push([nx,ny,12.5]);
   {const cl=Math.hypot(C0-nx,C0-ny)||1;s.mouth=[nx+(C0-nx)/cl*12.3,ny+(C0-ny)/cl*12.3];}
   keyPts.push([nx,ny]);
-  NAT.push(Object.assign({i:s.i,kind:'nat',cx:nx,cy:ny},mk(nx,ny,[ox,oy])));
+  NAT.push(Object.assign({i:s.i,kind:'nat',cx:nx,cy:ny},mk(nx,ny,[ox,oy],city?1:0)));
   if(g.third){const [tx3,ty3]=rotQ(...g.third,k);disc(tx3,ty3,9,baseT,(t,i)=>!hgt[i]&&t!==1&&t!==2);keyPts.push([tx3,ty3]);avoid.push([tx3,ty3,9.5]);s.thirdP=[tx3,ty3];NAT.push(Object.assign({i:s.i,kind:'third',cx:tx3,cy:ty3},mk(tx3,ty3,rotV(...g.thirdO,k))));}}
  for(let k=0;k<4;k++)for(const h of hills){const [hx,hy]=rotQ(...h.c,k);clearDisc(hx,hy,h.r+1);keyPts.push([hx,hy]);avoid.push([hx,hy,h.r+3]);NAT.push(Object.assign({i:-1,kind:'hill',cx:hx,cy:hy},mk(hx,hy,rotV(...h.o,k))));}
  if(cen&&cen.base){clearDisc(C0,C0,cen.r);keyPts.push([C0+3,C0+3]);NAT.push(Object.assign({i:-1,kind:'center',cx:C0,cy:C0},mk(C0,C0,[0,-1])));}
@@ -1212,7 +1212,7 @@ function baseLayout(s){
   else if(m==='ruins')pts.push([6.9-k*k*0.22,k*1.0]);
   else pts.push([6.2-Math.abs(k)*0.35,k*1.1]);}
  for(const [u,v] of pts){const x=Math.floor(s.cx+s.o[0]*u+s.p[0]*v),y=Math.floor(s.cy+s.o[1]*u+s.p[1]*v),key=x+','+y;if(!seen.has(key)){seen.add(key);coal.push([x,y]);}}
- const gx=Math.round(s.cx+s.p[0]*6.3+s.o[0]*1.3-1),gy=Math.round(s.cy+s.p[1]*6.3+s.o[1]*1.3-1);
+ const gs=s.gf?-1:1,go=s.gf?2.4:1.3,gx=Math.round(s.cx+s.p[0]*6.3*gs+s.o[0]*go-1),gy=Math.round(s.cy+s.p[1]*6.3*gs+s.o[1]*go-1);
  return {hq,coal,gey:[gx,gy]};
 }
 
@@ -5176,7 +5176,7 @@ function cmdList(){
  if(tanks.length){const want=tanks.some(t=>!(t.sg||t.sgWant));out.push({k:'O',l:want?'포격 모드':'이동 모드',f:()=>{for(const t of ownUnits())if(t.kind==='tank'&&t.sgT<=0&&(t.sg?1:0)===(want?0:1)){t.sgWant=want?1:0;t.sgT=1.6;play('clank',t.x,t.y);t.state='idle';t.path=null;t.target=0;t.amove=null;}}});}
  const abs=[...new Set(us.map(u=>UD[u.kind].abil).filter(Boolean))];
  for(const ab of abs){const cs=us.filter(u=>UD[u.kind].abil===ab),rd=cs.filter(u=>u.abCd<=0),cdMin=Math.ceil(Math.min(...cs.map(u=>Math.max(0,u.abCd))));
-  out.push({k:ABHK[ab],l:AB[ab].n,s:rd.length?'준비됨':cdMin+'초',dis:!rd.length,f:()=>{if(!rd.length){toast('재사용 대기 중');return;}if(ab==='shield'||ab==='overdrive'||ab==='barrier'||ab==='rain'){for(const u of rd)doCast(u,ab,u.x,u.y);}else G.pending={t:'ability',ab};}});}
+  out.push({k:ABHK[ab],l:AB[ab].n,s:rd.length?'준비됨':cdMin+'초',dis:!rd.length,f:()=>{if(!rd.length){toast('재사용 대기 중');return;}if(AB[ab].self||ab==='shield'||ab==='overdrive'||ab==='barrier'||ab==='rain'){for(const u of rd)doCast(u,ab,u.x,u.y);}else G.pending={t:'ability',ab};}});}
  const cons=us.filter(u=>u.kind==='conscript'&&!u.morph);
  if(cons.length&&tm.fac==='su'){const lab=reqMet(0,'lab')&&ents.some(e=>e.team===0&&e.kind==='lab'&&e.built&&!e.dead);out.push({k:'U',l:'변이',s:lab?costTxt(UD.shock.cost):'실험실 필요',dis:!lab||tm.coal<50||tm.ether<50,f:()=>{if(!lab){toast('변이 실험실이 필요해요');return;}let n=0;for(const u of ownUnits())if(u.kind==='conscript'&&!u.morph){const sp=supplyOf(0);if(tm.coal<50||tm.ether<50){toast('자원이 부족해요');break;}if(sp.used+1.5>sp.cap){toast('보급이 부족해요');break;}tm.coal-=50;tm.ether-=50;u.morph=UD.shock.t;u.state='idle';u.path=null;n++;play('morph',u.x,u.y);}}});}
  return out.slice(0,9);
@@ -5505,8 +5505,8 @@ function shutter(fn){const s=$('shutter');s.classList.add('on');setTimeout(()=>{
 function start(){
  sfxInit();if(PC)pcFull();
  try{localStorage.setItem('wd_cfg',JSON.stringify(cfg));}catch(_){}
- {const myF=CAMP?CAMPAIGN[CAMP.p].f:cfg.fac,ms=CAMP?CAMPAIGN[CAMP.p].ms[CAMP.m]:null,mapK=ms?ms.map:cfg.map;
-  $('ldT').textContent=ms?ms.t:MAPS[mapK].n;$('ldS').textContent=ms?`${CAMPAIGN[CAMP.p].t} · 미션 ${CAMP.m+1} · ${MAPS[mapK].n}`:`스커미시 · ${MAPS[mapK].n} · 난이도 ${DNAME[cfg.diff]}`;
+ {const myF=CAMP?(CAMP.h!=null?HIST[CAMP.h].f:CAMPAIGN[CAMP.p].f):cfg.fac,ms=CAMP?(CAMP.h!=null?HIST[CAMP.h]:CAMPAIGN[CAMP.p].ms[CAMP.m]):null,mapK=ms?ms.map:cfg.map;
+  $('ldT').textContent=ms?ms.t:MAPS[mapK].n;$('ldS').textContent=ms?(CAMP.h!=null?`역사 캠페인 · 제${CAMP.h+1}장 · ${ms.y} ${ms.place}`:`${CAMPAIGN[CAMP.p].t} · 미션 ${CAMP.m+1} · ${MAPS[mapK].n}`):`스커미시 · ${MAPS[mapK].n} · 난이도 ${DNAME[cfg.diff]}`;
   const foes=ms?ms.e.map(e=>FAC[e.f].n):cfg.mode==='team'?[(()=>{const t=normTeams(cfg),cnt={};for(const x of t)cnt[x]=(cnt[x]||0)+1;return '팀전 '+Object.keys(cnt).sort().map(k=>TEAMN[k]+cnt[k]).join(' : ');})()]:[`AI ${cfg.ais}개 진영`];
   $('ldVs').innerHTML=`<span class="me" style="--c:${TCOL[0]}">${FAC[myF].n}</span><b>VS</b><span class="foe">${foes.join(' · ')}</span>`;
   $('ldTip').textContent='💡 '+LD_TIPS[Math.floor(Math.random()*LD_TIPS.length)];ldMapDraw(mapK);ldTips(true);}
@@ -5519,7 +5519,7 @@ function start(){
   $('title').classList.add('hidden');$('end').classList.add('hidden');$('pause').classList.add('hidden');
   showGame(true);resize();newGame(CAMP?campCfg():{...cfg});if(CAMP)campBegin();else $('obj').classList.add('hidden');document.body.classList.toggle('incamp',!!CAMP);buildGroups();apmReset();renderSpd();hudDirty=true;renderHud();
   ldSet(100,'출격!');ldTips(false);G.paused=true;setTimeout(()=>{$('loading').classList.add('out');if(G&&$('tips').classList.contains('hidden'))G.paused=false;setTimeout(()=>{$('loading').classList.add('hidden');$('loading').classList.remove('out');},450);},380);
-  toast(CAMP?`${CAMPAIGN[CAMP.p].t.split(' · ')[0]} 미션 ${CAMP.m+1} — ${CAMPAIGN[CAMP.p].ms[CAMP.m].t}`:`${MAPS[cfg.map].n} · ${G.pl.length}개 진영 전투 시작`);
+  toast(CAMP?(CAMP.h!=null?`제${CAMP.h+1}장 — ${HIST[CAMP.h].t}`:`${CAMPAIGN[CAMP.p].t.split(' · ')[0]} 미션 ${CAMP.m+1} — ${CAMPAIGN[CAMP.p].ms[CAMP.m].t}`):`${MAPS[cfg.map].n} · ${G.pl.length}개 진영 전투 시작`);
   let seenTips=false;try{seenTips=!!localStorage.getItem('wd_tips');}catch(_){}
   if(!seenTips&&!CAMP){G.paused=true;$('tips').classList.remove('hidden');}
  },1200);
@@ -6529,6 +6529,442 @@ function aiApplyBuild(p,b){const base=PLAN[p.fac];if(!base||!b)return;
 
 // 광맥·가스 바로 옆에는 포탑을 두지 않음 (일꾼 동선 막지 않게)
 function nearRes(tx,ty,w,h){for(const e of ents){if(e.dead||e.type!=='res'&&!(e.type==='bld'&&BD[e.kind].gas))continue;const ex=e.x/T,ey=e.y/T;if(ex>tx-1.5&&ex<tx+w+1.5&&ey>ty-1.5&&ey<ty+h+1.5)return true;}return false;}
+
+// ===================== 역사 캠페인 (1939–1945, 20장 · 연합국 10 / 추축국 10) =====================
+// 미션 정의는 HIST 배열 (hist_data.js). 이 파일은 엔진: 영웅, 영웅 능력, 위치 지정, 이벤트·대사, 새 목표, 별 평가, 화면.
+
+// ---- 영웅 능력 (기존 능력 시스템 AB/doCast를 확장) ----
+Object.assign(AB,{
+ h_charge:{n:'돌격 나팔',cd:30,rng:0,self:1,d:'주변 아군 8초간 공격·이동 속도 증가, 자신은 피해 감소'},
+ h_snipe:{n:'저격',cd:20,rng:460,d:'지정한 적 하나에게 큰 피해 (사거리 아주 김)'},
+ h_bomb:{n:'폭격 요청',cd:42,rng:9999,d:'지정한 곳에 폭탄 6발 (어디든 가능)'},
+ h_smoke:{n:'연막',cd:28,rng:0,self:1,d:'주변 아군 8초간 받는 피해 감소, 적의 조준이 풀림'},
+ h_ether:{n:'에테르 폭발',cd:26,rng:0,self:1,d:'주변 적에게 큰 피해 + 3초 감속'},
+ h_repair:{n:'야전 수리',cd:30,rng:0,self:1,d:'주변 기계 유닛 체력 35% 회복'},
+ h_rally:{n:'결사 항전',cd:35,rng:0,self:1,d:'주변 아군 체력 25% 회복 + 10초간 받는 피해 감소'},
+ h_recon:{n:'암호 해독',cd:35,rng:9999,d:'지정한 곳 주변을 12초간 넓게 밝힘 (어디든 가능)'},
+ h_strike:{n:'포격 요청',cd:24,rng:520,d:'지정한 곳에 포탄 4발'},
+ h_frost:{n:'눈보라',cd:22,rng:260,d:'지정한 곳의 적을 6초간 크게 느리게 + 피해'},
+ h_heal:{n:'응급 처치',cd:20,rng:0,self:1,d:'주변 보병 체력 크게 회복'},
+});
+Object.assign(ABHK,{h_charge:'C',h_snipe:'Z',h_bomb:'R',h_smoke:'V',h_ether:'B',h_repair:'N',h_rally:'G',h_recon:'J',h_strike:'T',h_frost:'F',h_heal:'Q'});
+{const _dc=doCast;doCast=function(u,ab,x,y){
+ if(!ab||ab.slice(0,2)!=='h_')return _dc.apply(this,arguments);
+ u.abCd=AB[ab].cd;const T0=u.team,ally=v=>v.team===T0||(!enemy(T0,v.team)&&v.team>=0);
+ const ring=(xx,yy,r,col,dur)=>G.rings.push({x:xx,y:yy,r,t:0,dur:dur||0.7,col});
+ try{
+ if(ab==='h_charge'){play('ability',u.x,u.y);ring(u.x,u.y,170,'#ffd24a');unitsNear(u.x,u.y,180,v=>{if(ally(v)&&dist(v.x,v.y,u.x,u.y)<170){v.buffT=8;part(v.x,v.y,0,-25,0.6,3,'#ffd24a');}});u.barT=8;}
+ else if(ab==='h_snipe'){let best=null,bd=95;unitsNear(x,y,100,v=>{if(enemy(T0,v.team)){const d=dist(v.x,v.y,x,y);if(d<bd){bd=d;best=v;}}});
+  if(!best){bldsNear(x,y,60,b=>{if(!best&&enemy(T0,b.team))best=b;});}
+  if(best){play('snipe',u.x,u.y);G.tracers&&G.tracers.push({x1:u.x,y1:u.y,x2:best.x,y2:best.y,t:0.25,col:'#fff2b0'});damage(best,best.type==='bld'?90:170,u);boom(best.x,best.y,6);}else{u.abCd=2;toast('그곳에 적이 없어요');}}
+ else if(ab==='h_bomb'){play('whistle',x,y);G.strikes.push({x,y,t:1.6,team:T0,n:6,gap:0,dmg:42});ring(x,y,90,'#ff5a3a',1.6);}
+ else if(ab==='h_strike'){play('whistle',x,y);G.strikes.push({x,y,t:1.8,team:T0,n:4,gap:0,dmg:38});ring(x,y,70,'#ff5a3a',1.8);}
+ else if(ab==='h_smoke'){play('shield',u.x,u.y);ring(u.x,u.y,160,'#c8c8c8');for(let i=0;i<40;i++){const a=Math.random()*6.28,r=Math.random()*150;part(u.x+Math.cos(a)*r,u.y+Math.sin(a)*r,0,-6,2.5,7,'rgba(200,200,200,.55)',6);}
+  const ids=new Set();unitsNear(u.x,u.y,170,v=>{if(ally(v)&&dist(v.x,v.y,u.x,u.y)<160){v.barT=8;ids.add(v.id);}});
+  for(const e of ents)if(!e.dead&&e.type==='unit'&&enemy(T0,e.team)&&ids.has(e.target)&&dist(e.x,e.y,u.x,u.y)<520){e.target=0;if(e.state==='attack')e.state='idle';}}
+ else if(ab==='h_ether'){play('frost',u.x,u.y);ring(u.x,u.y,130,'#b48cff');for(let i=0;i<34;i++){const a=Math.random()*6.28,r=Math.random()*130;part(u.x+Math.cos(a)*r,u.y+Math.sin(a)*r,0,-14,0.9,3,'#d4b8ff');}
+  unitsNear(u.x,u.y,140,v=>{if(enemy(T0,v.team)&&dist(v.x,v.y,u.x,u.y)<130){damage(v,70,u);v.slowT=3;}});bldsNear(u.x,u.y,110,b=>{if(enemy(T0,b.team))damage(b,40,u);});}
+ else if(ab==='h_repair'){play('build',u.x,u.y);ring(u.x,u.y,170,'#8ad0ff');unitsNear(u.x,u.y,180,v=>{if(ally(v)&&UD[v.kind].mech&&dist(v.x,v.y,u.x,u.y)<170){v.hp=Math.min(v.maxhp,v.hp+v.maxhp*0.35);part(v.x,v.y,0,-20,0.6,3,'#8ad0ff');}});}
+ else if(ab==='h_rally'){play('ready',u.x,u.y);ring(u.x,u.y,180,'#ff8a5a');unitsNear(u.x,u.y,190,v=>{if(ally(v)&&dist(v.x,v.y,u.x,u.y)<180){v.hp=Math.min(v.maxhp,v.hp+v.maxhp*0.25);v.barT=10;part(v.x,v.y,0,-20,0.6,3,'#ff8a5a');}});}
+ else if(ab==='h_recon'){play('flare',x,y);for(const [dx,dy] of [[0,0],[150,0],[-150,0],[0,150],[0,-150]])G.flares.push({x:x+dx,y:y+dy,t:12,team:T0});ring(x,y,220,'#8fe8ff',1.2);}
+ else if(ab==='h_frost'){play('frost',x,y);ring(x,y,120,'#bff4ff');for(let i=0;i<30;i++){const a=Math.random()*6.28,r=Math.random()*120;part(x+Math.cos(a)*r,y+Math.sin(a)*r,0,-10,1.2,3,'#dffaff');}
+  unitsNear(x,y,130,v=>{if(enemy(T0,v.team)&&dist(v.x,v.y,x,y)<120){v.slowT=6;damage(v,18,u);}});}
+ else if(ab==='h_heal'){play('heal',u.x,u.y);ring(u.x,u.y,150,'#8affc8');unitsNear(u.x,u.y,160,v=>{if(ally(v)&&UD[v.kind].bio&&dist(v.x,v.y,u.x,u.y)<150){v.hp=Math.min(v.maxhp,v.hp+Math.max(40,v.maxhp*0.4));part(v.x,v.y,0,-20,0.6,3,'#8affc8');}});}
+ }catch(e){console.error(e);}
+};}
+
+// ---- 영웅 유닛 ----
+// HERO[id]={f,base,n,rank,ab,hp,dmg,sp,desc}  → UD['h_'+id] 생성 (캠페인 전용, 생산 불가)
+const HERO={};
+function mkHeroes(){for(const id in HERO){const h=HERO[id],b=UD[h.base];if(!b)continue;const k='h_'+id;
+ UD[k]=Object.assign({},b,{n:h.n,hero:1,abil:h.ab,hp:Math.round(b.hp*(h.hp||3)),dmg:b.dmg?+(b.dmg*(h.dmg||1.8)).toFixed(1):0,sp:Math.round(b.sp*(h.sp||1.08)),rng:b.rng?Math.round(b.rng*(h.rng||1.1)):b.rng,sup:0,cost:[0,0],t:1,ar:(b.ar||0)+(h.ar??1),desc:`영웅 · ${h.rank} — ${AB[h.ab].n}: ${AB[h.ab].d}`});
+ if(ART[h.base])ART[k]=ART[h.base];if(PROJ[h.base])PROJ[k]=PROJ[h.base];}}
+// 영웅 표시: 머리 위 금색 별
+{const _du=drawUnit;drawUnit=function(u){_du.apply(this,arguments);try{const d=UD[u.kind];if(!d||!d.hero||u.dead)return;const y=unitTop(u)-7,x=u.x;
+ ctx.save();ctx.fillStyle='#ffd24a';ctx.strokeStyle='#2a1a08';ctx.lineWidth=1.5;ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?2.6:6;ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);}ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}catch(e){}};}
+
+// ---- 위치 지정: ['f',t,o] 내 본진→첫 적 본진 선의 t 지점 + 수직 o / ['m'] 내 본진 / ['e',k] k번째 적 본진 / ['c'] 맵 중앙 ----
+function hPos(spec,L){L=L||'g';if(!spec)return [P(0).base.x,P(0).base.y];
+ const me=P(0).base,es=G.pl.filter(p=>enemy(0,p.id)),e0=(es[0]||P(0)).base;let x,y;
+ if(spec[0]==='m'){x=me.x+(spec[1]||0);y=me.y+(spec[2]||0);}
+ else if(spec[0]==='e'){const p=es[spec[1]||0]||es[0];x=p.base.x+(spec[2]||0);y=p.base.y+(spec[3]||0);}
+ else if(spec[0]==='c'){x=WW/2;y=WH/2;}
+ else{const t=spec[1],o=spec[2]||0,dx=e0.x-me.x,dy=e0.y-me.y;x=me.x+dx*t-dy*o;y=me.y+dy*t+dx*o;}
+ x=clamp(x,T*3,WW-T*3);y=clamp(y,T*3,WH-T*3);
+ if(L!=='a'){const q=nearestPass(L,Math.floor(x/T),Math.floor(y/T),Math.floor(x/T),Math.floor(y/T),20);if(q){x=(q[0]+.5)*T;y=(q[1]+.5)*T;}}
+ return [x,y];}
+function hTeam(s){if(s==null||s==='me')return 0;if(typeof s==='number')return s;const es=G.pl.filter(p=>enemy(0,p.id)),al=G.pl.filter(p=>p.id&&!enemy(0,p.id));
+ if(s[0]==='e')return (es[(+s.slice(1)||1)-1]||es[0]).id;if(s[0]==='a')return (al[(+s.slice(1)||1)-1]||P(0)).id;return 0;}
+function hKind(team,u){if(typeof u==='string')return UD[u]?u:null;const list=roleU(P(team).fac,u[0]).filter(k=>!UD[k].worker);return list[(u[1]||0)%list.length]||null;}
+// 건물 강제 배치 (마법진 규칙 무시) — 발 디딜 곳만 확인
+function hPlaceBld(team,kind,x,y){const d=BD[kind];if(!d)return null;const gx=Math.floor(x/T)-Math.floor(d.w/2),gy=Math.floor(y/T)-Math.floor(d.h/2);
+ for(let r=0;r<12;r++)for(let oy=-r;oy<=r;oy++)for(let ox=-r;ox<=r;ox++){if(Math.max(Math.abs(ox),Math.abs(oy))!==r)continue;const tx=gx+ox,ty=gy+oy;let ok=true;
+  for(let yy=ty;yy<ty+d.h&&ok;yy++)for(let xx=tx;xx<tx+d.w;xx++)if(!buildable(xx,yy)){ok=false;break;}
+  if(ok){for(const e of ents)if(e.type==='unit'&&!e.dead&&UD[e.kind].layer!=='a'&&e.x>tx*T-4&&e.x<(tx+d.w)*T+4&&e.y>ty*T-4&&e.y<(ty+d.h)*T+4){ok=false;break;}}
+  if(ok)return addBuilding(kind,team,tx,ty,true);}
+ return null;}
+function hSpawn(sp){const team=hTeam(sp.team),n0=sp.n||1,scale=sp.fixed||team===0?1:WMUL[campDiff]/WMUL[2],n=Math.max(1,Math.round(n0*scale));const out=[];
+ if(sp.hero){const k='h_'+sp.hero;if(!UD[k])return out;const [x,y]=hPos(sp.at,UD[k].layer==='a'?'a':UD[k].layer==='n'?'n':'g');const u=addUnit(k,team,x,y);u.hid=sp.hero;if(team===0&&G.camp&&(G.camp.def.vital||[]).includes(sp.hero)){u.maxhp=Math.round(u.maxhp*1.4);u.hp=u.maxhp;}if(sp.tag)u.htag=sp.tag;out.push(u);}
+ else if(sp.b){const k=typeof sp.b==='string'&&BD[sp.b]?sp.b:roleB(P(team).fac,sp.b);if(!k)return out;for(let i=0;i<n0;i++){const [x,y]=hPos(sp.at);const b=hPlaceBld(team,k,x+(i%3-1)*T*4,y+Math.floor(i/3)*T*4);if(b){if(sp.tag)b.htag=sp.tag;if(sp.hp)b.hp=b.maxhp=Math.round(b.maxhp*sp.hp);out.push(b);}}}
+ else{for(let i=0;i<n;i++){const k=hKind(team,Array.isArray(sp.u)&&Array.isArray(sp.u[0])?sp.u[i%sp.u.length]:sp.u);if(!k)continue;const L=UD[k].layer==='a'?'a':UD[k].layer==='n'?'n':'g';const [x,y]=hPos(sp.at,L);
+  const u=campSpawn(team,k,x+rnd(-45,45),y+rnd(-45,45));if(!u)continue;if(sp.tag)u.htag=sp.tag;out.push(u);}}
+ if(sp.go&&out.length){const [gx,gy]=sp.go==='hq'?[P(0).base.x,P(0).base.y]:hPos(sp.go);for(const u of out)if(u.type==='unit'){orderMove(u,gx+rnd(-50,50),gy+rnd(-50,50),sp.am!==false);u.hgo=[gx,gy];}}
+ return out;}
+
+// 방어탑 역할: 공격하는 건물
+{const _rb=roleB;roleB=function(f,r){if(r==='def'){const F=FAC[f];return F.build.find(k=>BD[k].atk&&!BD[k].drop&&!BD[k].train)||null;}return _rb.apply(this,arguments);};}
+// ---- 대사 상자 ----
+document.body.insertAdjacentHTML('beforeend',`<div id="hsay" class="hidden"><div class="hp"></div><div class="hb"><b></b><span></span></div></div>
+<div id="hist" class="overlay hidden"><div class="hw"><div class="hh"><b>🎖 역사 캠페인 · 에테르 전쟁 1939–1945</b><span id="histDiff"></span></div><div id="histList"></div><div class="seg" style="margin-top:8px"><button id="histBack">◀ 타이틀로</button></div></div></div>`);
+{const st=document.createElement('style');st.textContent=`
+#hsay{position:fixed;left:50%;bottom:calc(var(--both,20px) + 64px);transform:translateX(-50%);z-index:7;display:flex;gap:8px;align-items:center;max-width:min(92vw,620px);background:rgba(18,13,7,.9);border:1px solid #8a6d3a;border-radius:8px;padding:6px 10px;pointer-events:none;color:#f1e3c0;font-size:12.5px;line-height:1.4;transition:opacity .3s}
+body.pc #hsay{font-size:14px;bottom:250px}
+#hsay .hp{flex:0 0 34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#1a1208;border:2px solid #2a1a08}
+#hsay .hb b{display:block;color:#e8c56a;font-size:11px}
+#hist .hw{width:min(96vw,900px);max-height:94vh;display:flex;flex-direction:column}
+#hist .hh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;color:#e8c56a;font-size:15px}
+#histList{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:5px;padding:2px}
+#histList .hc{position:relative;background:linear-gradient(#3a2f1e,#211a10);border:1px solid #6a5430;border-radius:6px;padding:5px 8px 5px 12px;cursor:pointer;font-size:11.5px;line-height:1.35}
+#histList .hc .sb{position:absolute;left:0;top:0;bottom:0;width:6px;border-radius:6px 0 0 6px}
+#histList .hc .y{color:#c9b88f;font-size:10.5px}#histList .hc .n{font-weight:800;font-size:12.5px;color:#f6ead0}#histList .hc .s{color:#e8c56a}
+#histList .hc.lock{opacity:.45;cursor:default}#histList .hc .tg{float:right;font-size:10px;padding:0 5px;border-radius:4px;color:#111}
+#brief #briefBody{max-height:calc(100vh - 64px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#brief .hdate{display:inline-block;background:#e8c56a;color:#1a1208;font-weight:900;padding:1px 8px;border-radius:4px;margin-right:6px}
+#brief .hctx{background:rgba(0,0,0,.25);border-left:3px solid #8a6d3a;padding:4px 8px;margin:6px 0;color:#d8c8a0;font-size:12px;line-height:1.5}
+#brief .hhero{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}#brief .hhero div{background:#2a2216;border:1px solid #6a5430;border-radius:5px;padding:2px 7px;font-size:11.5px}
+#brief .hhero b{color:#ffd24a}`;document.head.appendChild(st);}
+const SAYQ=[];let sayT=0,sayCur=null;
+function hSpeaker(w){if(HERO[w])return {n:HERO[w].rank+' '+HERO[w].n,f:HERO[w].f};if(typeof w==='object')return w;return {n:w,f:G&&G.camp?G.camp.f:'us'};}
+function hSay(lines){for(const l of lines)SAYQ.push(l);}
+function sayTick(dt){const el=$('hsay');if(sayCur){sayT-=dt;if(sayT>0)return;sayCur=null;}
+ if(!SAYQ.length){el.classList.add('hidden');return;}
+ const [w,txt]=SAYQ.shift();sayCur=txt;sayT=Math.max(3.2,Math.min(8,1.6+txt.length*0.075));const sp=hSpeaker(w);
+ el.querySelector('.hp').style.background=(FCOL[sp.f]||TCOL[0]||'#e8c56a');el.querySelector('.hp').textContent=(sp.n.split(' ').pop()||'?')[0];
+ el.querySelector('b').textContent=sp.n;el.querySelector('span').textContent=txt;el.classList.remove('hidden');}
+
+// ---- 목표 ----
+function hZone(gl){if(!gl._xy)gl._xy=hPos(gl.at);return gl._xy;}
+function hMine(){return ents.filter(e=>!e.dead&&e.type==='unit'&&e.team===0&&!UD[e.kind].worker);}
+function hGoalProg(gl,c){
+ const inZ=(u,xy,r)=>dist(u.x,u.y,xy[0],xy[1])<r;
+ switch(gl.g){
+  case 'destroy':{const n=ents.filter(e=>!e.dead&&e.htag===gl.tag).length,tot=gl._tot??(gl._tot=Math.max(n,1));return [n===0,`${tot-n}/${tot}`];}
+  case 'reach':{const xy=hZone(gl),r=gl.r||110;const us=hMine().filter(u=>inZ(u,xy,r)&&(gl.who==='hero'?UD[u.kind].hero:gl.who?u.hid===gl.who:true));const need=gl.n||1;return [us.length>=need,`${Math.min(us.length,need)}/${need}`];}
+  case 'hold':{const xy=hZone(gl),r=gl.r||140;let mine=0,foe=0;unitsNear(xy[0],xy[1],r,v=>{if(dist(v.x,v.y,xy[0],xy[1])<r){if(v.team===0)mine++;else if(enemy(0,v.team))foe++;}});
+   gl._h=gl._h||0;if(mine>0&&mine>=foe)gl._h+=c._dt;const left=Math.max(0,gl.s-gl._h);return [left<=0,mine>0?(mine>=foe?`${Math.ceil(left)}초`:'⚠ 적이 더 많아요'):'⚠ 지점을 비웠어요'];}
+  case 'evac':{const xy=hZone(gl),r=gl.r||110;gl._n=gl._n||0;
+   for(const u of hMine()){if(!inZ(u,xy,r))continue;if(UD[u.kind].hero){c.heroOut[u.hid]=1;}u.dead=true;u.evac=1;gl._n++;part(u.x,u.y,0,-30,0.6,4,'#8fe8ff');}
+   const need=Math.max(1,Math.round(gl.n*(gl.fixed?1:[0.6,0.75,0.9,1,1.1,1.2][campDiff])));gl._need=need;return [gl._n>=need,`${gl._n}/${need}`];}
+  case 'escort':{const xy=hZone(gl),r=gl.r||100;gl._n=gl._n||0;for(const u of ents)if(!u.dead&&u.htag===gl.tag&&u.team===0&&inZ(u,xy,r)){u.dead=true;gl._n++;part(u.x,u.y,0,-30,0.6,4,'#8fe8ff');}
+   const need=gl.n||1;return [gl._n>=need,`${gl._n}/${need}`];}
+  case 'protect':{const left=Math.max(0,gl.s-(G.time-c.gt));return [left<=0,`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')} 남음`];}
+  default:return goalProg(gl);
+ }}
+function hGoalText(gl,f){switch(gl.g){
+ case 'destroy':return gl.txt||'목표물을 파괴하세요';case 'reach':return gl.txt||'지점에 도착하세요';case 'hold':return gl.txt||`지점을 ${gl.s}초 동안 지키세요`;
+ case 'evac':return gl.txt||'병력을 철수 지점으로 보내세요';case 'escort':return gl.txt||'호위 대상을 목적지까지 보내세요';case 'protect':return gl.txt||'목표를 지켜 내세요';
+ default:return gl.txt||goalText(gl,f);}}
+
+// ---- 미션 시작 ----
+function histCfg(){const m=HIST[CAMP.h],D=campDiff,cl=d=>Math.max(0,Math.min(5,d));
+ const plist=[{fac:m.f,diff:D,side:'A'}];for(const a of (m.al||[]))plist.push({fac:a.f,diff:cl(D+(a.d||0)),side:'A',ally:1});for(const e of m.e)plist.push({fac:e.f,diff:cl(D+(e.d||0)),side:'B'});
+ return {fac:m.f,map:m.map,ais:plist.length-1,diff:D,plist,camp:true};}
+function histBegin(){const m=HIST[CAMP.h];SAYQ.length=0;sayCur=null;
+ G.camp={hist:1,h:CAMP.h,def:m,f:m.f,gi:0,gt:0,k0:0,waveN:0,next:1e9,evi:{},bonus:{},heroDied:{},heroOut:{},respawn:[],pas:{},_dt:0};
+ const st=m.st||{};const p0=P(0);p0.coal=st.coal??300;p0.ether=st.ether??100;
+ if(st.noEco){for(const e of ents)if(!e.dead&&e.team===0&&e.type==='unit'&&UD[e.kind].worker)e.dead=true;p0.coal=st.coal??0;p0.ether=st.ether??0;}
+ for(const r of (st.blds||[]))campPlaceBld(0,r);
+ if(st.hqHp)for(const e of ents)if(!e.dead&&e.team===0&&e.type==='bld'&&BD[e.kind].drop){e.maxhp=Math.round(e.maxhp*st.hqHp);e.hp=e.maxhp;}
+ for(const sp of (st.spawn||[]))hSpawn(Object.assign({team:'me'},sp));
+ for(const h of (m.heroes||[])){const sp=typeof h==='string'?{hero:h,at:st.at||['f',0.08,0]}:h;hSpawn(Object.assign({team:'me'},sp));}
+ let ti=1+(m.al||[]).length;for(const e of m.e){const p=P(ti);if(!p){ti++;continue;}p.coal=e.coal??(250+campDiff*100);p.ether=80+campDiff*40;
+  for(const r of (e.blds||[]))campPlaceBld(ti,r);if(e.passive&&p.ai){p.ai.nextWave=1e9;G.camp.pas[ti]=1;}ti++;}
+ for(const sp of (m.setup||[]))hSpawn(sp);
+ const hs=ents.find(e=>!e.dead&&e.team===0&&e.hid);if(hs){centerOn(hs.x,hs.y);}
+ histGoalStart();campPanel();}
+function histGoalStart(){const c=G.camp,gl=c.def.g[c.gi];if(!gl)return;c.gt=G.time;c.k0=G.stats.kills;if(c.gi>0){play('ready');toast('목표 달성! 다음: '+hGoalText(gl,c.f));}
+ for(const [i,ev] of (c.def.ev||[]).entries())if(ev.g===c.gi&&!ev.dt&&!c.evi[i]){c.evi[i]=1;hEvent(ev);}}
+function hEvent(ev){try{
+ if(ev.say)hSay(ev.say);
+ for(const sp of (ev.spawn||[]))hSpawn(sp);
+ if(ev.give){P(0).coal+=ev.give[0]||0;P(0).ether+=ev.give[1]||0;}
+ if(ev.flare){const [x,y]=hPos(ev.flare);G.flares.push({x,y,t:14,team:0});G.miniPing={x,y,t:performance.now(),c:'#ffd24a'};}
+ if(ev.attack){const t=hTeam(ev.attack);const p=P(t);if(G.camp&&G.camp.pas)delete G.camp.pas[t];if(p&&p.ai)p.ai.nextWave=G.time;}
+ if(ev.bomb){const [x,y]=hPos(ev.bomb.at);for(let i=0;i<(ev.bomb.n||2);i++)G.strikes.push({x:x+rnd(-90,90),y:y+rnd(-90,90),t:1.5+i*0.7,team:hTeam(ev.bomb.team||'e1'),n:3,gap:0,dmg:ev.bomb.dmg||30});G.warnPos=[x,y,G.time];toast('⚠ 적 폭격!');}
+ if(ev.toast)toast(ev.toast);
+ if(ev.warn){const [x,y]=hPos(ev.warn);G.warnPos=[x,y,G.time];G.miniPing={x,y,t:performance.now(),c:'#ff5a3a'};}
+}catch(e){console.error(e);}}
+
+// ---- 매 프레임 ----
+function histTick(dt){const c=G.camp;if(!c||G.over)return;c._dt=dt;sayTick(dt);const m=c.def;
+ for(const t in c.pas){const p=P(+t);if(p&&p.ai){p.ai.nextWave=1e9;p.ai.raidT=1e9;}}
+ // 적 AI 병력 상한: 정해진 이벤트 병력과 별도로, 기지에서 뽑는 병력이 끝없이 쌓이지 않게
+ c.capT=(c.capT||0)-dt;if(c.capT<=0){c.capT=2;const cap=(m.ecap||8)+campDiff*3;
+  for(const p of G.pl){if(!enemy(0,p.id)||!p.alive)continue;let n=0;for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='unit'&&!UD[e.kind].worker&&!e.hgo)n++;
+   if(n>=cap)for(const b of ents)if(!b.dead&&b.team===p.id&&b.type==='bld'&&b.queue&&b.queue.length&&BD[b.kind].train&&!BD[b.kind].drop){b.queue.length=0;b.qp=0;}}}
+ // 영웅: 회복, 죽음 처리, 부활
+ const heroes=ents.filter(e=>!e.dead&&e.hid);
+ for(const u of heroes){if(u.hp<u.maxhp)u.hp=Math.min(u.maxhp,u.hp+u.maxhp*0.006*dt);if(u.team===0&&(m.vital||[]).includes(u.hid)&&u.hp<u.maxhp*0.3&&!(u._wT>G.time)){u._wT=G.time+12;toast(`⚠ ${HERO[u.hid].n}이(가) 위험해요! 물러나게 하세요`);G.warnPos=[u.x,u.y,G.time];buzz&&buzz(30);}}
+ for(const id of (m.heroes||[]).map(h=>typeof h==='string'?h:h.hero)){if(c.heroOut[id]||heroes.some(u=>u.hid===id&&u.team===0))continue;if(c.respawn.some(r=>r.id===id))continue;
+  if(c.won)continue;c.heroDied[id]=1;const vital=(m.vital||[]).includes(id);
+  if(vital){endGame(false,`${HERO[id].rank} ${HERO[id].n}이(가) 전사했어요`);return;}
+  c.respawn.push({id,t:G.time+45});toast(`✝ ${HERO[id].n} 쓰러짐 — 45초 뒤 본진에서 복귀`);}
+ for(const r of c.respawn.slice())if(G.time>=r.t){const hq=ents.find(e=>!e.dead&&e.team===0&&e.type==='bld'&&BD[e.kind].drop);c.respawn.splice(c.respawn.indexOf(r),1);
+  if(hq){const u=addUnit('h_'+r.id,0,hq.x,hq.y+hq.h*T/2+16);u.hid=r.id;toast(`★ ${HERO[r.id].n} 복귀`);}else c.heroOut[r.id]=1;}
+ // 적·아군 영웅 자동 능력
+ c.aiT=(c.aiT||0)-dt;if(c.aiT<=0){c.aiT=1;for(const u of heroes)if(u.team!==0&&u.abCd<=0)hAiCast(u);}
+ // 패배 조건
+ const lose=c.won?[]:m.lose||[];
+ if(lose.includes('hq')&&!ents.some(e=>!e.dead&&e.team===0&&e.type==='bld'&&BD[e.kind].drop)){endGame(false,'본진을 잃었어요');return;}
+ if(lose.includes('army')&&G.time>3&&!ents.some(e=>!e.dead&&e.team===0&&e.type==='unit')&&!c.respawn.length){const gl=m.g[c.gi];if(!(gl&&gl.g==='evac'&&gl._n>=gl._need)){endGame(false,'부대가 전멸했어요');return;}}
+ for(const l of lose)if(typeof l==='string'&&l.startsWith('tag:')){const tg=l.slice(4),has=ents.some(e=>!e.dead&&e.htag===tg);c.seen=c.seen||{};if(has)c.seen[tg]=1;const gl2=m.g[c.gi];if(c.seen[tg]&&!has&&!(gl2&&gl2.g==='escort'&&gl2.tag===tg&&gl2._n>=(gl2.n||1))){endGame(false,m.loseTxt&&m.loseTxt[tg]||'지켜야 할 목표를 잃었어요');return;}}
+ if(lose.includes('ally')&&G.pl.some(p=>p.ally&&!p.alive)){endGame(false,'동맹군이 무너졌어요');return;}
+ // 시간·목표 이벤트
+ for(const [i,ev] of (m.ev||[]).entries()){if(c.evi[i])continue;
+  if(ev.t!=null&&ev.g==null&&G.time>=ev.t){c.evi[i]=1;hEvent(ev);}
+  else if(ev.g!=null&&ev.dt&&c.gi===ev.g&&G.time-c.gt>=ev.dt){c.evi[i]=1;hEvent(ev);}
+  else if(ev.g!=null&&ev.dt&&c.gi>ev.g){c.evi[i]=1;}
+  else if(ev.every&&ev.g!=null&&c.gi===ev.g){}}
+ // 반복 웨이브: {wave:{g,every,spawn}}
+ for(const [i,ev] of (m.ev||[]).entries()){if(!ev.every||c.gi!==ev.g)continue;const k='w'+i;c[k]=c[k]??(G.time+(ev.first??ev.every));if(G.time>=c[k]){c[k]=G.time+ev.every;c.waveN++;for(const sp of ev.spawn)hSpawn(Object.assign({},sp,{n:(sp.n||1)+Math.floor(c.waveN*(ev.grow||0))}));if(ev.toast)toast(ev.toast);}}
+ // 보너스 목표
+ for(const [i,b] of (m.bonus||[]).entries()){if(c.bonus[i])continue;const [ok]=hGoalProg(b,c);if(ok){c.bonus[i]=1;play('ready');toast('★ 보너스 목표 달성: '+hGoalText(b,c.f));}}
+ // 주 목표
+ const gl=m.g[c.gi];if(gl){const [ok]=hGoalProg(gl,c);if(ok){c.gi++;if(c.gi>=m.g.length){c.won=1;if(m.outro)hSay(m.outro);c.winT=G.time+(m.outro?4:0.5);return;}histGoalStart();}}
+ if(c.won&&G.time>=c.winT){endGame(true);return;}
+ // 목표 지점 표시
+ c.mkT=(c.mkT||0)-dt;if(c.mkT<=0){c.mkT=1.1;const show=[gl,...(m.bonus||[]).filter((b,i)=>!c.bonus[i])];for(const q of show){if(!q||!q.at)continue;const [x,y]=hZone(q);G.rings.push({x,y,r:q.r||(q.g==='hold'?140:110),t:0,dur:1.2,col:q===gl?'#ffd24a':'#8fe8ff'});}
+  for(const e of ents)if(!e.dead&&gl&&gl.tag&&e.htag===gl.tag&&e.team!==0)G.rings.push({x:e.x,y:e.y,r:(e.r||e.w*T/2)+10,t:0,dur:1.2,col:'#ff5a3a'});}
+ c.pT=(c.pT||0)-dt;if(c.pT<=0){c.pT=0.3;campPanel();}}
+function hAiCast(u){const ab=UD[u.kind].abil;if(!ab)return;let foes=[],n=0;unitsNear(u.x,u.y,AB[ab].rng>0&&AB[ab].rng<9999?AB[ab].rng:260,v=>{if(enemy(u.team,v.team)&&!v.dead)foes.push(v);});
+ if(!foes.length)return;if(AB[ab].self){if(foes.length>=3||u.hp<u.maxhp*0.5)doCast(u,ab,u.x,u.y);return;}
+ let best=foes[0],bs=-1;for(const f of foes){let s=0;for(const g of foes)if(dist(f.x,f.y,g.x,g.y)<90)s++;if(ab==='h_snipe')s=(UD[f.kind].cost[0]+UD[f.kind].cost[1])+(UD[f.kind].hero?999:0);if(s>bs){bs=s;best=f;}}
+ doCast(u,ab,best.x,best.y);}
+
+// ---- 기존 캠페인 함수에 연결 ----
+{const _cc=campCfg;campCfg=function(){return CAMP&&CAMP.h!=null?histCfg():_cc.apply(this,arguments);};
+ const _cb=campBegin;campBegin=function(){return CAMP&&CAMP.h!=null?histBegin():_cb.apply(this,arguments);};
+ const _ct=campTick;campTick=function(dt){return G&&G.camp&&G.camp.hist?histTick(dt):_ct.apply(this,arguments);};
+ const _cp=campPanel;campPanel=function(){const c=G&&G.camp;if(!c||!c.hist)return _cp.apply(this,arguments);
+  const el=$('obj');el.classList.remove('hidden');const m=c.def,gl=m.g[c.gi];
+  let h=`<div class="ot">제${c.h+1}장 · ${m.t}</div>`;
+  if(el.classList.contains('open')){m.g.forEach((g2,i)=>{const done=i<c.gi,cur=i===c.gi;h+=`<div class="og ${done?'done':cur?'cur':''}">${done?'✔':cur?'▶':'·'} ${hGoalText(g2,c.f)}${cur?' <b>'+hGoalProg(g2,{...c,_dt:0})[1]+'</b>':''}</div>`;});
+   (m.bonus||[]).forEach((b,i)=>{h+=`<div class="og ${c.bonus[i]?'done':''}">${c.bonus[i]?'★':'☆'} 보너스: ${hGoalText(b,c.f)}</div>`;});
+   if((m.vital||[]).length)h+=`<div class="og warn">✖ ${m.vital.map(id=>HERO[id].n).join(', ')} 전사 시 패배</div>`;
+   if((m.lose||[]).includes('hq'))h+=`<div class="og warn">✖ 본진 건물을 모두 잃으면 패배</div>`;}
+  else if(gl)h+=`<div class="og cur">▶ ${hGoalText(gl,c.f)} <b>${hGoalProg(gl,{...c,_dt:0})[1]}</b> <span class="on">(${c.gi+1}/${m.g.length})</span></div>`;
+  if(gl&&gl.hint&&campDiff<=2)h+=`<div class="oh">💡 ${gl.hint}</div>`;
+  if(el._h!==h){el.innerHTML=h;el._h=h;}};
+}
+// 기존 endGame은 CAMPAIGN[c.p]를 읽으므로 역사 캠페인은 끝 화면을 따로 그림
+{const _eg2=endGame;endGame=function(win,why){const c=G&&G.camp;if(!c||!c.hist)return _eg2.apply(this,arguments);if(G.over)return;
+ G.over=true;play(win?'win':'lose');$('hsay').classList.add('hidden');
+ const m=c.def,t=Math.floor(G.time),mm=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
+ const nb=(m.bonus||[]).length,bd=Object.keys(c.bonus).length,noLoss=!Object.keys(c.heroDied).length;
+ const stars=win?1+(nb===0||bd>=nb?1:0)+(noLoss?1:0):0;
+ if(win)histMark(c.h,stars);
+ const en=$('end');en.classList.toggle('win',!!win);en.classList.toggle('lose',!win);
+ $('endTitle').textContent=win?'작전 성공':'작전 실패';$('endTitle').style.color='';$('endSub').textContent=win?'★'.repeat(stars)+'☆'.repeat(3-stars):'MISSION FAILED';
+ $('endGrid').innerHTML=[['전투 시간',mm],['처치',G.stats.kills],['손실',G.stats.lost],['보너스',`${bd}/${nb}`],['영웅 무사',noLoss?'예':'아니오']].map(([a,b],i)=>`<div class="ec" style="animation-delay:${0.5+i*0.08}s"><span>${a}</span><b>${b}</b></div>`).join('');
+ $('endStats').innerHTML=`제${c.h+1}장 「${m.t}」 · ${m.y} ${m.place} · 난이도 ${DNAME[campDiff]}${why?'<br>'+why:''}`+(win&&m.ep?`<div style="margin-top:6px;text-align:left;max-width:560px;font-size:12px;line-height:1.5;color:#d8c8a0;border-left:3px solid #8a6d3a;padding-left:8px">📖 ${m.ep}</div>`:'');
+ $('campNext').classList.toggle('hidden',!win);$('campList').classList.remove('hidden');$('end2title').classList.add('hidden');
+ $('againBtn').textContent=win?'다시 하기':'다시 도전';$('campNext').textContent=HIST[c.h+1]&&HIST[c.h+1].g?'다음 장 ▶':'목록으로';$('campList').textContent='역사 캠페인 목록';
+ setTimeout(()=>$('end').classList.remove('hidden'),900);};}
+// 끝 화면 버튼: 역사 캠페인이면 가로채기
+$('campNext').addEventListener('click',e=>{if(!CAMP||CAMP.h==null)return;e.stopImmediatePropagation();const n=CAMP.h+1;G=null;showGame(false);$('end').classList.add('hidden');$('obj').classList.add('hidden');
+ if(HIST[n]&&HIST[n].g)openHistBrief(n);else openHist();},true);
+$('campList').addEventListener('click',e=>{if(!CAMP||CAMP.h==null)return;e.stopImmediatePropagation();kbUnlock();try{document.exitPointerLock();}catch(_){}fsGate(false);G=null;showGame(false);$('end').classList.add('hidden');$('pause').classList.add('hidden');$('obj').classList.add('hidden');openHist();},true);
+$('briefBack').addEventListener('click',e=>{if(!CAMP||CAMP.h==null)return;e.stopImmediatePropagation();$('brief').classList.add('hidden');openHist();},true);
+// 일시정지 메뉴 등에서 타이틀로 나갈 때 대사 상자 숨김
+setInterval(()=>{if(!G||G.over||!G.camp||!G.camp.hist)$('hsay').classList.add('hidden');},400);
+
+// ---- 저장 ----
+const histSave=()=>{try{return JSON.parse(localStorage.getItem('wd_hist')||'{}');}catch(_){return {};}};
+function histMark(i,st){const s=histSave();s[i]=Math.max(s[i]||0,st);try{localStorage.setItem('wd_hist',JSON.stringify(s));}catch(_){}}
+function histUnlocked(i){if(i===0)return true;const s=histSave();return s[i-1]!=null||!!localStorage.getItem('wd_hist_all');}
+
+// ---- 화면: 장 목록 · 브리핑 ----
+function openHist(){$('title').classList.add('hidden');$('end').classList.add('hidden');$('brief').classList.add('hidden');$('camp').classList.add('hidden');$('hist').classList.remove('hidden');renderHist();}
+function renderHist(){const sv=histSave();
+ $('histDiff').innerHTML=`<span class="seg" id="histDiffSeg">${DNAME.map((n,i)=>`<button data-v="${i}" class="${i===campDiff?'on':''}">${n}</button>`).join('')}</span>`;
+ $('histList').innerHTML=HIST.map((m,i)=>{const ready=!!m.g,un=ready&&histUnlocked(i),st=sv[i];const ax=m.side==='추축';
+  return `<div class="hc${un?'':' lock'}" data-i="${i}"><div class="sb" style="background:${ax?'#7a2a22':'#2a5a8a'}"></div><span class="tg" style="background:${ax?'#d88a7a':'#8ab8e8'}">${m.side}</span>
+  <div class="y">제${i+1}장 · ${m.y} · ${FAC[m.f].n}</div><div class="n">${m.t}</div><div class="y">${m.place}</div>
+  <div class="s">${!ready?'🛠 제작 중':!un?'🔒 이전 장을 깨면 열려요':st!=null?'★'.repeat(st)+'☆'.repeat(3-st):'도전 가능'}</div></div>`;}).join('');}
+function openHistBrief(i){CAMP={h:i};const m=HIST[i];$('hist').classList.add('hidden');$('camp').classList.add('hidden');$('brief').classList.remove('hidden');
+ const hs=(m.heroes||[]).map(h=>typeof h==='string'?h:h.hero).filter(id=>HERO[id]);
+ $('briefBody').innerHTML=`<div class="bk"><span class="hdate">${m.y}</span>${m.place} · ${m.side}국 시점 · ${FAC[m.f].n}</div><h3>제${i+1}장 · ${m.t}</h3>
+  <div class="hctx">${m.ctx}</div><div class="bt">${m.b}</div>
+  <div class="hhero">${hs.map(id=>{const h=HERO[id];return `<div><b>★ ${h.rank} ${h.n}</b> · ${UD[h.base].n} · ${AB[h.ab].n}${(m.vital||[]).includes(id)?' <span style="color:#ff8a7a">(전사 시 패배)</span>':''}</div>`;}).join('')}</div>
+  <div class="bi">🗺 ${MAPS[m.map].n} · ⚔ 적: ${m.e.map(e=>FAC[e.f].n).join(', ')}${(m.al||[]).length?' · 🤝 아군: '+m.al.map(a=>FAC[a.f].n).join(', '):''} · 난이도 ${DNAME[campDiff]}</div>
+  <div class="bg">${m.g.map((g,k)=>`<div>${k+1}. ${hGoalText(g,m.f)}</div>`).join('')}${(m.bonus||[]).map(b=>`<div style="color:#8fe8ff">☆ 보너스: ${hGoalText(b,m.f)}</div>`).join('')}</div>`;
+ try{fitOverlay($('brief'));}catch(_){}}
+$('histBtn').addEventListener('click',()=>{sfxInit();openHist();});
+$('histBack').addEventListener('click',()=>{$('hist').classList.add('hidden');$('title').classList.remove('hidden');});
+$('histList').addEventListener('click',e=>{const c=e.target.closest('.hc');if(!c||c.classList.contains('lock'))return;openHistBrief(+c.dataset.i);});
+$('histDiff').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;campDiff=+b.dataset.v;try{localStorage.setItem('wd_campdiff',campDiff);}catch(_){}renderHist();});
+
+// ===================== 역사 캠페인 데이터: 영웅과 장 =====================
+// 영웅은 모두 가상 인물. 실제 지휘관·정치인은 등장하지 않음.
+Object.assign(HERO,{
+ // 1장 폴란드
+ kowal:{f:'pl',base:'pl_hussar',n:'타데우시 코발스키',rank:'소령',ab:'h_charge',hp:3.2},
+ anna:{f:'pl',base:'pl_enigma',n:'안나 레반도프스카',rank:'암호 해독관',ab:'h_recon',hp:2.6,dmg:1.2},
+ jan:{f:'pl',base:'pl_7tp',n:'얀 비시니에프스키',rank:'중위',ab:'h_repair',hp:2.4},
+ // 2장 독일
+ bauer:{f:'de',base:'de_faust',n:'에른스트 바우어',rank:'중위',ab:'h_ether',hp:3},
+ richter:{f:'de',base:'de_mg',n:'클라우스 리히터',rank:'상사',ab:'h_smoke',hp:2.8},
+ muller:{f:'de',base:'de_stuka',n:'한스 뮐러',rank:'대위',ab:'h_bomb',hp:2.2},
+ // 3장 영국
+ collins:{f:'uk',base:'uk_commando',n:'해리 콜린스',rank:'소령',ab:'h_smoke',hp:3},
+ hall:{f:'uk',base:'uk_signal',n:'마거릿 홀',rank:'통신 중위',ab:'h_strike',hp:2.6},
+ fletcher:{f:'uk',base:'uk_matilda',n:'아서 플레처',rank:'하사',ab:'h_rally',hp:2.2},
+ // 4장 호주
+ mcgregor:{f:'au',base:'au_ranger',n:'잭 맥그리거',rank:'상사',ab:'h_snipe',hp:3},
+ oconnor:{f:'au',base:'au_lighthorse',n:'빌 오코너',rank:'대위',ab:'h_charge',hp:3},
+ taylor:{f:'au',base:'au_slouch',n:'루스 테일러',rank:'간호 장교',ab:'h_heal',hp:3,dmg:0.8},
+ // 5장 핀란드
+ laitinen:{f:'fi',base:'fi_sniper',n:'시모 라이티넨',rank:'상병',ab:'h_snipe',hp:2.8},
+ korpela:{f:'fi',base:'fi_jaeger',n:'에이노 코르펠라',rank:'대위',ab:'h_frost',hp:3.2},
+ virtanen:{f:'fi',base:'fi_jaeger',n:'아이노 비르타넨',rank:'로타 통신원',ab:'h_recon',hp:2.6,dmg:0.7},
+ // 적 영웅
+ e_vogel:{f:'de',base:'de_panzer',n:'디트리히 포겔',rank:'기갑 대위',ab:'h_repair',hp:2.4},
+ e_morel:{f:'fr',base:'fr_char',n:'앙리 모렐',rank:'대위',ab:'h_rally',hp:2.2},
+ e_volkov:{f:'su',base:'commissar',n:'그리고리 볼코프',rank:'정치위원',ab:'h_rally',hp:3},
+});
+mkHeroes();
+
+const HQN={pl:'폴란드군 사령부',de:'군단 사령부',uk:'원정군 사령부',au:'요새 사령부',fi:'핀란드군 사령부',fr:'프랑스군 사령부',su:'소련군 사령부'};
+const HQ=f=>({n:HQN[f]||'사령부',f});
+
+const HIST=[
+ // ───────────────────────────── 제1장 (연합) ─────────────────────────────
+ {y:'1939년 9월',place:'폴란드 · 브주라 강',side:'연합',f:'pl',t:'브주라 강의 반격',map:'forest',
+  ctx:'1939년 9월 1일, 독일이 폴란드를 침공했어요. 국경의 폴란드군은 바르샤바로 밀려나는 중이에요. 9월 9일, 포즈난군이 브주라 강에서 독일군의 옆구리를 찔렀어요. 이 반격은 이 전쟁 첫 달의 가장 큰 전투가 돼요.',
+  b:'반격의 목표는 시간을 버는 거예요. 독일군의 보급 마법진을 끊어 진격을 늦추고, 강을 건너는 아군 본대를 엄호한 뒤, 마지막 수송대를 바르샤바 방향으로 보내야 해요. 날개 기병의 에테르 깃털은 아직 빛나고 있어요. 하지만 하늘은 이미 독일 급강하 폭격기의 것이에요.',
+  heroes:['kowal','anna','jan'],vital:['kowal'],
+  e:[{f:'de',d:0,blds:['bar','veh'],passive:true}],
+  st:{coal:400,ether:150,blds:['sup','sup','bar','veh'],at:['f',0.1,0],spawn:[{u:'pl_strzelec',n:8,at:['f',0.12,0]},{u:'pl_hussar',n:4,at:['f',0.12,0.06]},{u:'pl_7tp',n:2,at:['f',0.1,-0.05]}]},
+  setup:[{team:'e1',b:'sup',n:3,at:['f',0.5,0.16],tag:'dep'},{team:'e1',u:['bar',0],n:8,at:['f',0.48,0.14]},{team:'e1',u:['bar',1],n:3,at:['f',0.5,0.18]},{team:'e1',u:['veh',0],n:1,at:['f',0.52,0.16]}],
+  g:[{g:'destroy',tag:'dep',txt:'독일군 보급 마법진 3곳을 파괴하세요',hint:'코발스키 소령의 돌격 나팔(C)로 기병대를 몰아 단숨에 덮치세요'},
+     {g:'hold',at:['f',0.26,0],r:150,s:180,txt:'강 건너는 지점을 3분 동안 지키세요',hint:'얀 중위의 야전 수리(N)로 전차를 오래 버티게 하세요'},
+     {g:'escort',tag:'col',at:['m'],r:150,n:3,txt:'수송대 4대 중 3대 이상을 본진(바르샤바 방향)까지 보내세요',hint:'수송대는 스스로 움직여요. 길목의 독일 전차를 먼저 막아 주세요'}],
+  bonus:[{g:'kills',n:30,txt:'적 30기 처치'}],
+  lose:['hq','tag:col'],loseTxt:{col:'수송대가 모두 파괴됐어요'},
+  ev:[{t:1,say:[['kowal','포즈난군 전원, 들어라. 우리는 물러나기만 하지 않는다. 오늘은 우리가 칠 차례다.'],['anna','독일 무선을 풀었습니다. 보급 마법진 세 곳이 강 동쪽 숲에 몰려 있어요.'],['jan','7TP 두 대, 연료는 반쯤입니다. 오래는 못 싸웁니다.']]},
+   {g:1,say:[['anna','본대가 강을 건너기 시작했어요. 다리를 3분만 지켜 주세요.'],['kowal','여기서 버틴다. 한 사람이라도 더 건너가게.']]},
+   {g:1,every:40,first:15,spawn:[{team:'e1',u:[['bar',0],['bar',1],['bar',0]],n:3,at:['e',0],go:['f',0.26,0]}],grow:0.6,toast:'⚠ 독일 보병 접근'},
+   {g:1,dt:70,bomb:{at:['f',0.26,0],n:3,team:'e1',dmg:26},say:[['jan','급강하 폭격기다! 엎드려!']]},
+   {g:1,dt:120,spawn:[{team:'e1',u:['veh',0],n:2,at:['e',0],go:['f',0.26,0]}],say:[['anna','독일 기갑 부대가 남쪽에서 돌아 들어와요.']]},
+   {g:2,say:[[HQ('pl'),'마지막 수송대가 출발한다. 부상병과 암호 장비가 실려 있다. 반드시 바르샤바로 보내라.'],['anna','저 상자 안의 기록만은 넘겨줄 수 없어요.']],
+    spawn:[{team:'me',u:'pl_ursus',n:4,fixed:1,at:['f',0.3,0.04],go:'hq',am:false,tag:'col'},{team:'e1',u:[['veh',0],['bar',0]],n:4,at:['f',0.62,0],go:['f',0.2,0]}],attack:'e1'}],
+  outro:[['kowal','수송대는 빠져나갔다. 하지만 우리 뒤의 길은 이제 닫혔다.'],['anna','기록은 무사해요. 언젠가 이게 전쟁의 흐름을 바꿀 거예요.']],
+  ep:'브주라 전투(9월 9~22일)는 독일의 진격을 며칠 늦췄지만, 포위된 폴란드군 대부분은 항복했어요. 9월 17일에는 소련군이 동쪽에서 넘어왔고, 바르샤바는 9월 28일 항복했어요. 폴란드 암호국은 전쟁 직전에 에니그마 해독 성과를 영국·프랑스에 넘겼어요. 이 성과는 훗날 블레츨리 파크의 해독 작업으로 이어져 연합국의 승리에 큰 힘이 됐어요.'},
+
+ // ───────────────────────────── 제2장 (추축) ─────────────────────────────
+ {y:'1940년 5월',place:'프랑스 · 세당, 뫼즈 강',side:'추축',f:'de',t:'뫼즈 강 도하',map:'forest',
+  ctx:'1940년 5월 10일, 독일군은 서부 전선 공세를 시작했어요. 주력은 연합군이 "전차가 지날 수 없다"고 여긴 아르덴 숲을 지나 5월 13일 세당에서 뫼즈 강에 닿았어요. 이 장은 승리를 미화하지 않고, 그날 강을 건넌 한 공병 소대의 눈으로 그려요.',
+  b:'강 건너편 프랑스 벙커들이 도하 지점을 겨누고 있어요. 급강하 폭격기로 벙커를 눌러 놓고 공병이 다가가 폭약을 설치해야 해요. 교두보가 서면 프랑스 기갑 예비대가 반격해 올 거예요. 상부는 "속도"만 말하지만, 지금 강물에 떠내려가는 건 같은 또래의 젊은이들이에요.',
+  heroes:['bauer','richter','muller'],vital:['bauer'],
+  e:[{f:'fr',d:-1,blds:['bar','veh'],passive:true}],
+  st:{coal:500,ether:250,blds:['sup','sup','bar'],at:['f',0.1,0],spawn:[{u:'grenadier',n:8,at:['f',0.12,0]},{u:'de_mg',n:3,at:['f',0.12,0.05]},{u:'de_faust',n:3,at:['f',0.1,-0.05]},{u:'walker',n:2,at:['f',0.08,0]}]},
+  setup:[{team:'e1',b:'def',n:4,at:['f',0.42,0],tag:'bunk',hp:0.55},{team:'e1',u:['bar',0],n:6,at:['f',0.45,0]},{team:'e1',u:['bar',1],n:2,at:['f',0.45,0.05]}],
+  g:[{g:'destroy',tag:'bunk',txt:'강변의 프랑스 벙커 4곳을 파괴하세요',hint:'뮐러 대위의 폭격 요청(R)으로 벙커를 먼저 두들기세요'},
+     {g:'hold',at:['f',0.46,0],r:150,s:150,txt:'교두보를 2분 30초 동안 지키세요',hint:'리히터 상사의 연막(V)이 전차의 조준을 흩뜨려요'},
+     {g:'killhq',txt:'프랑스군 지휘 본부를 무너뜨리세요'}],
+  bonus:[{g:'kills',n:35,txt:'적 35기 처치'}],
+  lose:['hq'],
+  ev:[{t:1,say:[['bauer','고무보트가 모자란다. 첫 파도에 건너는 건 우리 소대다.'],['richter','저 벙커들, 기관총 구멍이 전부 강을 보고 있습니다.'],['muller','슈투카 편대, 상공 대기. 표적만 불러 주시오.']]},
+   {g:1,say:[['bauer','건넜다… 몇 명이나 남았지?'],['richter','절반입니다. 프랑스 전차가 옵니다, 중위님.']],spawn:[{team:'e1',hero:'e_morel',at:['e',0],go:['f',0.46,0],tag:'boss'}]},
+   {g:1,every:45,first:20,spawn:[{team:'e1',u:[['veh',0],['bar',0],['bar',0]],n:3,at:['e',0],go:['f',0.46,0]}],grow:0.5,toast:'⚠ 프랑스 반격 부대 접근'},
+   {g:2,say:[['muller','교두보 확보. 상부는 벌써 영국 해협을 말하고 있소.'],['bauer','우린 오늘 강 하나를 건넜을 뿐입니다.'],[HQ('de'),'기갑 사단이 부교를 건넜다. 교두보로 합류한다.']],attack:'e1',spawn:[{team:'me',u:'de_panzer',n:3,at:['f',0.3,0],go:['f',0.46,0]},{team:'me',u:'grenadier',n:6,at:['f',0.3,0.04],go:['f',0.46,0]}]}],
+  outro:[['richter','프랑스 사령부가 무너졌습니다. 길이 열렸어요.'],['bauer','이렇게 쉽게 이겼다고 믿는 순간이 가장 위험한 법이다.']],
+  ep:'세당 돌파로 독일 기갑 부대는 5월 20일 영국 해협에 닿았고, 연합군은 남북으로 갈라졌어요. 프랑스는 6월 22일 휴전에 서명했어요. 이 빠른 승리는 독일 지도부에 "무엇이든 몇 주면 된다"는 자만을 심었어요. 그 자만은 1년 뒤 동부 전선에서 수백만의 목숨을 앗아 가는 비극으로 이어져요.'},
+
+ // ───────────────────────────── 제3장 (연합) ─────────────────────────────
+ {y:'1940년 5월',place:'프랑스 · 됭케르크',side:'연합',f:'uk',t:'다이나모 작전',map:'forest',
+  ctx:'세당이 뚫리자 영국 원정군과 프랑스군 수십만이 됭케르크 해안에 갇혔어요. 5월 26일부터 시작된 다이나모 작전에서 해군 함정과 수백 척의 민간 소형선이 해협을 건너와 병사들을 실어 날랐어요.',
+  b:'장비는 버려도 좋아요. 사람만 데려가요. 내륙에서 고립된 우리 부대를 해안 방어선까지 물리고, 방어선을 지키다가 해변으로 철수해야 해요. 공장은 없고 증원도 없어요. 지금 가진 병력이 전부예요.',
+  heroes:[{hero:'collins',at:['f',0.55,0]},{hero:'hall',at:['f',0.55,0.04]},{hero:'fletcher',at:['f',0.55,-0.04]}],vital:['collins'],
+  e:[{f:'de',d:0,blds:['bar','veh'],passive:true}],
+  st:{noEco:1,coal:0,ether:0,hqHp:5,spawn:[{u:'uk_tommy',n:14,at:['f',0.56,0]},{u:'uk_commando',n:3,at:['f',0.56,0.05]},{u:'uk_matilda',n:2,at:['f',0.54,-0.05]},{u:'uk_bofors',n:2,at:['f',0.53,0]}]},
+  g:[{g:'reach',at:['f',0.3,0],r:160,n:10,txt:'병력 10명 이상을 해안 방어선까지 물리세요',hint:'모두 선택해 방어선(노란 원)으로 이동시키세요. 뒤처진 병사는 버려지지 않게!'},
+     {g:'hold',at:['f',0.3,0],r:170,s:180,txt:'방어선을 3분 동안 지키세요',hint:'홀 중위의 포격 요청(T)은 해상 구축함의 함포 지원이에요'},
+     {g:'evac',at:['m'],r:170,n:12,txt:'병력 12명 이상을 해변(본진)으로 철수시키세요 — 배가 기다려요',hint:'해변 원 안에 들어간 병사는 배에 올라 사라져요'}],
+  bonus:[{g:'kills',n:40,txt:'적 40기 처치'}],
+  lose:['hq','army'],
+  ev:[{t:1,say:[['collins','길이 끊겼다. 남은 길은 바다 쪽뿐이야.'],['hall','해안 방어선까지 6킬로미터. 함포 지원 주파수는 살아 있어요.'],['fletcher','마틸다 두 대, 아직 굴러갑니다. 맨 뒤는 제가 맡죠.']],spawn:[{team:'e1',u:[['bar',0],['bar',1]],n:5,at:['f',0.8,0],go:['f',0.55,0]}]},
+   {g:0,every:30,first:20,spawn:[{team:'e1',u:[['bar',0],['bar',2]],n:3,at:['f',0.85,0],go:['f',0.4,0]}],grow:0.3},
+   {g:1,say:[[HQ('uk'),'해변에 배가 모이고 있다. 구축함, 어선, 유람선… 템스 강의 작은 배들까지 왔다.'],['collins','3분. 3분만 버티면 된다.']]},
+   {g:1,every:35,first:10,spawn:[{team:'e1',u:[['bar',0],['bar',1],['veh',0]],n:4,at:['f',0.8,0],go:['f',0.3,0]}],grow:0.6,toast:'⚠ 독일군 추격대'},
+   {g:1,dt:50,bomb:{at:['m'],n:3,team:'e1',dmg:24},say:[['hall','해변에 폭격이에요! 줄 선 병사들 위로…']]},
+   {g:1,dt:110,spawn:[{team:'e1',hero:'e_vogel',at:['f',0.8,0],go:['f',0.3,0]}],say:[['fletcher','독일 중전차다. 지휘관 전차가 앞장섰어요.']]},
+   {g:2,say:[['collins','철수 개시! 다친 사람부터 태워!'],['fletcher','방어선은 마지막까지 지킵니다. 먼저들 가세요.']],attack:'e1'},
+   {g:2,every:35,first:15,spawn:[{team:'e1',u:[['bar',0],['veh',0]],n:2,at:['f',0.6,0],go:['m']}],grow:0.4}],
+  outro:[['hall','마지막 배가 떠났어요. 해변엔 장비만 남았네요.'],['collins','장비는 다시 만들면 된다. 사람은 그럴 수 없어.']],
+  ep:'5월 26일부터 6월 4일까지 약 33만 8천 명의 연합군 병사가 됭케르크에서 구출됐어요. 함정과 함께 8백여 척의 민간 소형선이 해협을 오갔어요. 영국군은 전차와 대포 거의 전부를 해안에 버렸어요. 처칠은 "철수로 전쟁에서 이기지는 못한다"고 경고했지만, 이때 살아 돌아온 병사들이 훗날 반격의 뼈대가 됐어요.'},
+
+ // ───────────────────────────── 제4장 (연합) ─────────────────────────────
+ {y:'1941년 4월',place:'리비아 · 토브루크',side:'연합',f:'au',t:'토브루크의 쥐',map:'ruins',
+  ctx:'1941년 봄, 독일 아프리카 군단과 이탈리아군이 북아프리카에서 영국 연방군을 밀어냈어요. 항구 도시 토브루크만은 호주 제9사단을 중심으로 버텼어요. 적 선전 방송은 그들을 "토브루크의 쥐"라 비웃었고, 병사들은 그 이름을 자랑으로 삼았어요.',
+  b:'항구를 잃으면 적은 이집트까지 막힘없이 내달려요. 요새선을 지키며 포위 공세를 버티고, 밤이 되면 포위선 너머로 나가 적 포대를 부숴야 해요. 물은 하루 한 병이고 모래 폭풍은 에테르 장비마저 갉아먹지만, 아무도 항구를 내줄 생각이 없어요.',
+  heroes:['mcgregor','oconnor','taylor'],vital:[],
+  e:[{f:'it',d:0,blds:['bar','veh'],passive:true},{f:'de',d:0,blds:['bar','veh'],passive:true}],
+  st:{coal:600,ether:200,hqHp:3,blds:['sup','sup','bar','veh','def','def','def','def'],at:['f',0.12,0],spawn:[{u:'au_slouch',n:8,at:['f',0.14,0]},{u:'au_ranger',n:3,at:['f',0.14,0.05]},{u:'au_sentinel',n:2,at:['f',0.12,-0.05]}]},
+  setup:[{team:'e2',b:'def',n:3,at:['f',0.5,0.2],tag:'guns'},{team:'e2',u:['bar',0],n:5,at:['f',0.5,0.2]},{team:'e1',u:['bar',0],n:5,at:['f',0.45,-0.1]}],
+  g:[{g:'survive',s:300,txt:'포위 공세를 5분 동안 버티세요',hint:'포탑 뒤에 병력을 두고, 테일러 간호 장교의 응급 처치(Q)로 부상병을 살리세요'},
+     {g:'destroy',tag:'guns',txt:'야간 기습: 포위선의 적 포대 3곳을 파괴하세요',hint:'맥그리거 상사의 저격(Z)으로 포대 수비병을 먼저 정리하세요'},
+     {g:'survive',s:150,txt:'마지막 대공세를 막아 내세요'}],
+  bonus:[{g:'kills',n:50,txt:'적 50기 처치'}],
+  lose:['hq'],
+  ev:[{t:1,say:[[HQ('au'),'토브루크는 지킨다. 항복도, 후퇴도 없다.'],['oconnor','요새선 둘레가 50킬로미터인데 우리 인원은 턱없이 모자랍니다.'],['taylor','부상병 막사는 준비됐어요. 다들 너무 무리하지만 마세요.']]},
+   {g:0,every:45,first:35,spawn:[{team:'e1',u:[['bar',0],['bar',1],['veh',0]],n:3,at:['e',0],go:'hq'}],grow:0.35,toast:'⚠ 이탈리아군 공세'},
+   {g:0,every:60,first:75,spawn:[{team:'e2',u:[['bar',0],['veh',0],['veh',2]],n:2,at:['e',1],go:'hq'}],grow:0.35,toast:'⚠ 독일 기갑대 공세'},
+   {g:0,dt:150,say:[['mcgregor','독일 전차가 철조망을 넘었어요! 대전차호 쪽입니다.'],['oconnor','전차는 그냥 보내고 뒤따르는 보병을 끊어! 전차만으론 도시를 못 지킨다.']],spawn:[{team:'e2',hero:'e_vogel',at:['e',1],go:'hq'}]},
+   {g:1,say:[['oconnor','해가 졌다. 경기병대, 출발.'],['mcgregor','포대 셋. 소리 없이 다가가서 끝내죠.']],flare:['f',0.5,0.2]},
+   {g:2,say:[[HQ('au'),'적이 마지막 힘을 짜내고 있다. 이번만 넘기면 된다.']],attack:'e1'},
+   {g:2,every:40,first:10,spawn:[{team:'e1',u:[['bar',0],['veh',0]],n:3,at:['e',0],go:'hq'},{team:'e2',u:[['bar',0],['bar',2]],n:1,at:['e',1],go:'hq'}],grow:0.25}],
+  outro:[['taylor','오늘 밤은 모두 살아서 돌아왔어요.'],['oconnor','쥐들이 아직 항구에 있다고, 저쪽에 전해 줘야겠군.']],
+  ep:'토브루크 포위는 241일 동안 이어졌어요. 호주 제9사단은 1941년 4월 공세를 막아 내 독일 아프리카 군단에 첫 큰 좌절을 안겼어요. 호주군은 그해 가을 바다를 통해 교대됐고, 포위는 12월에 풀렸어요. 토브루크는 1942년 6월 결국 함락되지만, "토브루크의 쥐"는 호주 군사사에서 가장 자랑스러운 이름 가운데 하나로 남았어요.'},
+
+ // ───────────────────────────── 제5장 (추축) ─────────────────────────────
+ {y:'1941년 7월',place:'핀란드 · 카렐리야 지협',side:'추축',f:'fi',t:'잃어버린 고향으로',map:'forest',
+  ctx:'1939~40년 겨울전쟁에서 핀란드는 소련에 카렐리야를 내주었고, 40만 명이 넘는 주민이 고향을 떠났어요. 1941년 6월 독일이 소련을 침공하자 핀란드도 "계속전쟁"에 뛰어들었어요. 핀란드는 독일과 손잡았지만 스스로를 "공동 교전국"이라 불렀어요. 많은 병사에게 이 싸움은 빼앗긴 고향을 되찾는 일이었어요.',
+  b:'숲은 우리 편이에요. 스키 부대로 소련군 보급 거점을 둘러싸 끊는 "모티" 전술로 적을 고립시키고, 비푸리 외곽을 정찰한 뒤 도시의 소련군 본부를 되찾아야 해요. 하지만 독일과 손잡은 이 길이 어디로 이어질지는 아무도 몰라요.',
+  heroes:['laitinen','korpela','virtanen'],vital:['korpela'],
+  e:[{f:'su',d:-1,blds:['bar','veh'],passive:true}],
+  st:{coal:450,ether:150,blds:['sup','sup','bar'],at:['f',0.1,0],spawn:[{u:'fi_jaeger',n:10,at:['f',0.12,0]},{u:'fi_sniper',n:2,at:['f',0.12,0.05]},{u:'fi_molotov',n:3,at:['f',0.1,-0.05]}]},
+  setup:[{team:'e1',b:'sup',n:1,at:['f',0.45,0.22],tag:'motti'},{team:'e1',b:'sup',n:1,at:['f',0.45,-0.22],tag:'motti'},{team:'e1',u:['bar',0],n:6,at:['f',0.45,0.22]},{team:'e1',u:['bar',0],n:6,at:['f',0.45,-0.22]}],
+  g:[{g:'destroy',tag:'motti',txt:'모티 전술: 소련군 보급 거점 2곳을 끊으세요',hint:'코르펠라 대위의 눈보라(F)로 적을 묶고 둘러싸세요'},
+     {g:'reach',at:['f',0.7,0],r:130,who:'hero',n:1,txt:'영웅 한 명을 비푸리 외곽 고지(노란 원)까지 보내 정찰하세요',hint:'비르타넨 통신원의 암호 해독(J)으로 앞길을 미리 밝혀 두세요'},
+     {g:'killhq',txt:'비푸리의 소련군 본부를 되찾으세요'}],
+  bonus:[{g:'kills',n:40,txt:'적 40기 처치'}],
+  lose:['hq'],
+  ev:[{t:1,say:[['korpela','저 숲 너머가 내가 자란 마을이다. 2년 만이군.'],['virtanen','로타 통신대 연결됐어요. 소련군 보급 거점 두 곳 위치를 보낼게요.'],['laitinen','눈 위의 발자국은 거짓말을 안 합니다. 저쪽은 우리가 오는 걸 몰라요.']]},
+   {g:0,dt:90,spawn:[{team:'e1',u:[['bar',0],['bar',1]],n:5,at:['e',0],go:['f',0.3,0]}],say:[['virtanen','소련군 증원이 숲길로 들어오고 있어요.']]},
+   {g:1,say:[['korpela','고리를 끊었다. 이제 비푸리다.']],spawn:[{team:'e1',hero:'e_volkov',at:['f',0.72,0]},{team:'e1',u:[['bar',0],['bar',1]],n:5,at:['f',0.72,0]}]},
+   {g:2,say:[['virtanen','본부 위치 확인. 그런데… 독일 연락 장교가 "더 동쪽까지" 가자고 해요.'],['korpela','우린 우리 땅까지만 간다. 그걸 잊지 마라.'],[HQ('fi'),'돌격포 대대가 합류한다. 비푸리를 되찾아라.']],attack:'e1',spawn:[{team:'me',u:'fi_bt42',n:2,at:['f',0.4,0],go:['f',0.6,0]},{team:'me',u:'fi_jaeger',n:6,at:['f',0.4,0.04],go:['f',0.6,0]}]},
+   {g:2,every:45,first:20,spawn:[{team:'e1',u:[['bar',0],['veh',0],['bar',1]],n:4,at:['e',0],go:['f',0.35,0]}],grow:0.5}],
+  outro:[['korpela','비푸리의 종이 울린다. 하지만 이 종소리가 오래 갈지는…'],['laitinen','오늘은 그냥 집에 온 걸로 해 두죠, 대위님.']],
+  ep:'핀란드군은 1941년 8월 29일 비푸리(비보르크)를 되찾았어요. 그러나 옛 국경을 넘어 동카렐리야까지 진격하면서 이 전쟁은 "고향 되찾기"를 넘어섰어요. 그곳의 소련 민간인 다수는 수용소에 갇혔어요. 1944년 여름 소련의 대공세로 핀란드는 9월 휴전에 서명했고, 카렐리야를 다시 잃었어요. 주민들은 두 번째로 고향을 떠나야 했어요. 이어 핀란드는 휴전 조건에 따라 북부의 독일군과 싸운 라플란드 전쟁을 치렀어요.'},
+
+ // ───────────────────────────── 제6~20장 (제작 중) ─────────────────────────────
+ {y:'1941년 12월',place:'소련 · 모스크바',side:'연합',f:'su',t:'혹한의 반격',map:'city',e:[{f:'de'}]},
+ {y:'1941년 12월',place:'말레이 반도',side:'추축',f:'jp',t:'정글의 질주',map:'grandforest',e:[{f:'uk'}]},
+ {y:'1942년 1월',place:'중국 · 창사',side:'연합',f:'cn',t:'창사의 불',map:'city',e:[{f:'jp'}]},
+ {y:'1942년 5월',place:'리비아 · 비르하케임',side:'추축',f:'it',t:'아리에테의 모래',map:'ruins',e:[{f:'fr'}]},
+ {y:'1942년 6월',place:'태평양 · 미드웨이',side:'연합',f:'us',t:'운명의 5분',map:'ocean',e:[{f:'jp'}]},
+ {y:'1942년 11월',place:'소련 · 스탈린그라드',side:'추축',f:'de',t:'포위된 제6군',map:'city',e:[{f:'su'}]},
+ {y:'1943년 1월',place:'소련 · 돈 강',side:'추축',f:'hu',t:'돈 강의 겨울',map:'grandruins',e:[{f:'su'}]},
+ {y:'1943년 7월',place:'소련 · 쿠르스크',side:'연합',f:'su',t:'강철의 폭풍',map:'bighunt',e:[{f:'de'}]},
+ {y:'1944년 4월',place:'인도 · 코히마',side:'연합',f:'in',t:'테니스 코트의 전투',map:'grandforest',e:[{f:'jp'}]},
+ {y:'1944년 6월',place:'프랑스 · 오마하 해변',side:'연합',f:'us',t:'가장 긴 하루',map:'ocean',e:[{f:'de'}]},
+ {y:'1944년 6월',place:'프랑스 · 노르망디 해안 포대',side:'추축',f:'de',t:'대서양 방벽',map:'ocean',e:[{f:'us'}]},
+ {y:'1944년 10월',place:'필리핀 · 레이테 만',side:'추축',f:'jp',t:'마지막 함대',map:'ocean',e:[{f:'us'}]},
+ {y:'1945년 2월',place:'이오지마',side:'추축',f:'jp',t:'검은 모래',map:'ruins',e:[{f:'us'}]},
+ {y:'1945년 4월',place:'독일 · 베를린',side:'추축',f:'de',t:'무너지는 도시',map:'city',e:[{f:'su'}]},
+ {y:'1945년 8월',place:'에테르 핵 시설',side:'연합',f:'ko',t:'최종장 · 새벽',map:'grandruins',e:[{f:'de'}]},
+];
 
 </script>
 </body>
