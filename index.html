@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.3</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.4</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -8093,6 +8093,10 @@ Object.assign(FBAL2,{gr:1.12,ko:(FBAL2.ko||1)*1.07,es:1.08,za:1.07,ca:0.95,mn:0.
 {const _ah2=aiHuman;aiHuman=function(p,c){const r=_ah2.apply(this,arguments);try{if(p.human||!p.alive||!p.ai)return r;const ai=p.ai,F=FAC[p.fac];
  if(!(ai._gasT>G.time)&&p.ether<120&&p.coal>1200&&F.gas){ai._gasT=G.time+25;if(!c.pending(F.gas)&&c.have(F.gas)<6)c.build(F.gas);}
 }catch(e){console.error(e);}return r;};}
+// F.V.1.0.4: 두 번 연속 효율이 지나치게 높았던 유닛 (회천 잠항정 2.6→12.3, 님로드 3.8→6.2)
+(function(){const mul=(k,f,v)=>{if(UD[k]&&UD[k][f])UD[k][f]=+(UD[k][f]*v).toFixed(1);};
+ mul('jp_kaiten','dmg',0.8);if(UD.jp_kaiten)UD.jp_kaiten.cost=[UD.jp_kaiten.cost[0]+25,UD.jp_kaiten.cost[1]];
+ mul('hu_nimrod','dmg',0.85);})();
 
 // ===================== 역사 캠페인 (1939–1945, 20장 · 연합국 10 / 추축국 10) =====================
 // 미션 정의는 HIST 배열 (hist_data.js). 이 파일은 엔진: 영웅, 영웅 능력, 위치 지정, 이벤트·대사, 새 목표, 별 평가, 화면.
