@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.7</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.8</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -8109,11 +8109,15 @@ function aiCommit(p,wave,ratio,D){if(D<3||!p||!p.ai)return false;const ai=p.ai;
 // 2) 공격 주기·규모: 매우 어려움·초극한급은 더 일찍, 더 자주, 더 크게
 Object.assign(AIP[4],{first:125,gap:65,size:22,grow:7});Object.assign(AIP[5],{first:85,gap:40,size:30,grow:11,workers:40});
 // 3) 자원·생산 보너스 (스커미시 AI만, 캠페인은 그대로). 난이도 번호: 0 입문 … 3 어려움, 4 매우 어려움, 5 초극한급
-const DBON={gather:[1,1,1.1,1.25,1.6,2.0],prod:[1,1,1.1,1.15,1.35,1.7],start:[0,0,50,100,300,600],tough:[1,1,1,1,0.93,0.88]};
+const DBON={gather:[1,1,1.25,1.55,2.1,2.8],prod:[1,1,1.2,1.4,1.8,2.4],start:[0,0,100,200,450,800],startE:[0,0,0,50,150,300],wk:[0,0,1,2,4,6],tough:[1,1,0.95,0.9,0.82,0.72],dmg:[1,1,1.05,1.1,1.2,1.3],res:[1,1,1.2,1.5,2.0,2.6],regen:[0,0,0,0.002,0.005,0.009]};
 const dIdx=team=>{const p=P(team);if(!p||p.human||(G&&G.camp))return 0;return Math.max(0,Math.min(5,p.diff??G.diff??2));};
 {const _g=techGatherMul;techGatherMul=function(u){return _g.apply(this,arguments)*DBON.gather[dIdx(u.team)];};}
 {const _pm=techProdMul;techProdMul=function(b){return _pm.apply(this,arguments)*DBON.prod[dIdx(b.team)];};}
-{const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);try{if(G&&!G.camp)for(const p of G.pl)if(!p.human){const d=dIdx(p.id);p.coal+=DBON.start[d];}}catch(e){}return r;};}
+{const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);try{if(G&&!G.camp)for(const p of G.pl)if(!p.human){const d=dIdx(p.id);p.coal+=DBON.start[d];p.ether+=DBON.startE[d];const F=FAC[p.fac];const hq=ents.find(b=>b.id===p.hq0);if(hq&&F&&DBON.wk[d])for(let i=0;i<DBON.wk[d];i++){const a=i/DBON.wk[d]*6.28;const u=addUnit(F.worker,p.id,hq.x+Math.cos(a)*70,hq.y+Math.sin(a)*70);try{orderGather(u,nearestCoal(u.x,u.y));}catch(e){}}}}catch(e){}return r;};}
+// 연구 속도 보너스 (무기 업그레이드·고급 연구) + 상위 난이도 유닛 자가 회복
+{const _ud4=update;let rgT=0;update=function(dt){const sv=[];if(G&&!G.camp&&!G.over){for(const b of ents){if(b.dead||b.type!=='bld')continue;const d=dIdx(b.team);if(d<2)continue;if(b.rs)sv.push([b.rs,b.rs.p,d]);if(b.tr)sv.push([b.tr,b.tr.p,d]);}}
+ const r=_ud4.apply(this,arguments);try{for(const [o,p0,d] of sv){if(o.p>p0&&o.p<1)o.p=Math.min(0.999,o.p+(o.p-p0)*(DBON.res[d]-1));}
+ if(G&&!G.camp&&!G.over){rgT-=dt||0;if(rgT<=0){rgT=1;for(const u of ents){if(u.dead||u.type!=='unit'||u.team<0||u.hp>=u.maxhp)continue;const k=DBON.regen[dIdx(u.team)];if(k)u.hp=Math.min(u.maxhp,u.hp+u.maxhp*k);}}}}catch(e){}return r;};}
 // 건물 짓는 속도도 같은 비율
 {const _ud=update;update=function(dt){if(G&&!G.camp&&!G.over){for(const b of ents){if(b.dead||b.type!=='bld'||b.built||b.prog==null)continue;const d=dIdx(b.team);if(d>=2&&b._bpL!=null&&b.prog>b._bpL)b.prog=Math.min(0.999,b.prog+(b.prog-b._bpL)*(DBON.prod[d]-1));b._bpL=b.prog;}}return _ud.apply(this,arguments);};}
 // 난이도 설명에 보너스 표시
@@ -8146,10 +8150,10 @@ function aiPush(p){const ai=p.ai,sk=p.diff??2;if(sk<4||G.camp||G.time<300)return
 // 난이도 설명 숫자 맞추기
 try{const fx=(A,i,a,b)=>{if(A[i])A[i][1]=A[i][1].replace(a,b);};fx(DIFFHUMAN_PC,3,'APM 210','APM 230');fx(DIFFHUMAN_PC,4,'APM 270','APM 340');fx(DIFFHUMAN_PC,5,'APM 360','APM 600');fx(DIFFHUMAN_MB,4,'APM 98','APM 140');fx(DIFFHUMAN_MB,5,'APM 136','APM 240');
  DIFFHUMAN_PC[5][0]='프로게이머급 이상 — 중수 유저가 이기기 어려움';
- const _dh=diffHtml;diffHtml=function(v){let h=_dh.apply(this,arguments);if(v>=2)h=h.replace('자원·능력치는 사람과 똑같음',`<b style="color:#ff9a6a">AI 자원 +${Math.round((DBON.gather[v]-1)*100)}%·생산 +${Math.round((DBON.prod[v]-1)*100)}%${DBON.tough[v]<1?'·받는 피해 −'+Math.round((1-DBON.tough[v])*100)+'%':''}</b>`);return h;};}catch(e){}
+ const _dh=diffHtml;diffHtml=function(v){let h=_dh.apply(this,arguments);if(v>=2)h=h.replace('자원·능력치는 사람과 똑같음',`<b style="color:#ff9a6a">AI 자원 +${Math.round((DBON.gather[v]-1)*100)}%·생산 +${Math.round((DBON.prod[v]-1)*100)}%·연구 +${Math.round((DBON.res[v]-1)*100)}%·공격력 +${Math.round((DBON.dmg[v]-1)*100)}%·받는 피해 −${Math.round((1-DBON.tough[v])*100)}%·시작 일꾼 +${DBON.wk[v]}${DBON.regen[v]?'·유닛 자동 회복':''}</b>`);return h;};}catch(e){}
 
 // 6) 상위 난이도 AI 유닛·건물이 받는 피해 감소 (매우 어려움 −7%, 초극한급 −12%)
-{const _dm2=damage;damage=function(t,amt){try{if(t&&amt>0&&G&&!G.camp){const k=DBON.tough[dIdx(t.team)];if(k<1)arguments[1]=amt*k;}}catch(e){}return _dm2.apply(this,arguments);};}
+{const _dm2=damage;damage=function(t,amt,src){try{if(t&&amt>0&&G&&!G.camp){let k=DBON.tough[dIdx(t.team)];if(src&&src.team!=null&&src.team>=0)k*=DBON.dmg[dIdx(src.team)];if(k!==1)arguments[1]=amt*k;}}catch(e){}return _dm2.apply(this,arguments);};}
 
 // ===================== F.V.1.0.7 예약 건설 (스타크래프트2 방식) + 건설 비용 증발 버그 수정 =====================
 // 버그: 건설 중인 일꾼에게 새 건물을 지시하면 비용만 빠지고 명령이 거절돼(건설 고정) 돈이 사라졌음.
