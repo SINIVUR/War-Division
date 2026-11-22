@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.6</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.7</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -4751,6 +4751,7 @@ function render(){
  for(const e of vis)if(e.type==='bld'&&selSet.has(e.id)){ctx.strokeStyle=e.team===0?'#6cff6c':'#ff5a4a';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.strokeRect(e.x-e.w*T/2-3,e.y-e.h*T/2-3,e.w*T+6,e.h*T+6);ctx.setLineDash([]);}
  for(const b of vis.filter(e=>e.type==='bld').sort((a,b)=>a.y-b.y))drawBld(b);
  // 예정 건설 자리
+ try{if(typeof drawBQ==='function')drawBQ();}catch(e){}
  for(const u of ents)if(!u.dead&&u.team===0&&u.state==='site'&&u.site){const s2=u.site;ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.strokeRect(s2.tx*T,s2.ty*T,s2.w*T,s2.h*T);ctx.setLineDash([]);}
  for(const id of G.sel){const b=byId.get(id);if(b&&b.type==='bld'&&b.team===0&&b.rally){const r=b.rally.res?byId.get(b.rally.res):b.rally;if(r){ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([5,5]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(r.x,r.y);ctx.stroke();ctx.setLineDash([]);circ(r.x,r.y,4,'#6cff6c');}}}
  const units=vis.filter(e=>e.type==='unit');
@@ -8149,6 +8150,58 @@ try{const fx=(A,i,a,b)=>{if(A[i])A[i][1]=A[i][1].replace(a,b);};fx(DIFFHUMAN_PC,
 
 // 6) 상위 난이도 AI 유닛·건물이 받는 피해 감소 (매우 어려움 −7%, 초극한급 −12%)
 {const _dm2=damage;damage=function(t,amt){try{if(t&&amt>0&&G&&!G.camp){const k=DBON.tough[dIdx(t.team)];if(k<1)arguments[1]=amt*k;}}catch(e){}return _dm2.apply(this,arguments);};}
+
+// ===================== F.V.1.0.7 예약 건설 (스타크래프트2 방식) + 건설 비용 증발 버그 수정 =====================
+// 버그: 건설 중인 일꾼에게 새 건물을 지시하면 비용만 빠지고 명령이 거절돼(건설 고정) 돈이 사라졌음.
+// 이제: 건설 중이거나 건설하러 가는 일꾼에게 다른 자리를 고르면 '예약'으로 쌓임 → 초록 실루엣 표시 → 지금 건물을 다 지으면 차례로 가서 지음.
+//       예약 비용은 고를 때 내고, 예약이 취소되면(일꾼 사망·다른 명령·자리 막힘) 전액 돌려받음.
+function bqRefund(u,why){if(!u.bq||!u.bq.length)return;const p=P(u.team);let c=0,e=0;for(const q of u.bq){const d=BD[q.kind];c+=d.cost[0];e+=d.cost[1];}p.coal+=c;p.ether+=e;const n=u.bq.length;u.bq=[];if(p.human)toast(`예약 건설 ${n}개 취소 — 비용 ${c}${e?'·'+e:''}을 돌려받았어요${why?' ('+why+')':''}`);}
+function bqOverlap(kind,tx,ty){const d=BD[kind];for(const u of ents){if(u.dead||u.team!==0)continue;const L=(u.bq||[]).slice();if(u.state==='site'&&u.site)L.push(u.site);for(const q of L){const e=BD[q.kind];if(tx<q.tx+e.w&&tx+d.w>q.tx&&ty<q.ty+e.h&&ty+d.h>q.ty)return true;}}return false;}
+const _tp=tryPlace;
+tryPlace=function(){try{
+ const k=G.placing,g=G.ghost;if(!k||!g)return _tp.apply(this,arguments);const d=BD[k],tm=P(0);
+ const sel=ownUnits().filter(u=>UD[u.kind].worker);if(!sel.length)return _tp.apply(this,arguments);
+ const p=canPlace(k,g.tx,g.ty,0);
+ const cx=(g.tx+d.w/2)*T,cy=(g.ty+d.h/2)*T,busy=u=>u.state==='build'||u.state==='site'||buildLock(u);
+ const free=sel.filter(u=>!busy(u));
+ // 쉬는 일꾼이 섞여 있으면 원래대로 (가장 가까운 쉬는 일꾼이 감)
+ if(free.length&&!G.bqShift){const keep=G.sel;G.sel=free.map(u=>u.id);try{return _tp.apply(this,arguments);}finally{G.sel=keep;}}
+ // 모두 건설 중이면 예약
+ if(!p){toast(placeWhy(k,g.tx,g.ty,0));play('err');return;}
+ if(bqOverlap(k,p.tx,p.ty)){toast('이미 다른 건물을 예약한 자리예요');play('err');return;}
+ if(tm.coal<d.cost[0]||tm.ether<d.cost[1]){toast('자원이 부족해요');G.placing=null;return;}
+ const w=sel.slice().sort((a,c)=>((a.bq||[]).length-(c.bq||[]).length)||(dist(a.x,a.y,cx,cy)-dist(c.x,c.y,cx,cy)))[0];
+ tm.coal-=d.cost[0];tm.ether-=d.cost[1];(w.bq=w.bq||[]).push({kind:k,tx:p.tx,ty:p.ty});
+ buzz(12);play('build');mark(cx,cy,'#6cff6c');toast(`${d.n} 예약 (${w.bq.length}번째) — 지금 짓는 건물이 끝나면 지어요`);
+ // 쉬프트를 누르고 있으면 같은 건물을 계속 예약할 수 있게 배치 모드 유지
+ if(!G.bqShift){G.placing=null;G.ghost=null;}hudDirty=true;
+}catch(e){console.error('bq',e);return _tp.apply(this,arguments);}};
+// PC: 쉬프트 누른 채 배치하면 예약을 이어서
+addEventListener('keydown',e=>{if(e.key==='Shift')G&&(G.bqShift=true);});addEventListener('keyup',e=>{if(e.key==='Shift')G&&(G.bqShift=false);});
+// 일꾼이 다른 명령을 받으면 예약도 취소 (스타2와 같음). 건설 고정 중인 일꾼은 명령 자체가 안 먹으므로 예약 유지
+{const _om=orderMove;orderMove=function(u){if(u&&u.bq&&u.bq.length&&!buildLock(u)&&u.state!=='build')bqRefund(u,'다른 명령');return _om.apply(this,arguments);};}
+{const _og=orderGather;orderGather=function(u){if(u&&u.bq&&u.bq.length&&!buildLock(u)&&u.state!=='build'&&!u._bqNext)bqRefund(u,'다른 명령');return _og.apply(this,arguments);};}
+// 매 프레임: 지금 건설이 끝난 일꾼은 다음 예약으로
+{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(G&&!G.over)for(const u of ents){if(!u.bq||!u.bq.length)continue;
+  if(u.dead){bqRefund(u,'일꾼 사망');continue;}
+  if(u.state==='build'||u.state==='site'||buildLock(u))continue;
+  const q=u.bq.shift();const d=BD[q.kind];
+  if(!canPlace(q.kind,q.tx,q.ty,u.team,true)){const p=P(u.team);p.coal+=d.cost[0];p.ether+=d.cost[1];if(p.human)toast(`${d.n} 예약 자리가 막혀 취소 — 비용을 돌려받았어요`);continue;}
+  orderSite(u,q.kind,q.tx,q.ty);
+  if(u.state!=='site'){const p=P(u.team);p.coal+=d.cost[0];p.ether+=d.cost[1];}}}catch(e){console.error('bq tick',e);}return r;};}
+// 초록 실루엣 (예약 순서 번호)
+const BQG={};
+function bqGhost(kind){if(BQG[kind])return BQG[kind];const a=bldArt(kind,0);if(!a)return null;const c=document.createElement('canvas');c.width=a.width;c.height=a.height;const x=c.getContext('2d');x.drawImage(a,0,0);x.globalCompositeOperation='source-atop';x.fillStyle='rgba(90,255,120,0.62)';x.fillRect(0,0,c.width,c.height);return BQG[kind]=c;}
+function drawBQ(){const t=performance.now()/1000;for(const u of ents){if(u.dead||u.team!==0||!u.bq||!u.bq.length)continue;
+ let px=u.site?u.site.x:u.x,py=u.site?u.site.y:u.y;
+ u.bq.forEach((q,i)=>{const d=BD[q.kind],x=q.tx*T,y=q.ty*T,W=d.w*T,H=d.h*T,gh=bqGhost(q.kind);
+  ctx.globalAlpha=0.16+0.06*Math.sin(t*3);ctx.fillStyle='#4cff6a';ctx.fillRect(x,y,W,H);
+  if(gh){ctx.globalAlpha=0.55;ctx.imageSmoothingEnabled=false;const s=W/(gh.width-8);ctx.drawImage(gh,x-4*s,y+H-gh.height*s+2*s,gh.width*s,gh.height*s);}
+  ctx.globalAlpha=0.9;ctx.strokeStyle='#8cff9a';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.strokeRect(x,y,W,H);
+  // 일꾼 → 예약 순서를 잇는 점선
+  ctx.strokeStyle='rgba(140,255,154,.45)';ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(x+W/2,y+H/2);ctx.stroke();ctx.setLineDash([]);px=x+W/2;py=y+H/2;
+  ctx.globalAlpha=1;ctx.fillStyle='#0c1a0e';ctx.beginPath();ctx.arc(x+W-8,y+8,7,0,7);ctx.fill();ctx.fillStyle='#8cff9a';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillText(i+1,x+W-8,y+11.5);ctx.textAlign='left';});}
+ ctx.globalAlpha=1;}
 
 // ===================== 역사 캠페인 (1939–1945, 20장 · 연합국 10 / 추축국 10) =====================
 // 미션 정의는 HIST 배열 (hist_data.js). 이 파일은 엔진: 영웅, 영웅 능력, 위치 지정, 이벤트·대사, 새 목표, 별 평가, 화면.
