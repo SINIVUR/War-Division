@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.9</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.10</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -8158,7 +8158,7 @@ function aiCommit(p,wave,ratio,D){if(D<3||!p||!p.ai)return false;const ai=p.ai;
 // 2) 공격 주기·규모: 매우 어려움·초극한급은 더 일찍, 더 자주, 더 크게
 Object.assign(AIP[4],{first:125,gap:65,size:22,grow:7});Object.assign(AIP[5],{first:85,gap:40,size:30,grow:11,workers:40});
 // 3) 자원·생산 보너스 (스커미시 AI만, 캠페인은 그대로). 난이도 번호: 0 입문 … 3 어려움, 4 매우 어려움, 5 초극한급
-const DBON={gather:[1,1,1.25,1.55,2.1,2.8],prod:[1,1,1.2,1.4,1.8,2.4],start:[0,0,100,200,450,800],startE:[0,0,0,50,150,300],wk:[0,0,1,2,4,6],tough:[1,1,0.95,0.9,0.82,0.72],dmg:[1,1,1.05,1.1,1.2,1.3],res:[1,1,1.2,1.5,2.0,2.6],regen:[0,0,0,0.002,0.005,0.009]};
+const DBON={gather:[1,1,1.25,1.55,2.1,2.8],prod:[1,1,1.2,1.4,1.8,2.4],start:[0,0,100,200,450,800],startE:[0,0,0,50,150,300],wk:[0,0,1,2,4,6],tough:[1,1,1,0.97,0.94,0.9],dmg:[1,1,1,1.03,1.06,1.1],res:[1,1,1.2,1.5,2.0,2.6],regen:[0,0,0,0.002,0.005,0.009]};
 const dIdx=team=>{const p=P(team);if(!p||p.human||(G&&G.camp))return 0;return Math.max(0,Math.min(5,p.diff??G.diff??2));};
 {const _g=techGatherMul;techGatherMul=function(u){return _g.apply(this,arguments)*DBON.gather[dIdx(u.team)];};}
 {const _pm=techProdMul;techProdMul=function(b){return _pm.apply(this,arguments)*DBON.prod[dIdx(b.team)];};}
@@ -8199,7 +8199,7 @@ function aiPush(p){const ai=p.ai,sk=p.diff??2;if(sk<4||G.camp||G.time<300)return
 // 난이도 설명 숫자 맞추기
 try{const fx=(A,i,a,b)=>{if(A[i])A[i][1]=A[i][1].replace(a,b);};fx(DIFFHUMAN_PC,3,'APM 210','APM 230');fx(DIFFHUMAN_PC,4,'APM 270','APM 340');fx(DIFFHUMAN_PC,5,'APM 360','APM 600');fx(DIFFHUMAN_MB,4,'APM 98','APM 140');fx(DIFFHUMAN_MB,5,'APM 136','APM 240');
  DIFFHUMAN_PC[5][0]='프로게이머급 이상 — 중수 유저가 이기기 어려움';
- const _dh=diffHtml;diffHtml=function(v){let h=_dh.apply(this,arguments);if(v>=2)h=h.replace('자원·능력치는 사람과 똑같음',`<b style="color:#ff9a6a">AI 자원 +${Math.round((DBON.gather[v]-1)*100)}%·생산 +${Math.round((DBON.prod[v]-1)*100)}%·연구 +${Math.round((DBON.res[v]-1)*100)}%·공격력 +${Math.round((DBON.dmg[v]-1)*100)}%·받는 피해 −${Math.round((1-DBON.tough[v])*100)}%·시작 일꾼 +${DBON.wk[v]}${DBON.regen[v]?'·유닛 자동 회복':''}</b>`);return h;};}catch(e){}
+ const _dh=diffHtml;diffHtml=function(v){let h=_dh.apply(this,arguments);if(v>=2)h=h.replace('자원·능력치는 사람과 똑같음',`<b style="color:#ff9a6a">AI 자원 +${Math.round((DBON.gather[v]-1)*100)}%·생산 +${Math.round((DBON.prod[v]-1)*100)}%·연구 +${Math.round((DBON.res[v]-1)*100)}%${DBON.dmg[v]>1?'·공격력 +'+Math.round((DBON.dmg[v]-1)*100)+'%':''}${DBON.tough[v]<1?'·받는 피해 −'+Math.round((1-DBON.tough[v])*100)+'%':''}·시작 일꾼 +${DBON.wk[v]}${DBON.regen[v]?'·유닛 자동 회복':''}</b>`);return h;};}catch(e){}
 
 // 6) 상위 난이도 AI 유닛·건물이 받는 피해 감소 (매우 어려움 −7%, 초극한급 −12%)
 {const _dm2=damage;damage=function(t,amt,src){try{if(t&&amt>0&&G&&!G.camp){let k=DBON.tough[dIdx(t.team)];if(src&&src.team!=null&&src.team>=0)k*=DBON.dmg[dIdx(src.team)];if(k!==1)arguments[1]=amt*k;}}catch(e){}return _dm2.apply(this,arguments);};}
