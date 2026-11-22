@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.4</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.6</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -2855,8 +2855,8 @@ const safe=!ai.desp&&(!v2||ai.depleted)||!ai.desp&&(prodN2>=(p.noBO?hqs.length+1
   unitsNear(cx,cy,460,v=>{if(enemy(p.id,v.team)&&seen(v,p.id)&&!UD[v.kind].worker)theirs+=upow(v);});}
   for(const b of ents)if(!b.dead&&b.type==='bld'&&enemy(p.id,b.team)&&BD[b.kind].atk&&dist(b.x,b.y,cx,cy)<460&&seen(b,p.id)){const a=BD[b.kind].atk;theirs+=(b.hp+(b.sh||0))*(1+a.dmg/(a.cd||1)/8)*0.45;}
   const ratio=theirs>0?mine/theirs:9;
-  const allP=army.reduce((s2,u)=>s2+upow(u),0),kAll=ai.ku?aiEnemyPow(p,null):0,crush=allP>Math.max(1,kAll)*gn(p,'crush',2.5)&&army.length>=20;ai.crush=crush;
-  if(theirs>300&&(p.noHM?ratio<(v3?0.75:D>=4?0.7:0.55):p.noFS?ratio<(v3?gn(p,'ret',0.75):D>=4?gn(p,'ret',0.7):0.55):hmLose(p,wave,cx,cy,ratio))&&!crush){ // 후퇴 (압도적으로 유리하면 밀어붙여 끝냄)
+  const allP=army.reduce((s2,u)=>s2+upow(u),0),kAll=ai.ku?aiEnemyPow(p,null):0,crush=allP>Math.max(1,kAll)*gn(p,'crush',D>=4?1.7:2.5)&&army.length>=(D>=4?14:20);ai.crush=crush;
+  if(theirs>300&&!(typeof aiCommit==='function'&&aiCommit(p,wave,ratio,D))&&(p.noHM?ratio<(v3?0.75:D>=4?0.7:0.55):p.noFS?ratio<(v3?gn(p,'ret',0.75):D>=4?gn(p,'ret',0.7):0.55):hmLose(p,wave,cx,cy,ratio))&&!crush){ // 후퇴 (압도적으로 유리하면 밀어붙여 끝냄)
    const sx=v3&&ai.rp?ai.rp[0]:base.x+(WW/2-base.x)*0.16,sy=v3&&ai.rp?ai.rp[1]:base.y+(WH/2-base.y)*0.16;
    grpOrder(wave.length,()=>{for(const u of wave){u.wave=0;u.stage=1;orderMove(u,sx+rnd(-70,70),sy+rnd(-70,70));}});
    ai.nextWave=G.time+AIP[D].gap*0.45;ai.retreats=(ai.retreats||0)+1;
@@ -8098,6 +8098,58 @@ Object.assign(FBAL2,{gr:1.12,ko:(FBAL2.ko||1)*1.07,es:1.08,za:1.07,ca:0.95,mn:0.
  mul('jp_kaiten','dmg',0.8);if(UD.jp_kaiten)UD.jp_kaiten.cost=[UD.jp_kaiten.cost[0]+25,UD.jp_kaiten.cost[1]];
  mul('hu_nimrod','dmg',0.85);})();
 
+// ===================== F.V.1.0.5 상위 난이도 AI 강화 =====================
+// 1) 병력이 충분히 모였으면 후퇴하지 않고 한타 (어려움 이상). 한 번 붙으면 20초는 밀어붙임
+function aiCommit(p,wave,ratio,D){if(D<3||!p||!p.ai)return false;const ai=p.ai;
+ if(ai.commitT>G.time&&ratio>(D>=5?0.3:0.38))return true;
+ let sup=0;for(const u of wave)sup+=UD[u.kind].sup||1;
+ const big=sup>=(D>=5?36:D>=4?44:56)||wave.length>=(D>=5?16:D>=4?20:26);
+ if(big&&ratio>=(D>=5?0.42:D>=4?0.5:0.6)){ai.commitT=G.time+20;return true;}return false;}
+// 2) 공격 주기·규모: 매우 어려움·초극한급은 더 일찍, 더 자주, 더 크게
+Object.assign(AIP[4],{first:125,gap:65,size:22,grow:7});Object.assign(AIP[5],{first:85,gap:40,size:30,grow:11,workers:40});
+// 3) 자원·생산 보너스 (스커미시 AI만, 캠페인은 그대로). 난이도 번호: 0 입문 … 3 어려움, 4 매우 어려움, 5 초극한급
+const DBON={gather:[1,1,1.1,1.25,1.6,2.0],prod:[1,1,1.1,1.15,1.35,1.7],start:[0,0,50,100,300,600],tough:[1,1,1,1,0.93,0.88]};
+const dIdx=team=>{const p=P(team);if(!p||p.human||(G&&G.camp))return 0;return Math.max(0,Math.min(5,p.diff??G.diff??2));};
+{const _g=techGatherMul;techGatherMul=function(u){return _g.apply(this,arguments)*DBON.gather[dIdx(u.team)];};}
+{const _pm=techProdMul;techProdMul=function(b){return _pm.apply(this,arguments)*DBON.prod[dIdx(b.team)];};}
+{const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);try{if(G&&!G.camp)for(const p of G.pl)if(!p.human){const d=dIdx(p.id);p.coal+=DBON.start[d];}}catch(e){}return r;};}
+// 건물 짓는 속도도 같은 비율
+{const _ud=update;update=function(dt){if(G&&!G.camp&&!G.over){for(const b of ents){if(b.dead||b.type!=='bld'||b.built||b.prog==null)continue;const d=dIdx(b.team);if(d>=2&&b._bpL!=null&&b.prog>b._bpL)b.prog=Math.min(0.999,b.prog+(b.prog-b._bpL)*(DBON.prod[d]-1));b._bpL=b.prog;}}return _ud.apply(this,arguments);};}
+// 난이도 설명에 보너스 표시
+try{const add=(i,t)=>{for(const A of [DIFFHUMAN_PC,DIFFHUMAN_MB])if(A[i])A[i][1]+=t;};
+ add(2,' AI 보너스: 자원 수입 +10%·생산 +10%·시작 석탄 +50.');add(3,' AI 보너스: 자원 수입 +25%·생산 +15%·시작 석탄 +100.');add(4,' AI 보너스: 자원 수입 +60%·생산·건설 +35%·시작 석탄 +300·받는 피해 −7%. 병력이 모이면 물러서지 않고 한타.');add(5,' AI 보너스: 자원 수입 2배·생산·건설 +70%·시작 석탄 +600·받는 피해 −12%. 더 일찍·더 자주·더 크게 공격하고, 병력이 모이면 끝까지 한타.');}catch(e){}
+// 4) 손 빠르기: 병력이 100기를 넘으면 APM이 바닥나 본대가 길 한가운데서 맴돌던 문제
+//    → 상위 난이도 APM 상향
+DIFF_PC[3][1]=230;DIFF_PC[4]=[4,340,0.35];DIFF_PC[5]=[5,600,0.12];
+DIFF_MB[4]=[5,140,0.9];DIFF_MB[5]=[5,240,0.4];
+// 5) 총공세: 매우 어려움·초극한급은 병력이 충분하면 본대 전체를 적 건물로 밀어 넣음
+//    (기존 웨이브 로직이 수군까지 기다리며 중앙에서 집결·해산을 반복해 100기 넘게 모아도 적 기지에 닿지 못하던 문제)
+function aiPush(p){const ai=p.ai,sk=p.diff??2;if(sk<4||G.camp||G.time<300)return;
+ if(ai.pushT>G.time)return;ai.pushT=G.time+3;
+ const land=[],navy=[];let pw=0;
+ for(const u of ents){if(u.dead||u.team!==p.id||u.type!=='unit')continue;const d=UD[u.kind];if(d.worker||!d.dmg||d.cap||u.raid||u.hid||u.sg||u.morph)continue;(d.layer==='n'?navy:land).push(u);pw+=d.sup||1;}
+ const sup=supplyOf(p.id).used,need=sk>=5?36:50;
+ if(!(ai.commitT>G.time)&&pw<need&&sup<180)return;
+ ai.commitT=Math.max(ai.commitT||0,G.time+12);
+ if(!land.length)return;let cx=0,cy=0;for(const u of land){cx+=u.x;cy+=u.y;}cx/=land.length;cy/=land.length;
+ // 목표: 본대에서 가장 가까운 적 건물 (생산·본진 우선)
+ let tg=null,bd=1e18;for(const b of ents){if(b.dead||b.type!=='bld'||!enemy(p.id,b.team))continue;const dd=BD[b.kind];let d2=(b.x-cx)**2+(b.y-cy)**2;if(dd.train||dd.drop)d2*=0.7;if(d2<bd){bd=d2;tg=b;}}
+ if(!tg)return;ai.pushTg=tg.id;
+ const go=land.filter(u=>u.state!=='attack'&&dist(u.x,u.y,tg.x,tg.y)>260&&(u.state==='idle'||!(u._pushT>G.time-8)||u.state==='move'));
+ if(go.length)grpOrder(go.length,()=>{for(const u of go){u._pushT=G.time;u.wave=1;u.stage=0;u.reinf=0;orderMove(u,tg.x+rnd(-90,90),tg.y+rnd(-90,90),true);}});
+ // 수군: 목표 건물 근처 물가로 (못 가면 orderMove가 가까운 물로 보정)
+ const ng=navy.filter(u=>u.state!=='attack'&&(u.state==='idle'||!(u._pushT>G.time-12)));
+ if(ng.length)grpOrder(ng.length,()=>{for(const u of ng){u._pushT=G.time;orderMove(u,tg.x+rnd(-120,120),tg.y+rnd(-120,120),true);}});
+}
+{const _ah3=aiHuman;aiHuman=function(p,c){const r=_ah3.apply(this,arguments);try{if(!p.human&&p.alive&&p.ai)aiPush(p);}catch(e){console.error(e);}return r;};}
+// 난이도 설명 숫자 맞추기
+try{const fx=(A,i,a,b)=>{if(A[i])A[i][1]=A[i][1].replace(a,b);};fx(DIFFHUMAN_PC,3,'APM 210','APM 230');fx(DIFFHUMAN_PC,4,'APM 270','APM 340');fx(DIFFHUMAN_PC,5,'APM 360','APM 600');fx(DIFFHUMAN_MB,4,'APM 98','APM 140');fx(DIFFHUMAN_MB,5,'APM 136','APM 240');
+ DIFFHUMAN_PC[5][0]='프로게이머급 이상 — 중수 유저가 이기기 어려움';
+ const _dh=diffHtml;diffHtml=function(v){let h=_dh.apply(this,arguments);if(v>=2)h=h.replace('자원·능력치는 사람과 똑같음',`<b style="color:#ff9a6a">AI 자원 +${Math.round((DBON.gather[v]-1)*100)}%·생산 +${Math.round((DBON.prod[v]-1)*100)}%${DBON.tough[v]<1?'·받는 피해 −'+Math.round((1-DBON.tough[v])*100)+'%':''}</b>`);return h;};}catch(e){}
+
+// 6) 상위 난이도 AI 유닛·건물이 받는 피해 감소 (매우 어려움 −7%, 초극한급 −12%)
+{const _dm2=damage;damage=function(t,amt){try{if(t&&amt>0&&G&&!G.camp){const k=DBON.tough[dIdx(t.team)];if(k<1)arguments[1]=amt*k;}}catch(e){}return _dm2.apply(this,arguments);};}
+
 // ===================== 역사 캠페인 (1939–1945, 20장 · 연합국 10 / 추축국 10) =====================
 // 미션 정의는 HIST 배열 (hist_data.js). 이 파일은 엔진: 영웅, 영웅 능력, 위치 지정, 이벤트·대사, 새 목표, 별 평가, 화면.
 
@@ -9876,6 +9928,47 @@ renderMini=function(){_rm.apply(this,arguments);try{
  const it=[];if(gl.g==='destroy'||gl.g==='killhq'||gl.g==='kill')it.push('<b style="color:#ff6a5a">◎</b> 공격 목표');if(gl.at&&['reach','hold','evac','escort'].includes(gl.g))it.push('<b style="color:#ffd24a">◯</b> 목표 지점');
  if(gl.g==='escort')it.push('<b style="color:#7ae8ff">■</b> 호위 대상');if((c.def.lose||[]).some(l=>typeof l==='string'&&l.startsWith('tag:'))||gl.g==='protect')it.push('<b style="color:#6cff8a">⛊</b> 지킬 시설');if((c.def.vital||[]).length)it.push('<b style="color:#ffd24a">●</b> 핵심 영웅');
  if(it.length){const d=document.createElement('div');d.className='mmlg';d.style.cssText='font-size:10px;opacity:.85;margin-top:2px';d.innerHTML='미니맵: '+it.join(' · ');o.appendChild(d);}}catch(e){}return r;};})();
+
+// ===================== F.V.1.0.6 역사 캠페인 대규모화 =====================
+// 양쪽 모두 제대로 갖춘 큰 기지 + 우글우글한 수비 병력 + 증원 규모 확대 → 찔끔찔끔이 아니라 대규모 전투
+(function(){
+const HS={pl:{bld:['sup','sup','sup','sup','bar','bar','bar','veh','veh','air','up','def','def','def'],inf:16,veh:7,air:3,coal:2000,eth:700,wk:8},
+ en:{bld:['sup','sup','sup','sup','sup','bar','bar','bar','bar','veh','veh','veh','air','air','up','def','def','def','def','def','def','def','def'],inf:22,veh:12,air:5},
+ al:{bld:['sup','sup','bar','bar','veh','def','def'],inf:10,veh:5,air:2}};
+const pick=(f,role,i)=>{const L=roleU(f,role).filter(k=>UD[k]&&!UD[k].worker&&!UD[k].cap&&UD[k].dmg);return L.length?L[i%L.length]:null;};
+function army(team,spec,mul,guard){const p=P(team);if(!p||!p.alive)return 0;const f=p.fac,b=p.base;if(!b)return 0;let n=0;
+ // 본진에서 맵 가운데 쪽으로 살짝 나온 곳에 진을 침
+ const ax=b.x+(WW/2-b.x)*0.12,ay=b.y+(WH/2-b.y)*0.12;
+ const put=(role,cnt)=>{for(let i=0;i<cnt;i++){const k=pick(f,role,i);if(!k)return;const L=UD[k].layer;let x=ax+rnd(-230,230),y=ay+rnd(-230,230);
+  if(L!=='a'){const w=nearestPass(L==='n'?'n':'g',Math.floor(x/T),Math.floor(y/T),Math.floor(b.x/T),Math.floor(b.y/T),12);if(!w)continue;x=(w[0]+.5)*T;y=(w[1]+.5)*T;}
+  const u=addUnit(k,team,x,y);if(u){n++;if(guard)u.hhome=[x,y];}}};
+ put('bar',Math.round(spec.inf*mul));put('veh',Math.round(spec.veh*mul));put('air',Math.round(spec.air*mul));return n;}
+function base(team,list){let n=0;for(const r of list){try{if(campPlaceBld(team,r))n++;}catch(e){}}return n;}
+const _hb=histBegin;
+histBegin=function(){_hb.apply(this,arguments);try{
+ const c=G.camp,m=c.def,st=m.st||{},D=campDiff,mul=0.7+D*0.15;// 입문 0.7 … 초극한 1.45
+ const p0=P(0),hasHQ=ents.some(e=>!e.dead&&e.team===0&&e.type==='bld'&&BD[e.kind].drop);
+ // 플레이어: 본진이 있는 장이면 제대로 된 기지와 주력 부대
+ if(hasHQ&&!st.noEco){base(0,HS.pl.bld);p0.coal=Math.max(p0.coal,HS.pl.coal);p0.ether=Math.max(p0.ether,HS.pl.eth);
+  const wk=FAC[p0.fac].worker||roleU(p0.fac,'hq')[0];for(let i=0;i<HS.pl.wk;i++){const b=p0.base;if(UD[wk])addUnit(wk,0,b.x+rnd(-90,90),b.y+rnd(-90,90));}
+  army(0,HS.pl,1,false);}
+ else if(!st.noEco)army(0,{inf:8,veh:3,air:1},1,false);
+ // 동맹
+ let ti=1;for(const a of (m.al||[])){const p=P(ti);if(p&&p.alive){base(ti,HS.al.bld);army(ti,HS.al,mul,true);p.coal+=1200;p.ether+=400;}ti++;}
+ // 적: 큰 기지 + 기지를 지키는 수비군 (자리를 지킴) — 영웅만으로 침투하는 장은 수비군을 줄임
+ const sneak=!hasHQ||st.noEco;
+ for(const e of m.e){const p=P(ti);if(p&&p.alive){base(ti,HS.en.bld);army(ti,HS.en,mul*(sneak?0.45:1),true);p.coal+=1500+D*400;p.ether+=500+D*120;}ti++;}
+ c.scaled=1;
+}catch(e){console.error('histscale',e);}};
+// 이벤트 증원·공세 규모 확대 (영웅·건물·지켜야 할 아군 표식 유닛은 그대로)
+const _hs=hSpawn;
+hSpawn=function(sp){try{if(G&&G.camp&&sp&&sp.u&&!sp.hero&&!sp.b){const t=hTeam(sp.team);const D=campDiff;
+  if(t!==0&&!P(t).ally&&enemy(0,t))sp=Object.assign({},sp,{n:Math.max(1,Math.round((sp.n||1)*(1.7+D*0.25)))});
+  else if(!sp.tag)sp=Object.assign({},sp,{n:Math.max(1,Math.round((sp.n||1)*1.6))});}}catch(e){}
+ return _hs.call(this,sp);};
+// 적 AI 생산 상한도 크게 (기존 8+난이도×3 → 약 3배)
+for(const id in HCH){const h=HCH[id];h.ecap=Math.round((h.ecap||8)*3)+10;}
+})();
 
 </script>
 </body>
