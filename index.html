@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.11</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.14</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -466,9 +466,9 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
 <div id="pause" class="overlay hidden">
   <h3>일시 정지</h3>
   <div class="help">
-    · <b>탭</b>: 선택 / 유닛을 고른 뒤 <b>땅 한 번 탭 = 이동</b>, <b>두 번 탭 = 어택땅</b> · 적을 탭하면 공격<br>
+    · <b>탭</b>: 선택 / 유닛을 고른 뒤 <b>땅 탭 = 어택땅</b> (적 무시 이동은 오른쪽 아래 <b>🚶 이동</b> 버튼) · 적 근처를 탭하면 그 적을 공격<br>
     · <b>미니맵</b>: 유닛 선택 중 한 번 탭 = 그곳으로 이동, 두 번 탭 = 화면 전환 · <b>ESC</b>: 취소 / 메뉴<br>
-    · <b>한 손가락 드래그</b>: 범위 선택 (병력이 있으면 일꾼은 빠짐)<br>
+    · <b>한 손가락 드래그</b>: 화면 이동 · <b>빈 땅 길게 누른 뒤 끌기</b> 또는 왼쪽 <b>⬚범위</b> 버튼: 범위 선택 (병력이 있으면 일꾼은 빠짐) · <b>⚔전병력</b>: 일꾼 빼고 전부 선택 (두 번: 본대로 화면 이동)<br>
     · <b>조이스틱</b>(왼쪽 아래), <b>두 손가락</b>, <b>미니맵</b>(오른쪽 위): 화면 이동 · 벌려서 확대/축소<br>
     · <b>유닛 두 번 탭</b>: 화면 안 같은 종류 전체 선택<br>
     · <b>1·2·3 길게 누르기</b>: 부대 지정 · 짧게: 부대 선택 · 두 번: 그곳으로 이동<br>
@@ -510,10 +510,10 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
 · <b>Shift</b> 추가 선택·명령 예약, <b>Ctrl+클릭/더블클릭</b> 같은 종류, <b>Shift+건물 더블클릭</b> 맵 전체 같은 건물, <b>Ctrl+숫자</b> 부대 지정, 숫자 두 번 누르면 이동.<br>
 · 일꾼: <b>B</b> 기본 건설, <b>V</b> 고급 건설. 명령: <b>M A S H P G</b>, 건물 집결지 <b>R</b>, <b>Esc</b> 취소·메뉴, <b>Space</b> 마지막 경보, <b>F2~F4</b> 화면 위치.<br>
 · 게임 중에는 <b>전체화면</b>으로 고정되고 마우스가 창 밖으로 나가지 않아요. <b>Esc를 길게</b> 누르면 전체화면이 풀리고 일시정지돼요.</div><div class="mo">
-· 유닛을 <b>탭</b>해서 고르고, <b>땅을 한 번 탭</b>하면 이동(적 무시), <b>두 번 탭</b>하면 어택땅(가는 길의 적과 싸우며 이동)이에요. 적을 직접 탭하면 공격해요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
-· <b>길게 누르면</b> 화면 안 같은 종류 유닛이 모두 선택돼요. 한 손가락 <b>드래그</b>는 범위 선택이에요.<br>
+· 유닛을 <b>탭</b>해서 고르고, <b>땅을 탭</b>하면 어택땅(가는 길의 적과 싸우며 이동)이에요. 적을 무시하고 빼려면 오른쪽 아래 <b>🚶 이동</b>을 누른 뒤 탭하세요. 적 근처만 탭해도 그 적을 노려요.<br>· 위쪽 <b>유닛 아이콘</b>을 탭하면 그 종류 전체가 선택돼요 (두 번 탭: 그곳으로 이동, 길게: 추가 선택).<br>· 선택한 유닛을 누른 채 <b>끌어서 놓으면</b> 그 자리로 이동해요.<br>· 왼쪽 <b>🏭생산</b>은 화면을 옮기지 않고 어디서나 생산, <b>🔨건설</b>은 일꾼을 자동으로 골라 건설 메뉴를 열어요.<br>
+· <b>길게 누르면</b> 화면 안 같은 종류 유닛이 모두 선택돼요. 한 손가락 <b>드래그</b>는 화면 이동, <b>빈 땅을 길게 누른 뒤 끌면</b> 범위 선택이에요. 왼쪽 <b>⚔전병력</b>은 병력 전체 선택이에요.<br>
 · 건물을 탭하면 유닛을 뽑을 수 있고, 일꾼을 고른 뒤 <b>건설</b>을 누르면 초록 칸에 지을 수 있어요.<br>
-· 화면 이동은 왼쪽 아래 <b>조이스틱</b>, <b>두 손가락</b>, 오른쪽 위 <b>미니맵</b>으로 하세요. 미니맵: 유닛을 고른 채 <b>한 번 탭 = 그곳으로 이동</b>, <b>두 번 탭 = 화면 전환</b>, 끌기 = 화면 이동. 가 보지 않은 곳은 <b>안개</b>로 가려져 있어요.<br>
+· 화면 이동은 <b>한 손가락 드래그</b>, 왼쪽 아래 <b>조이스틱</b>, <b>두 손가락</b>, 오른쪽 위 <b>미니맵</b>으로 하세요. 미니맵: 유닛을 고른 채 <b>한 번 탭 = 그곳으로 이동</b>, <b>두 번 탭 = 화면 전환</b>, 끌기 = 화면 이동. 가 보지 않은 곳은 <b>안개</b>로 가려져 있어요.<br>
 · 공격받으면 오른쪽에 빨간 <b>⚠</b> 버튼이 떠요. 누르면 그곳으로 바로 가요.</div>
 <div class="seg" style="margin-top:10px"><button id="tipsOk" class="on">알겠어요</button></div></div></div>
 <div id="loading" class="hidden"><div class="ld-rays"></div><svg class='ld-gear g1' viewBox='0 0 100 100'><g fill='#e8c56a'><circle cx='50' cy='50' r='30'/><rect x='45' y='4' width='10' height='18' transform='rotate(0 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(30 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(60 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(90 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(120 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(150 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(180 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(210 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(240 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(270 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(300 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(330 50 50)'/></g><circle cx='50' cy='50' r='11' fill='#000'/></svg><svg class='ld-gear g2' viewBox='0 0 100 100'><g fill='#c9a050'><circle cx='50' cy='50' r='30'/><rect x='45' y='4' width='10' height='18' transform='rotate(0 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(30 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(60 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(90 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(120 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(150 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(180 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(210 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(240 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(270 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(300 50 50)'/><rect x='45' y='4' width='10' height='18' transform='rotate(330 50 50)'/></g><circle cx='50' cy='50' r='11' fill='#000'/></svg><div class="ld-scene"><svg viewBox="0 0 1000 120" preserveAspectRatio="none"><path d="M0 92 Q120 70 260 88 T520 84 T780 90 T1000 80 V120 H0Z" fill="#1a130b"/><path d="M0 104 Q160 92 330 102 T700 100 T1000 98 V120 H0Z" fill="#0e0a06"/></svg>
@@ -1321,7 +1321,7 @@ function newGame(cfg){
    const u=addUnit(F.worker,p.id,x,y);orderGather(u,nearestCoal(u.x,u.y));
   }
  }
- cam.z=PC?(VW>=1800?1.5:1):clamp(Math.min(VW,VH*2.2)/820*0.66,0.5,0.9);// 모바일: 시점을 더 높게(더 넓게)
+ cam.z=PC?(VW>=1800?1.5:1):clamp(Math.min(VW,VH*2.2)/820*0.9,0.62,1.2);// 모바일: 시점을 더 높게(더 넓게)
  centerOn(P(0).base.x,P(0).base.y);
  buildTerrainImage();
  fvis.fill(0);fexp.fill(0);updFog();
@@ -4769,7 +4769,7 @@ function render(){
   ctx.fillStyle='#ffffff';ctx.fillRect(Math.round(hx)-1,Math.round(hy)-1,3,3);}ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
  for(const p of G.parts){if(p.gl)continue;const k=clamp(p.life/p.max,0,1);ctx.globalAlpha=p.grow?Math.min(0.6,k*0.8):1;ctx.fillStyle=p.col;const s=Math.max(2,Math.round(p.size*(p.grow?1:1.2)/2)*2);if(p.grow&&s>6){ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2+2)&~1,s,s-4);ctx.fillRect(Math.round(p.x-s/2+2)&~1,Math.round(p.y-s/2)&~1,s-4,s);}else ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2)&~1,s,s);}ctx.globalAlpha=1;
  ctx.globalCompositeOperation='lighter';for(const p of G.parts){if(!p.gl)continue;const k=clamp(p.life/p.max,0,1);ctx.globalAlpha=Math.min(1,k*1.4);ctx.fillStyle=p.col;const s=Math.max(2,Math.round(p.size*(0.6+k*0.6)/2)*2);ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2)&~1,s,s);if(s>=6){ctx.globalAlpha*=0.35;ctx.fillRect(Math.round(p.x-s)&~1,Math.round(p.y-s/4)&~1,s*2,Math.max(2,s/2));ctx.fillRect(Math.round(p.x-s/4)&~1,Math.round(p.y-s)&~1,Math.max(2,s/2),s*2);}}ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
- for(const m of G.marks){const k=m.t/0.6;ctx.strokeStyle=m.col;ctx.globalAlpha=1-k;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(m.x,m.y,6+k*12,(6+k*12)*0.7,0,0,7);ctx.stroke();}ctx.globalAlpha=1;
+ for(const m of G.marks){const k=m.t/0.6;ctx.strokeStyle=m.col;ctx.globalAlpha=1-k;ctx.lineWidth=2;ctx.beginPath();ctx.lineWidth=PC?2:3.5;const MK=PC?1:2;ctx.ellipse(m.x,m.y,(6+k*12)*MK,(6+k*12)*0.7*MK,0,0,7);ctx.stroke();}ctx.globalAlpha=1;
  if(fogC){ctx.imageSmoothingEnabled=false;{const FK=fogC.width/WW,fx0=Math.max(0,Math.floor(vx0/T)-1)*T,fy0=Math.max(0,Math.floor(vy0/T)-1)*T,fx1=Math.min(WW,Math.ceil(vx1/T+1)*T),fy1=Math.min(WH,Math.ceil(vy1/T+1)*T);if(fx1>fx0&&fy1>fy0)ctx.drawImage(fogC,fx0*FK,fy0*FK,(fx1-fx0)*FK,(fy1-fy0)*FK,fx0,fy0,fx1-fx0,fy1-fy0);}ctx.fillStyle='#080705';ctx.fillRect(-400,-400,WW+800,400);ctx.fillRect(-400,WH,WW+800,400);ctx.fillRect(-400,0,400,WH);ctx.fillRect(WW,0,400,WH);}
  drawSat();
  for(const e of vis)if(e.type!=='res'&&(selSet.has(e.id)||e.hp<e.maxhp||(e.maxsh&&e.sh<e.maxsh)||(e.pcMax&&e.team===0)||(e.type==='bld'&&!e.built)))hpBar(e);
@@ -4915,8 +4915,8 @@ function handleTap(sx,sy){
  if(hit&&enemy(0,hit.team)){if(us.length)commandAt(wx,wy,false,MOBATK);else setSel([hit]);return;}
  if(hit&&hit.type==='res'){if(us.length||ownBlds().length)commandAt(wx,wy,false,MOBATK);else setSel([hit]);return;}
  // 빈 땅: 한 번 탭 = 이동, 두 번 탭 = 어택땅 / 건물만 고른 상태면 집결지
- if(us.length||ownBlds().length){const lg=G.lastGround||{t:0,x:-999,y:-999};const dbl=us.length&&now-lg.t<330&&dist(sx,sy,lg.x,lg.y)<45;
-  commandAt(wx,wy,!!dbl,false);if(dbl)toast('⚔ 어택땅');G.lastGround=dbl?{t:0,x:-999,y:-999}:{t:now,x:sx,y:sy};}
+ if(us.length||ownBlds().length){const lg=G.lastGround||{t:0,x:-999,y:-999};const dbl=us.length&&(PC?now-lg.t<330&&dist(sx,sy,lg.x,lg.y)<45:us.some(u=>!UD[u.kind].worker&&UD[u.kind].dmg));/* 모바일: 전투 유닛이 있으면 한 번 탭 = 어택땅 (적 무시 이동은 [이동] 버튼) */
+  commandAt(wx,wy,!!dbl,false);if(dbl&&PC)toast('⚔ 어택땅');G.lastGround=dbl?{t:0,x:-999,y:-999}:{t:now,x:sx,y:sy};}
 }
 function boxSelect(b,add){
  const a=s2w(Math.min(b.x0,b.x1),Math.min(b.y0,b.y1)),c=s2w(Math.max(b.x0,b.x1),Math.max(b.y0,b.y1));
@@ -4945,12 +4945,13 @@ cvs.addEventListener('pointerdown',e=>{
 cvs.addEventListener('pointermove',e=>{
  if(!G||!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(!gest)return;
+ if(gest.mode==='pan1'){cam.x-=(e.clientX-gest.px)/cam.z;cam.y-=(e.clientY-gest.py)/cam.z;gest.px=e.clientX;gest.py=e.clientY;clampCam();return;}
  if(gest.mode==='mpan'){cam.x-=(e.clientX-gest.x)/cam.z;cam.y-=(e.clientY-gest.y)/cam.z;gest.x=e.clientX;gest.y=e.clientY;clampCam();return;}
  if(gest.mode==='pan'&&ptrs.size>=2){const p=[...ptrs.values()],mx=(p[0].x+p[1].x)/2,my=(p[0].y+p[1].y)/2,d=dist(p[0].x,p[0].y,p[1].x,p[1].y);
   cam.x-=(mx-gest.mx)/cam.z;cam.y-=(my-gest.my)/cam.z;if(gest.d>20)zoomAt(mx,my,cam.z*d/gest.d);gest.mx=mx;gest.my=my;gest.d=d;clampCam();return;}
  if(gest.mode==='tap'||gest.mode==='ghost'||gest.mode==='box'||gest.mode==='drag'){
   if(G.placing||(G.pending&&G.pending.t==='reloc')){gest.mode='ghost';const w=s2w(e.clientX,e.clientY);ghostFor(w[0],w[1]);return;}
-  if(gest.mode==='tap'&&dist(e.clientX,e.clientY,gest.sx,gest.sy)>10){if(gest.fromSel){gest.mode='drag';clearTimeout(lpTimer);}else gest.mode='box';}
+  if(gest.mode==='tap'&&dist(e.clientX,e.clientY,gest.sx,gest.sy)>10){if(gest.fromSel){gest.mode='drag';clearTimeout(lpTimer);}else if(gest.mouse||G.boxMode||gest.lpBox)gest.mode='box';else{gest.mode='pan1';gest.px=gest.sx;gest.py=gest.sy;clearTimeout(lpTimer);}}
   if(gest.mode==='drag'){if(!gest.ws)gest.ws=s2w(gest.sx,gest.sy);gest.cx=e.clientX;gest.cy=e.clientY;G.dragLine={x0:gest.sx,y0:gest.sy,x1:e.clientX,y1:e.clientY};return;}
   if(gest.mode==='box')G.box={x0:gest.sx,y0:gest.sy,x1:e.clientX,y1:e.clientY};
  }
@@ -4962,7 +4963,7 @@ function ptrEnd(e,cancel){
   if(gest.mode==='tap'){if(gest.mouse&&!G.placing&&!G.pending)mouseSelect(e.clientX,e.clientY,gest.shift,gest.ctrl);else handleTap(e.clientX,e.clientY);}
   else if(gest.mode==='ghost'){if(G.placing)tryPlace();else if(G.pending&&G.pending.t==='reloc')handleTap(e.clientX,e.clientY);}
   else if(gest.mode==='box'&&G.box)boxSelect(G.box,gest.shift);
-  else if(gest.mode==='drag'){const w=s2w(e.clientX,e.clientY),hit=pick(w[0],w[1]);if(hit&&hit.type==='res')commandAt(w[0],w[1],false,MOBATK);else commandAt(w[0],w[1],MOBATK&&!(hit&&enemy(0,hit.team)),false);}
+  else if(gest.mode==='drag'){const w=s2w(e.clientX,e.clientY),hit=pick(w[0],w[1]);if(hit&&hit.type==='res')commandAt(w[0],w[1],false,MOBATK);else commandAt(w[0],w[1],(MOBATK||(!PC&&!G.mobMove))&&!(hit&&enemy(0,hit.team)),false);G.mobMove=false;}
  }
  G.box=null;G.dragLine=null;
  if(gest.mode==='pan'){gest=ptrs.size===0?null:{mode:'dead'};}else if(ptrs.size===0)gest=null;
@@ -5269,7 +5270,7 @@ function buildGroups(){
   el.addEventListener('pointercancel',()=>clearTimeout(tm));g.appendChild(el);return el;};
  const order=[];
  for(let i=0;i<3;i++){let lastT=0;
-  mk(String(i+1),()=>{const list=G.groups[i].map(id=>byId.get(id)).filter(e=>e&&!e.dead);if(!list.length){toast(`${i+1}번 부대가 비었어요 — 길게 눌러 지정`);return;}
+  mk(String(i+1),()=>{const list=G.groups[i].map(id=>byId.get(id)).filter(e=>e&&!e.dead);if(!list.length){const cur=selEnts().filter(e=>e.team===0);if(cur.length){G.groups[i]=cur.map(e=>e.id);buzz(15);toast(`${i+1}번 부대 지정 (${cur.length})`);return;}toast(`${i+1}번 부대가 비었어요 — 병력을 고른 뒤 누르면 지정`);return;}
    const now=performance.now();if(now-lastT<350){const cx=list.reduce((s,e)=>s+e.x,0)/list.length,cy=list.reduce((s,e)=>s+e.y,0)/list.length;centerOn(cx,cy);}lastT=now;setSel(list);},
    ()=>{G.groups[i]=selEnts().filter(e=>e.team===0).map(e=>e.id);toast(G.groups[i].length?`${i+1}번 부대 지정 (${G.groups[i].length})`:`${i+1}번 부대 해제`);});}
  // 병력 선택: 육군·공군·해군 따로 (두 번 누르면 그쪽으로 화면 이동)
@@ -5362,9 +5363,9 @@ let miniTap=null,miniLastTap=0;
 mini.addEventListener('pointermove',e=>{if(miniTap&&!miniDrag&&dist(e.clientX,e.clientY,miniTap.x,miniTap.y)>6){miniDrag=true;miniTap=null;}if(miniDrag)miniMove(e);});
 // 미니맵(모바일): 유닛 선택 중 한 번 탭 = 그곳으로 이동, 두 번 탭 = 화면 전환 / 선택 없으면 한 번 탭 = 화면 전환 / 끌기 = 화면 이동
 let miniMoveT=null;
-mini.addEventListener('pointerup',e=>{if(miniTap&&G){const now=performance.now(),dbl=now-miniLastTap<320;miniLastTap=dbl?0:now;const r=mini.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;const us=selEnts().filter(u=>u.type==='unit'&&u.team===0);
+mini.addEventListener('pointerup',e=>{if(miniTap&&G){const now=performance.now(),dbl=now-miniLastTap<420;miniLastTap=dbl?0:now;const r=mini.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;const us=selEnts().filter(u=>u.type==='unit'&&u.team===0);
  if(dbl){clearTimeout(miniMoveT);miniMoveT=null;centerOn(x,y);G.miniPing={x,y,t:now,c:'#ffffff'};toast('📷 화면 전환');}
- else if(us.length){clearTimeout(miniMoveT);miniMoveT=setTimeout(()=>{miniMoveT=null;if(!G)return;const live=selEnts().filter(u=>u.type==='unit'&&u.team===0);if(!live.length)return;commandAt(x,y,false,false);G.miniPing={x,y,t:performance.now(),c:'#6cff6c'};toast(`🚶 ${live.length}기 미니맵 지점으로 이동`);},300);}
+ else if(us.length){clearTimeout(miniMoveT);miniMoveT=setTimeout(()=>{miniMoveT=null;if(!G)return;const live=selEnts().filter(u=>u.type==='unit'&&u.team===0);if(!live.length)return;commandAt(x,y,false,false);G.miniPing={x,y,t:performance.now(),c:'#6cff6c'};toast(`🚶 ${live.length}기 미니맵 지점으로 이동`);},450);}
  else{centerOn(x,y);G.miniPing={x,y,t:now,c:'#ffffff'};}}miniTap=null;miniDrag=false;});mini.addEventListener('pointercancel',()=>miniDrag=false);
 // ======================== 효과음 (Web Audio 합성) ========================
 const SFX={ac:null,out:null,noise:null,on:true,last:{},n:0};
@@ -5512,7 +5513,7 @@ function drawPreview(){
  {const np=MAPS[cfg.map].np;$('mapDesc').textContent=MAPS[cfg.map].desc+` (${np}인 맵 · 시작 지점 ${np}곳 중 무작위 · 흰 점 = 멀티)`;renderAiSeg();}
 }
 function showGame(on){for(const id of ['top','bottom','groups','quick','mini'])$(id).classList.toggle('hidden',!on);if(!on){$('roster').classList.add('hidden');$('prod').classList.add('hidden');}}
-const LD_TIPS=['언덕 아래에서 위로 쏘는 원거리 공격은 절반쯤 빗나가요. 길목을 언덕 위에서 지키세요.','땅을 두 번 탭하면 어택땅! 가는 길의 적과 싸우며 이동해요.','상단의 ⛏ 숫자는 쉬는 일꾼 수예요. 누르면 바로 선택돼요.','🏭 숫자는 놀고 있는 생산 건물 수예요. 누르면 모두 선택돼요.','석탄 일꾼은 광맥 하나에 2명, 본진 하나에 16명이 가장 효율적이에요.','보급이 막히면 생산이 멈춰요. 보급 건물을 미리 지어 두세요.','건물 여러 채를 고르면 설명창에서 건물별 생산 현황을 한눈에 볼 수 있어요.','공격받으면 오른쪽에 ⚠ 버튼이 떠요. 누르면 그곳으로 바로 가요.','일시정지 메뉴에서 게임 속도를 바꿀 수 있어요.','독일·호주·영국은 동력장 안에만, 중국·일본·인도는 영토 위에만 지어요.','APM은 분당 행동 수예요. 손이 빠를수록 높아져요.','멀티 지역(빈 본진 언덕)을 먹으면 자원이 두 배가 돼요.'];
+const LD_TIPS=['언덕 아래에서 위로 쏘는 원거리 공격은 절반쯤 빗나가요. 길목을 언덕 위에서 지키세요.','땅을 탭하면 어택땅! 적을 무시하고 빼려면 🚶 이동 버튼을 쓰세요.','상단의 ⛏ 숫자는 쉬는 일꾼 수예요. 누르면 바로 선택돼요.','🏭 숫자는 놀고 있는 생산 건물 수예요. 누르면 모두 선택돼요.','석탄 일꾼은 광맥 하나에 2명, 본진 하나에 16명이 가장 효율적이에요.','보급이 막히면 생산이 멈춰요. 보급 건물을 미리 지어 두세요.','건물 여러 채를 고르면 설명창에서 건물별 생산 현황을 한눈에 볼 수 있어요.','공격받으면 오른쪽에 ⚠ 버튼이 떠요. 누르면 그곳으로 바로 가요.','일시정지 메뉴에서 게임 속도를 바꿀 수 있어요.','독일·호주·영국은 동력장 안에만, 중국·일본·인도는 영토 위에만 지어요.','APM은 분당 행동 수예요. 손이 빠를수록 높아져요.','멀티 지역(빈 본진 언덕)을 먹으면 자원이 두 배가 돼요.'];
 function ldSet(p,msg){$('ldBar').style.width=p+'%';$('ldPct').textContent=Math.round(p)+'%';if(msg)$('ldMsg').textContent=msg;
  const li=[...$('ldSteps').children],k=p>=100?4:p>=75?3:p>=50?2:p>=25?1:0;li.forEach((e,i)=>{e.className=i<k?'done':i===k?'on':'';});}
 function ldMapDraw(mapK){try{const c=$('ldMap'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
@@ -5788,9 +5789,9 @@ function goalHint(gl,f){
   case 'army':return PC?'병영을 클릭해 병력을 뽑으세요':'🏭생산 버튼에서 병력을 뽑으세요 (화면 이동 필요 없음)';
   case 'coal':return '일꾼을 석탄에 보내고 일꾼 수를 16명까지 늘리세요';
   case 'survive':return '본진 앞에 병력을 모아 두고 계속 생산하세요';
-  case 'kills':return PC?'적 병력을 찾아 싸우세요. A+클릭 어택땅이 편해요':'적 병력을 찾아 싸우세요. 땅을 두 번 탭하면 어택땅이에요';
+  case 'kills':return PC?'적 병력을 찾아 싸우세요. A+클릭 어택땅이 편해요':'적 병력을 찾아 싸우세요. 땅을 탭하면 어택땅이에요';
   case 'killhq':return '적 본진 건물만 노리세요. 적을 직접 탭하면 그 대상을 공격해요';
-  case 'kill':return PC?'병력을 모아 A+클릭 어택땅으로 적 건물을 모두 부수세요':'병력을 모아 땅을 두 번 탭(어택땅)해 적 건물을 모두 부수세요';
+  case 'kill':return PC?'병력을 모아 A+클릭 어택땅으로 적 건물을 모두 부수세요':'병력을 모아(⚔전병력) 땅을 탭(어택땅)해 적 건물을 모두 부수세요';
   case 'up':return `연구 건물을 짓고 무기·장갑 연구를 진행하세요`;
  }return '';
 }
@@ -10081,6 +10082,143 @@ hSpawn=function(sp){try{if(G&&G.camp&&sp&&sp.u&&!sp.hero&&!sp.b){const t=hTeam(s
  return _hs.call(this,sp);};
 // 적 AI 생산 상한도 크게 (기존 8+난이도×3 → 약 3배)
 for(const id in HCH){const h=HCH[id];h.ecap=Math.round((h.ecap||8)*3)+10;}
+})();
+
+// ===================== F.V.1.0.12 모바일 타이틀 화면 개편 =====================
+// 모바일에서만: 진영 · 대전 방식 · 난이도 · 맵을 각각 따로 고르는 큰 화면(탭 4개). PC는 기존 한 화면 그대로.
+(function(){
+const css=`
+#wiz{position:absolute;inset:0;display:none;flex-direction:column;padding:max(6px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));box-sizing:border-box;z-index:2}
+#title.wizOn>.wrap{display:none!important}
+#title.wizOn #wiz{display:flex}
+#wiz .wz-top{display:flex;align-items:center;gap:12px;height:15vh;min-height:44px}
+#wiz .wz-logo{font-size:min(6.2vh,26px);font-weight:900;color:#e8c56a;letter-spacing:.05em;text-shadow:0 2px 0 #5a4320,0 0 18px rgba(232,197,106,.35);white-space:nowrap;line-height:1}
+#wiz .wz-logo small{display:block;font-size:min(2.6vh,10px);letter-spacing:.3em;color:#a88f5c;font-weight:600;margin-top:3px}
+#wiz .wz-tabs{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;height:100%;padding:4px 0}
+#wiz .wz-tab{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:0 10px;border:1.5px solid #6b5530;border-radius:9px;background:rgba(30,24,16,.88);color:#b5a585;font-family:inherit;text-align:left;min-width:0}
+#wiz .wz-tab b{font-size:min(3.4vh,13px);font-weight:700;color:#a88f5c;white-space:nowrap}
+#wiz .wz-tab span{font-size:min(5vh,19px);font-weight:900;color:#f1e3c0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#wiz .wz-tab.on{border-color:#f0d080;background:linear-gradient(#6d552a,#3a2d16);box-shadow:0 0 12px rgba(240,208,128,.35)}
+#wiz .wz-tab.on b{color:#ffe7a0}
+#wiz .wz-body{flex:1;min-height:0;position:relative;margin:6px 0}
+#wiz .wz-page{position:absolute;inset:0;display:none;flex-direction:column;align-items:stretch;justify-content:center}
+#wiz .wz-page.on{display:flex}
+#wiz .wz-h{font-size:min(4.6vh,18px);font-weight:800;color:#e8c56a;margin:0 0 6px 2px}
+#wiz #facRow{display:grid!important;grid-auto-columns:minmax(0,1fr)!important;grid-template-rows:repeat(4,minmax(0,1fr))!important;overflow:hidden!important;padding:2px!important;gap:6px!important;flex:1;min-height:0;width:100%!important;max-width:none!important;margin:0!important;zoom:1!important}
+#wiz #facRow .fac{width:auto;height:auto;padding:4px 7px;border-width:1.5px;border-radius:8px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+#wiz #facRow .fac{position:relative;padding-top:6px!important}
+#wiz #facRow .fac .bar{position:absolute;top:4px;left:7px;right:7px;height:3px;margin:0}
+#wiz #facRow .fac .fn{font-size:min(4.6vh,18px)!important;letter-spacing:-.5px;text-overflow:clip;line-height:1.25;overflow:visible}
+#wiz #facRow .fac[data-f="et"] .fn,#wiz #facRow .fac[data-f="ko"] .fn,#wiz #facRow .fac[data-f="nz"] .fn{font-size:min(3.9vh,15px)!important;letter-spacing:-.8px}
+#wiz #facRow .fac .fd{font-size:min(2.9vh,11px);margin-top:1px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:1.25}
+#wiz #facRow .fac.sel{box-shadow:0 0 0 2px #f0d080,0 0 14px rgba(240,208,128,.5)}
+#wiz #facTrait{font-size:min(3.8vh,15px)!important;min-height:4.6vh!important;margin:6px 2px 0!important;text-align:left}
+#wiz .wz-row{display:flex;align-items:center;gap:14px;margin:1.6vh 0}
+#wiz .wz-row .wz-l{width:24%;font-size:min(4.6vh,18px);font-weight:800;color:#e0c890}
+#wiz .seg{gap:10px;justify-content:flex-start}
+#wiz .seg button,#wiz .tedit{font-size:min(5.6vh,22px)!important;padding:1.8vh 4.4vh!important;border-radius:9px!important;border-width:1.5px}
+#wiz #teamSum{font-size:min(4vh,15px)!important;margin-left:calc(24% + 14px)!important;text-align:left}
+#wiz #diffSeg{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+#wiz #diffSeg button{padding:3.4vh 4px!important;font-size:min(5.4vh,21px)!important}
+#wiz #diffInfo{font-size:min(4.1vh,16px)!important;line-height:1.5!important;max-width:none!important;margin-top:2.4vh!important;padding:10px 14px;border:1px solid #5a4828;border-radius:9px;background:rgba(20,16,10,.75);text-align:left}
+#wiz .wz-map{display:flex;gap:14px;align-items:stretch;height:100%}
+#wiz #mapSeg{flex:1;grid-template-columns:repeat(2,1fr)!important;gap:7px!important;margin:0!important;align-content:stretch}
+#wiz #mapSeg button{font-size:min(5vh,19px)!important;padding:0 10px!important;text-align:left}
+#wiz #mapSeg button small{font-size:.75em;opacity:.8}
+#wiz .wz-mapR{display:flex;flex-direction:column;align-items:center;width:42%}
+#wiz #preview{width:auto!important;height:38vh!important;aspect-ratio:1;image-rendering:pixelated}
+#wiz #mapDesc{width:100%!important;flex:1;min-height:0;font-size:min(3.3vh,12.5px)!important;margin-top:1vh!important;line-height:1.45!important;overflow:auto}
+#wiz .wz-bot{display:flex;align-items:center;gap:10px;height:16vh;min-height:46px}
+#wiz .wz-bot button{height:100%;font-size:min(5.4vh,21px)!important;padding:0 3.6vh!important;border-radius:10px!important;white-space:nowrap}
+#wiz .wz-bot .big{margin:0!important}
+#wiz .wz-sp{flex:1}
+#wiz #startBtn{font-size:min(7vh,28px)!important;padding:0 7vh!important}
+`;
+const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+const T=$('title');if(!T)return;
+const W=document.createElement('div');W.id='wiz';
+W.innerHTML=`<div class="wz-top"><div class="wz-logo">워 디비전<small>WAR DIVISION · ${(document.querySelector('#title .en span')||{}).textContent||''}</small></div><div class="wz-tabs">
+<button class="wz-tab on" data-p="fac"><b>① 진영</b><span id="wzS_fac"></span></button>
+<button class="wz-tab" data-p="mode"><b>② 대전 방식</b><span id="wzS_mode"></span></button>
+<button class="wz-tab" data-p="diff"><b>③ 난이도</b><span id="wzS_diff"></span></button>
+<button class="wz-tab" data-p="map"><b>④ 맵</b><span id="wzS_map"></span></button></div></div>
+<div class="wz-body">
+<div class="wz-page on" data-p="fac" id="wzP_fac"></div>
+<div class="wz-page" data-p="mode" id="wzP_mode"><div class="wz-row"><div class="wz-l">상대 AI 수</div><div id="wzAi"></div></div><div class="wz-row"><div class="wz-l">대전 방식</div><div id="wzMode" style="display:flex;gap:10px;align-items:center"></div></div><div id="wzTeam"></div></div>
+<div class="wz-page" data-p="diff" id="wzP_diff"></div>
+<div class="wz-page" data-p="map" id="wzP_map"><div class="wz-map"><div id="wzMapL" style="flex:1;display:flex"></div><div class="wz-mapR" id="wzMapR"></div></div></div>
+</div>
+<div class="wz-bot" id="wzBot"><span id="wzBotL" style="display:flex;gap:10px;height:100%"></span><span class="wz-sp"></span><button class="big" id="wzPrev">◀ 이전</button><button class="big" id="wzNext">다음 ▶</button><span id="wzGo" style="height:100%;display:flex"></span></div>`;
+T.appendChild(W);
+const PAGES=['fac','mode','diff','map'];let cur='fac';
+// 옮길 요소: [요소, 모바일 자리]
+const MOVES=[['facRow','wzP_fac'],['facTrait','wzP_fac'],['aiSeg','wzAi'],['modeSeg','wzMode'],['teamEdit','wzMode'],['teamSum','wzTeam'],['diffSeg','wzP_diff'],['diffInfo','wzP_diff'],['mapSeg','wzMapL'],['preview','wzMapR'],['mapDesc','wzMapR'],['histBtn','wzBotL'],['campBtn','wzBotL'],['startBtn','wzGo']];
+const home=new Map();let on=false;
+function mount(){if(on)return;on=true;for(const [id,dst] of MOVES){const e=$(id);if(!e)continue;if(!home.has(id))home.set(id,[e.parentNode,e.nextSibling]);$(dst).appendChild(e);}
+ // modeSeg는 원래 팀 편성 버튼과 같은 줄 래퍼 안에 있음 → 래퍼째 숨김 없이 요소만 옮김
+ T.classList.add('wizOn');show(cur);sum();}
+function unmount(){if(!on)return;on=false;for(const [id] of [...MOVES].reverse()){const e=$(id),h=home.get(id);if(!e||!h)continue;const [p,n]=h;if(n&&n.parentNode===p)p.insertBefore(e,n);else p.appendChild(e);}T.classList.remove('wizOn');}
+function show(p){cur=p;for(const t of W.querySelectorAll('.wz-tab'))t.classList.toggle('on',t.dataset.p===p);for(const g of W.querySelectorAll('.wz-page'))g.classList.toggle('on',g.dataset.p===p);
+ const i=PAGES.indexOf(p);$('wzPrev').style.visibility=i>0?'visible':'hidden';$('wzNext').style.display=i<PAGES.length-1?'':'none';
+ if(p==='map')try{drawPreview();}catch(e){}if(p==='diff')try{showDiff();}catch(e){}}
+const txt=sel=>{const b=document.querySelector(sel);return b?b.textContent.trim():'';};
+function sum(){try{const f=document.querySelector('#facRow .fac.sel .fn');$('wzS_fac').textContent=f?f.textContent:'';
+ const ai=txt('#aiSeg button.on'),md=txt('#modeSeg button.on');$('wzS_mode').textContent=`${md} · 상대 ${ai}`;
+ $('wzS_diff').textContent=txt('#diffSeg button.on');
+ const m=document.querySelector('#mapSeg button.on');$('wzS_map').textContent=m?(m.childNodes[0].textContent||'').trim():'';}catch(e){}}
+W.addEventListener('click',e=>{const t=e.target.closest('.wz-tab');if(t){show(t.dataset.p);return;}setTimeout(sum,0);});
+$('wzPrev').addEventListener('click',()=>{const i=PAGES.indexOf(cur);if(i>0)show(PAGES[i-1]);});
+$('wzNext').addEventListener('click',()=>{const i=PAGES.indexOf(cur);if(i<PAGES.length-1)show(PAGES[i+1]);});
+function sync(){if(PC)unmount();else mount();try{fitAll();}catch(e){}}
+const _sp=setPC;setPC=function(v){_sp.apply(this,arguments);setTimeout(()=>{try{sync();}catch(e){}},450);};// 첫 터치로 PC→모바일 전환될 때 그 터치가 엉뚱한 버튼을 누르지 않게 조금 늦게 전환
+sync();try{showDiff();}catch(e){}
+})();
+
+// ===================== F.V.1.0.13 모바일 조작 개선 =====================
+// A 한 번 탭 = 어택땅 (reps) · B 이동/어택/정지/사수 큰 버튼 · C 한 손가락 드래그 = 화면 이동, 범위 선택은 길게 누른 뒤 드래그 또는 [범위] 버튼
+// F [전 병력] 버튼 · G 적 근처를 탭하면 자동 조준 + 명령 표시 크게
+(function(){
+// ---- B: 명령 버튼 (모바일) ----
+{const _cl=cmdList;cmdList=function(){const o=_cl.apply(this,arguments);try{if(PC||!G||G.placing||G.pending||G.buildMenu)return o;const s=selEnts();if(!s.length||s[0].team!==0||s[0].type!=='unit')return o;
+ const fight=s.some(u=>u.type==='unit'&&!UD[u.kind].worker);if(!fight)return o;
+ const out=o.filter(x=>x&&x.l!=='정지');
+ out.unshift({k:'A',l:'⚔ 어택',s:'싸우며 이동',f:()=>{G.pending={t:'amove'};toast('⚔ 공격하며 갈 곳을 누르세요');}},{k:'M',l:'🚶 이동',s:'적 무시',f:()=>{G.pending={t:'move'};G.mobMove=true;toast('🚶 적을 무시하고 갈 곳을 누르세요');}},{k:'S',l:'✋ 정지',f:()=>{ownUnits().forEach(orderStop);toast('정지');}},{k:'H',l:'🛡 사수',s:'제자리 방어',f:()=>{for(const u of ownUnits()){orderStop(u);u.hold=true;}toast('🛡 위치 사수');}});
+ while(out.length>9)out.pop();return out;}catch(e){return o;}};}
+// ---- C: 빈 땅 길게 누르기 → 범위 선택 ----
+let lbT=null;
+cvs.addEventListener('pointerdown',e=>{clearTimeout(lbT);if(PC||e.pointerType==='mouse'||!G||ptrs.size!==1||!gest||gest.mode!=='tap'||gest.fromSel||G.placing||G.pending)return;const g0=gest;
+ const w=s2w(e.clientX,e.clientY),h=pick(w[0],w[1]);if(h&&h.team===0)return;// 내 유닛·건물 길게 누르기는 기존 기능(같은 종류 선택)
+ lbT=setTimeout(()=>{if(gest!==g0||g0.mode!=='tap')return;g0.lpBox=true;buzz(20);toast('범위 선택 — 그대로 끌어서 고르세요');},380);});
+{const _pe=ptrEnd;ptrEnd=function(e,cancel){clearTimeout(lbT);if(gest&&gest.lpBox&&gest.mode==='tap')gest.mode='dead';const r=_pe.apply(this,arguments);if(G&&G.boxMode&&!cancel&&ptrs.size===0&&!PC){/* 범위 버튼은 한 번 쓰면 꺼짐 */}return r;};}
+// 범위 버튼으로 고른 뒤 자동으로 끄기
+{const _bs=boxSelect;boxSelect=function(b,add){const r=_bs.apply(this,arguments);if(G&&G.boxMode){G.boxMode=false;updBtns();}return r;};}
+// ---- G: 적 근처 탭 자동 조준 ----
+{const _ht=handleTap;handleTap=function(sx,sy){try{if(!PC&&G&&!G.placing&&!G.pending){const us=ownUnits();if(us.some(u=>!UD[u.kind].worker&&UD[u.kind].dmg)){const [wx,wy]=s2w(sx,sy),h=pick(wx,wy);
+ if(!h||(h.type==='res')||(h.team<0)){let best=null,bd=40/cam.z;for(const e of ents){if(e.dead||(e.type!=='unit'&&e.type!=='bld')||!enemy(0,e.team)||!vis0(e))continue;const d=e.type==='bld'?edgeDist(e,wx,wy)-6/cam.z:dist(e.x,e.y-(e.r||8)*0.5,wx,wy)-(e.r||8);if(d<bd){bd=d;best=e;}}
+  if(best){const sv=pick;commandAt(best.x,best.y,false,false);return;}}}}}catch(e){console.error(e);}return _ht.apply(this,arguments);};}
+// ---- F·C 버튼: 왼쪽 버튼 묶음에 [전 병력] [범위] 추가 ----
+let bA=null,bB=null;
+function updBtns(){if(bB)bB.classList.toggle('on',!!(G&&G.boxMode));}
+function addBtns(){const ref=[...document.querySelectorAll('button,div')].find(x=>x.textContent==='본진'&&x.parentNode&&x.parentNode.children.length>=8);if(!ref||$('mbAll'))return!!ref;const g=ref.parentNode;
+ bA=ref.cloneNode(false);bA.id='mbAll';bA.textContent='⚔전병력';bB=ref.cloneNode(false);bB.id='mbBox';bB.textContent='⬚범위';
+ const stop=e=>{e.stopPropagation();};
+ for(const b of [bA,bB]){b.addEventListener('pointerdown',stop);b.addEventListener('touchstart',stop,{passive:true});}
+ bA.addEventListener('click',e=>{e.stopPropagation();if(!G)return;const army=ents.filter(x=>!x.dead&&x.team===0&&x.type==='unit'&&!UD[x.kind].worker&&!x.inside&&!x.carriedBy);if(!army.length){toast('병력이 없어요');return;}
+  const now=performance.now(),same=G.sel.length===army.length&&army.every(u=>G.sel.includes(u.id));
+  if(same&&now-(bA._t||0)<600){let x=0,y=0;for(const u of army){x+=u.x;y+=u.y;}centerOn(x/army.length,y/army.length);}
+  setSel(army);play('select');buzz(12);toast(`전 병력 ${army.length}기 선택`+(same?'':' · 한 번 더 누르면 본대로 화면 이동'));bA._t=now;hudDirty=true;});
+ bB.addEventListener('click',e=>{e.stopPropagation();if(!G)return;G.boxMode=!G.boxMode;updBtns();buzz(10);toast(G.boxMode?'범위 선택 — 화면을 끌어서 고르세요':'범위 선택 끔');});
+ g.appendChild(bA);g.appendChild(bB);return true;}
+const iv=setInterval(()=>{try{if(addBtns()&&$('mbAll'))clearInterval(iv);}catch(e){}},500);
+const st=document.createElement('style');st.textContent=`#mbBox.on{background:linear-gradient(#8a6d36,#4d3c1e)!important;border-color:#f0d080!important;color:#fff}body.pc #mbAll,body.pc #mbBox{display:none}`;document.head.appendChild(st);
+// ---- 5: 끌어서 명령·건물 배치 중 손가락이 화면 끝에 닿으면 화면이 따라감 ----
+{let eLast=0;const _ud=update;update=function(){const r=_ud.apply(this,arguments);try{const nowE=performance.now(),dt=Math.min(0.05,Math.max(0,(nowE-eLast)/1000));eLast=nowE;if(!PC&&G&&gest&&(gest.mode==='drag'||gest.mode==='ghost'||gest.mode==='pan1')&&ptrs.size===1){const sg=gest.mode==='pan1'?-1:1;/* 화면 끌기는 끄는 방향(손가락 쪽 반대)으로 계속 흘러감 */const p=[...ptrs.values()][0],M=56,top=(typeof TOPH!=='undefined'?TOPH:40);
+ let vx=0,vy=0;if(p.x<M)vx=-(M-p.x)/M;else if(p.x>VW-M)vx=(p.x-(VW-M))/M;if(p.y<top+M)vy=-(top+M-p.y)/M;else if(p.y>VH-M)vy=(p.y-(VH-M))/M;
+ if(vx||vy){const sp=(G.edgeT=(G.edgeT||0)+(dt||0))>0.25?650:0;/* 0.25초 머물면 시작 */if(sp){cam.x+=sg*Math.max(-1,Math.min(1,vx))*sp*(dt||0)/cam.z;cam.y+=sg*Math.max(-1,Math.min(1,vy))*sp*(dt||0)/cam.z;clampCam();
+  if(gest.mode==='ghost'){const w=s2w(p.x,p.y);ghostFor(w[0],w[1]);}}}else G.edgeT=0;if(gest.mode==='drag'&&gest.ws&&G.dragLine){G.dragLine.x0=(gest.ws[0]-cam.x)*cam.z;G.dragLine.y0=(gest.ws[1]-cam.y)*cam.z;}}else if(G)G.edgeT=0;}catch(e){}return r;};}
+// ---- 1: 부대 버튼에 인원 표시 ----
+let gb=null;setInterval(()=>{try{if(!G||PC)return;if(!gb||!gb[0].isConnected){const ref=document.getElementById('mbAll');if(!ref)return;gb=['1','2','3'].map(n=>[...ref.parentNode.children].find(x=>x.dataset.b===n));if(gb.some(x=>!x)){gb=null;return;}}
+ gb.forEach((b,i)=>{const n=G.groups[i].filter(id=>{const e=byId.get(id);return e&&!e.dead;}).length;const h=n?`${i+1}<small style="font-size:.62em;opacity:.8;margin-left:3px">${n}</small>`:String(i+1);if(b._h!==h){b.innerHTML=h;b._h=h;}});}catch(e){}},400);
 })();
 
 </script>
