@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.14</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.15</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10219,6 +10219,39 @@ const st=document.createElement('style');st.textContent=`#mbBox.on{background:li
 // ---- 1: 부대 버튼에 인원 표시 ----
 let gb=null;setInterval(()=>{try{if(!G||PC)return;if(!gb||!gb[0].isConnected){const ref=document.getElementById('mbAll');if(!ref)return;gb=['1','2','3'].map(n=>[...ref.parentNode.children].find(x=>x.dataset.b===n));if(gb.some(x=>!x)){gb=null;return;}}
  gb.forEach((b,i)=>{const n=G.groups[i].filter(id=>{const e=byId.get(id);return e&&!e.dead;}).length;const h=n?`${i+1}<small style="font-size:.62em;opacity:.8;margin-left:3px">${n}</small>`:String(i+1);if(b._h!==h){b.innerHTML=h;b._h=h;}});}catch(e){}},400);
+})();
+
+// ===================== F.V.1.0.15 자동 생산 대기열 · 자동 일꾼 =====================
+// 🔁 반복 생산: 건물마다 켜두면 자원·보급이 될 때마다 같은 유닛을 계속 뽑음. 켠 상태에서 다른 유닛을 누르면 그 유닛으로 바뀜
+// ⚙ 자동 일꾼: 본진(사령부)에서 켜면 일꾼을 알맞은 수까지 알아서 뽑고, 2.5초 넘게 노는 일꾼은 가까운 석탄으로 보냄
+(function(){
+const isHQ=b=>b&&BD[b.kind]&&BD[b.kind].drop;
+// 마지막으로 뽑은 유닛 기억 + 반복 켠 상태에서 다른 유닛을 누르면 반복 대상 변경
+{const _t=tryTrain;tryTrain=function(b,k,silent){const ok=_t.apply(this,arguments);try{if(ok&&b&&b.team===0){b.lastK=k;if(b.rep&&b.rep!==k&&!b._autoT){for(const o of ents)if(!o.dead&&o.team===0&&o.kind===b.kind&&o.rep)o.rep=k;toast(`🔁 반복 대상: ${uName(k)}`);}}}catch(e){}return ok;};}
+const uName=k=>{try{return short(UD[k].n);}catch(e){return k;}};
+{const _cl=cmdList;cmdList=function(){const o=_cl.apply(this,arguments);try{if(!G||G.placing||G.pending||G.buildMenu)return o;const s=selEnts();if(!s.length||s[0].team!==0||s[0].type!=='bld')return o;const e=s[0],d=BD[e.kind];if(!e.built||!d||!(d.train||[]).length)return o;
+ const out=o.slice();const same=s.filter(b=>b.kind===e.kind&&b.team===0&&b.built);const on=same.some(b=>b.rep);
+ const add=btn=>{const i=out.findIndex(x=>!x);if(i>=0&&i<9)out[i]=btn;else if(out.length<9)out.push(btn);else out[8]=btn;};
+ add({k:'F9',l:on?'🔁 반복 켬':'🔁 반복 생산',s:on?uName(same.find(b=>b.rep).rep):'꺼짐',f:()=>{if(on){for(const b of same)b.rep=null;toast('반복 생산 끔');}else{const k=e.lastK&&(d.train||[]).includes(e.lastK)?e.lastK:(d.train||[])[0];for(const b of same)b.rep=k;toast(`🔁 ${uName(k)} 반복 생산 — 다른 유닛을 누르면 그 유닛으로 바뀌어요`);}buzz(10);}});
+ if(isHQ(e)){const F=FAC[P(0).fac];if(F&&(d.train||[]).includes(F.worker))add({k:'F10',l:G.autoWk?'⚙ 자동 일꾼 켬':'⚙ 자동 일꾼',s:G.autoWk?'알맞은 수까지':'꺼짐',f:()=>{G.autoWk=!G.autoWk;try{localStorage.setItem('wd_autowk',G.autoWk?'1':'0');}catch(_){}toast(G.autoWk?'⚙ 자동 일꾼 — 일꾼을 알맞은 수까지 뽑고, 노는 일꾼은 석탄으로 보내요':'자동 일꾼 끔');buzz(10);}});}
+ return out;}catch(err){return o;}};}
+// 새 게임: 자동 일꾼 설정 이어받기
+{const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);try{if(G)G.autoWk=localStorage.getItem('wd_autowk')==='1';}catch(e){}return r;};}
+let tick=0,wkTick=0;
+{const _ud=update;update=function(dt){const r=_ud.apply(this,arguments);try{if(!G||G.over||!G.pl||!P(0)||!P(0).human)return r;tick+=dt||0;wkTick+=dt||0;
+ if(tick>=0.25){tick=0;for(const b of ents){if(b.dead||b.team!==0||b.type!=='bld'||!b.rep||!b.built)continue;if(b.queue.length>=1)continue;b._autoT=1;try{tryTrain(b,b.rep,true);}catch(e){}b._autoT=0;}}
+ if(wkTick>=1&&G.autoWk){wkTick=0;const tm=P(0),F=FAC[tm.fac];if(!F)return r;
+  const hqs=ents.filter(b=>!b.dead&&b.team===0&&b.type==='bld'&&b.built&&isHQ(b));
+  const gas=ents.filter(b=>!b.dead&&b.team===0&&b.type==='bld'&&b.built&&BD[b.kind].geyser).length;
+  const wk=ents.filter(u=>!u.dead&&u.team===0&&u.type==='unit'&&UD[u.kind].worker);
+  let queued=0;for(const h of hqs)queued+=h.queue.filter(q=>(q.k||q.kind||q)===F.worker).length;
+  const target=Math.min(70,hqs.length*16+gas*3);
+  let n=wk.length+queued;
+  for(const h of hqs){if(n>=target)break;if(h.rep)continue;if(h.queue.length>=1)continue;h._autoT=1;if(tryTrain(h,F.worker,true))n++;h._autoT=0;}
+  // 노는 일꾼 → 석탄
+  const sel=new Set(G.sel||[]);
+  for(const u of wk){if(u.state==='idle'&&!u.hold&&!sel.has(u.id)&&!u.wq&&!buildLock(u)){u._idleT=(u._idleT||0)+1;if(u._idleT>=3){u._idleT=0;let h=null,bd=1e9;for(const q of hqs){const dd=dist(q.x,q.y,u.x,u.y);if(dd<bd){bd=dd;h=q;}}const c=nearestCoal(h?h.x:u.x,h?h.y:u.y);if(c)orderGather(u,c);}}else u._idleT=0;}
+ }}catch(e){}return r;};}
 })();
 
 </script>
