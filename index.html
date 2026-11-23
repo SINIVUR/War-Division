@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.18</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.19</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -4754,6 +4754,7 @@ function render(){
  try{if(typeof drawBQ==='function')drawBQ();}catch(e){}
  for(const u of ents)if(!u.dead&&u.team===0&&u.state==='site'&&u.site){const s2=u.site;ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.strokeRect(s2.tx*T,s2.ty*T,s2.w*T,s2.h*T);ctx.setLineDash([]);}
  for(const id of G.sel){const b=byId.get(id);if(b&&b.type==='bld'&&b.team===0&&b.rally){const r=b.rally.res?byId.get(b.rally.res):b.rally;if(r){ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([5,5]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(r.x,r.y);ctx.stroke();ctx.setLineDash([]);circ(r.x,r.y,4,'#6cff6c');}}}
+ if(fogC){ctx.imageSmoothingEnabled=false;{const FK=fogC.width/WW,fx0=Math.max(0,Math.floor(vx0/T)-1)*T,fy0=Math.max(0,Math.floor(vy0/T)-1)*T,fx1=Math.min(WW,Math.ceil(vx1/T+1)*T),fy1=Math.min(WH,Math.ceil(vy1/T+1)*T);if(fx1>fx0&&fy1>fy0)ctx.drawImage(fogC,fx0*FK,fy0*FK,(fx1-fx0)*FK,(fy1-fy0)*FK,fx0,fy0,fx1-fx0,fy1-fy0);}ctx.fillStyle='#080705';ctx.fillRect(-400,-400,WW+800,400);ctx.fillRect(-400,WH,WW+800,400);ctx.fillRect(-400,0,400,WH);ctx.fillRect(WW,0,400,WH);} // 안개를 유닛보다 먼저 그림: 시야 가장자리의 적이 안개 무늬에 덮여 반투명해 보이던 문제
  const units=vis.filter(e=>e.type==='unit');
  const byL={n:[],g:[],a:[]};for(const u of units)byL[UD[u.kind].layer||'g'].push(u);
  for(const L of ['n','g','a']){const arr=byL[L].sort((a,b)=>a.y-b.y);
@@ -4770,7 +4771,6 @@ function render(){
  for(const p of G.parts){if(p.gl)continue;const k=clamp(p.life/p.max,0,1);ctx.globalAlpha=p.grow?Math.min(0.6,k*0.8):1;ctx.fillStyle=p.col;const s=Math.max(2,Math.round(p.size*(p.grow?1:1.2)/2)*2);if(p.grow&&s>6){ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2+2)&~1,s,s-4);ctx.fillRect(Math.round(p.x-s/2+2)&~1,Math.round(p.y-s/2)&~1,s-4,s);}else ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2)&~1,s,s);}ctx.globalAlpha=1;
  ctx.globalCompositeOperation='lighter';for(const p of G.parts){if(!p.gl)continue;const k=clamp(p.life/p.max,0,1);ctx.globalAlpha=Math.min(1,k*1.4);ctx.fillStyle=p.col;const s=Math.max(2,Math.round(p.size*(0.6+k*0.6)/2)*2);ctx.fillRect(Math.round(p.x-s/2)&~1,Math.round(p.y-s/2)&~1,s,s);if(s>=6){ctx.globalAlpha*=0.35;ctx.fillRect(Math.round(p.x-s)&~1,Math.round(p.y-s/4)&~1,s*2,Math.max(2,s/2));ctx.fillRect(Math.round(p.x-s/4)&~1,Math.round(p.y-s)&~1,Math.max(2,s/2),s*2);}}ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
  for(const m of G.marks){const k=m.t/0.6;ctx.strokeStyle=m.col;ctx.globalAlpha=1-k;ctx.lineWidth=2;ctx.beginPath();ctx.lineWidth=PC?2:3.5;const MK=PC?1:2;ctx.ellipse(m.x,m.y,(6+k*12)*MK,(6+k*12)*0.7*MK,0,0,7);ctx.stroke();}ctx.globalAlpha=1;
- if(fogC){ctx.imageSmoothingEnabled=false;{const FK=fogC.width/WW,fx0=Math.max(0,Math.floor(vx0/T)-1)*T,fy0=Math.max(0,Math.floor(vy0/T)-1)*T,fx1=Math.min(WW,Math.ceil(vx1/T+1)*T),fy1=Math.min(WH,Math.ceil(vy1/T+1)*T);if(fx1>fx0&&fy1>fy0)ctx.drawImage(fogC,fx0*FK,fy0*FK,(fx1-fx0)*FK,(fy1-fy0)*FK,fx0,fy0,fx1-fx0,fy1-fy0);}ctx.fillStyle='#080705';ctx.fillRect(-400,-400,WW+800,400);ctx.fillRect(-400,WH,WW+800,400);ctx.fillRect(-400,0,400,WH);ctx.fillRect(WW,0,400,WH);}
  drawSat();
  for(const e of vis)if(e.type!=='res'&&(selSet.has(e.id)||e.hp<e.maxhp||(e.maxsh&&e.sh<e.maxsh)||(e.pcMax&&e.team===0)||(e.type==='bld'&&!e.built)))hpBar(e);
  if(G.placing&&BD[G.placing].drop){const d=BD[G.placing],pul=0.5+0.5*Math.sin(performance.now()/220);
@@ -10253,6 +10253,121 @@ let tick=0,wkTick=0;
   const sel=new Set(G.sel||[]);
   for(const u of wk){if(u.state==='idle'&&!u.hold&&!sel.has(u.id)&&!u.wq&&!buildLock(u)){u._idleT=(u._idleT||0)+1;if(u._idleT>=3){u._idleT=0;let h=null,bd=1e9;for(const q of hqs){const dd=dist(q.x,q.y,u.x,u.y);if(dd<bd){bd=dd;h=q;}}const c=nearestCoal(h?h.x:u.x,h?h.y:u.y);if(c)orderGather(u,c);}}else u._idleT=0;}
  }}catch(e){}return r;};}
+})();
+
+// ===================== F.V.1.0.19 적 대군이 투명하게 보이던 문제 =====================
+// 1) 안개를 유닛보다 먼저 그림 (reps) — 시야 끝에서 싸우는 적이 안개 점무늬에 덮여 반투명해 보이던 문제
+// 2) 높은 지형 시야를 동맹과 공유 — 팀전에서 동맹이 보는 언덕 위 적이 안 그려지던 문제
+// 3) 내 유닛·건물을 공격한 적은 1.5초 동안 보이게 (언덕 위·안개 속에서 쏘는 적이 '보이지 않는 적'이 되던 문제)
+(function(){
+{const _hs=hiSeen;hiSeen=function(v,team){if(_hs(v,team))return true;try{if(team===0&&G)for(const p of G.pl){if(p.id===0||!friend0(p.id))continue;if(_hs(v,p.id))return true;}}catch(e){}return false;};}
+{const _dm=damage;damage=function(t,amt,src){try{if(src&&t&&G&&src.type==='unit'&&friend0(t.team)&&enemy(0,src.team))src.shotRev=G.time;}catch(e){}return _dm.apply(this,arguments);};}
+{const _v=vis0;vis0=function(e){if(_v(e))return true;try{if(e&&e.type==='unit'&&e.shotRev!=null&&G&&G.time-e.shotRev<1.5&&!e.dead&&!(UD[e.kind].cloak&&!(e.revealT>0)))return true;}catch(_){}return false;};}
+})();
+
+// ===================== F.V.1.0.19 전적 · 통계 =====================
+// 대전(AI전)이 끝날 때마다 기록을 저장하고, 타이틀·결과 화면의 [📊 전적]에서 요약·진영·난이도·맵·최근 경기를 봄
+(function(){
+const KEY='wd_stats',MAX=500;
+const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
+const save=a=>{try{localStorage.setItem(KEY,JSON.stringify(a.slice(-MAX)));}catch(e){}};
+function snap(res){try{if(!G||!G.pl||!P(0))return null;const c=G.camp;const r={t:Date.now(),res,dur:Math.round(G.time),apm:apmAvg(),made:G.stats.made||0,kills:G.stats.kills||0,lost:G.stats.lost||0,coal:G.stats.coal||0,fac:P(0).fac,plat:PC?'pc':'mb'};
+ if(c&&c.hist){r.type='hist';r.ch=(c.h!=null?c.h+1:0);r.chn=(c.def&&(c.def.t||c.def.n))||'';}
+ else if(c){r.type='train';r.ch=`${c.p+1}-${c.m+1}`;}
+ else{r.type='skirm';r.diff=G.cfg.diff??2;r.map=G.cfg.map;r.mode=G.cfg.mode==='team'?'team':'ffa';r.foes=G.pl.filter(p=>!p.human&&!friend0(p.id)).map(p=>p.fac);r.ally=G.pl.filter(p=>!p.human&&friend0(p.id)&&p.id!==0).map(p=>p.fac);}
+ return r;}catch(e){return null;}}
+function rec(res){if(!G||G._statRec)return;const r=snap(res);if(!r)return;G._statRec=1;const a=load();a.push(r);save(a);}
+// 끝났을 때 기록
+{const _eg=endGame;endGame=function(win){try{if(G&&!G.over)rec(win?'W':'L');}catch(e){}return _eg.apply(this,arguments);};}
+// 대전 중간에 '다시 시작' · '타이틀로' → 포기(1분 넘게 했을 때만)
+for(const id of ['restartBtn','quitBtn'])try{$(id).addEventListener('click',()=>{try{if(G&&!G.over&&!G.camp&&G.time>=60)rec('Q');}catch(e){}},true);}catch(e){}
+
+// ---------- 화면 ----------
+const css=`
+#stats{z-index:30}
+#stats .sw{width:min(980px,96vw);height:min(640px,94vh);display:flex;flex-direction:column;background:linear-gradient(#2a2116,#17120b);border:2px solid #6b5530;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.7);overflow:hidden}
+#stats .sh{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #4a3a20}
+#stats .sh h3{margin:0;font-size:clamp(17px,4.4vh,24px);color:#e8c56a;letter-spacing:.04em;white-space:nowrap}
+#stats .stabs{display:flex;gap:6px;flex:1;overflow-x:auto}
+#stats .stabs button,#stats .sflt button{font-family:inherit;font-size:clamp(12px,3.4vh,15px);padding:6px 12px;border-radius:8px;border:1.5px solid #6b5530;background:#2c2215;color:#c9b48a;white-space:nowrap}
+#stats .stabs button.on,#stats .sflt button.on{background:linear-gradient(#7a5f2e,#4a3a1c);border-color:#f0d080;color:#fff3cc}
+#stats .sx{font-size:clamp(14px,4vh,18px);padding:6px 14px;border-radius:8px;border:1.5px solid #8a5030;background:#3a1e14;color:#ffd0b0;font-family:inherit}
+#stats .sflt{display:flex;gap:6px;padding:8px 14px 0;flex-wrap:wrap;align-items:center;color:#a88f5c;font-size:clamp(11px,3vh,13px)}
+#stats .sb{flex:1;overflow:auto;padding:10px 14px 14px;color:#e8dcc0;font-size:clamp(12px,3.4vh,15px)}
+#stats .kp{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+#stats .kp div{background:rgba(0,0,0,.28);border:1px solid #4a3a20;border-radius:9px;padding:8px 10px}
+#stats .kp span{display:block;font-size:.78em;color:#a88f5c}
+#stats .kp b{font-size:1.45em;color:#f4e6c2}
+#stats .kp b.w{color:#7fe08a}#stats .kp b.l{color:#ff8a7a}
+#stats table{width:100%;border-collapse:collapse}
+#stats th{text-align:left;color:#a88f5c;font-weight:600;font-size:.85em;padding:5px 6px;border-bottom:1px solid #4a3a20;position:sticky;top:0;background:#1d170e}
+#stats td{padding:6px;border-bottom:1px solid rgba(107,85,48,.35);white-space:nowrap}
+#stats td.r{text-align:right}
+#stats .bar{height:8px;border-radius:4px;background:#3a2e1c;overflow:hidden;min-width:60px}
+#stats .bar i{display:block;height:100%;background:linear-gradient(90deg,#4fbf6a,#9be07a)}
+#stats .W,#stats .kp span.W{color:#7fe08a;font-weight:700}#stats .kp span.L{color:#ff8a7a}#stats .kp span.Q{color:#c9a070}#stats .L{color:#ff8a7a;font-weight:700}#stats .Q{color:#c9a070;font-weight:700}
+#stats .emp{padding:40px 10px;text-align:center;color:#a88f5c;line-height:1.7}
+#stats .sec{margin:14px 0 6px;color:#e8c56a;font-weight:700}
+#stats svg{display:block;width:100%;height:110px;background:rgba(0,0,0,.25);border:1px solid #4a3a20;border-radius:9px}
+#stats .rst{margin-top:16px;font-size:.85em;padding:6px 12px;border-radius:8px;border:1px solid #6b3a2a;background:#2a1610;color:#e0a080;font-family:inherit}
+.statBtn{font-family:inherit}
+`;
+const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+const ov=document.createElement('div');ov.id='stats';ov.className='overlay hidden';
+ov.innerHTML=`<div class="sw"><div class="sh"><h3>📊 전적</h3><div class="stabs" id="stTabs"></div><button class="sx" id="stX">✕ 닫기</button></div><div class="sflt" id="stFlt"></div><div class="sb" id="stBody"></div></div>`;
+document.body.appendChild(ov);
+const TABS=[['sum','요약'],['fac','진영'],['diff','난이도'],['map','맵'],['recent','최근 경기'],['camp','캠페인']];
+let tab='sum',plat='all';
+const fmtT=s=>{s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}시간 ${m}분`:`${m}:${String(x).padStart(2,'0')}`;};
+const pct=(w,n)=>n?Math.round(w/n*100):0;
+const fn=f=>(FAC[f]&&FAC[f].n)||f;
+const mn=m=>(MAPS[m]&&MAPS[m].n)||m;
+const dn=d=>DNAME[d]||('?'+d);
+const dt=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+const RES={W:'승',L:'패',Q:'포기'};
+function games(){let a=load().filter(r=>r.type==='skirm');if(plat!=='all')a=a.filter(r=>r.plat===plat);return a;}
+function agg(list,keyFn){const m=new Map();for(const r of list){for(const k of [].concat(keyFn(r))){if(k==null)continue;let o=m.get(k);if(!o)m.set(k,o={k,n:0,w:0,l:0,q:0,dur:0,apm:0});o.n++;o[r.res==='W'?'w':r.res==='L'?'l':'q']++;o.dur+=r.dur||0;o.apm+=r.apm||0;}}return [...m.values()];}
+function table(rows,label,nameFn){if(!rows.length)return '<div class="emp">아직 기록이 없어요.</div>';
+ return `<table><tr><th>${label}</th><th class="r">경기</th><th class="r">승</th><th class="r">패</th><th class="r">포기</th><th>승률</th><th class="r">평균 시간</th><th class="r">평균 APM</th></tr>${rows.map(o=>{const p=pct(o.w,o.n);return `<tr><td>${nameFn(o.k)}</td><td class="r">${o.n}</td><td class="r W">${o.w}</td><td class="r L">${o.l}</td><td class="r Q">${o.q}</td><td><div style="display:flex;align-items:center;gap:6px"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><b>${p}%</b></div></td><td class="r">${fmtT(o.dur/o.n)}</td><td class="r">${Math.round(o.apm/o.n)}</td></tr>`;}).join('')}</table>`;}
+function spark(vals,col,label){if(vals.length<2)return '';const W=600,H=110,mx=Math.max(...vals,1),mn0=Math.min(...vals,0);const pts=vals.map((v,i)=>[10+i*(W-20)/(vals.length-1),H-12-(v-mn0)/(mx-mn0||1)*(H-30)]);
+ return `<div class="sec">${label} <span style="color:#a88f5c;font-weight:400;font-size:.85em">(최고 ${mx})</span></div><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline fill="none" stroke="${col}" stroke-width="2.5" points="${pts.map(p=>p.join(',')).join(' ')}"/>${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${col}"/>`).join('')}</svg>`;}
+function body(){const a=games(),el=$('stBody');
+ if(tab==='camp'){const all=load();const h=all.filter(r=>r.type==='hist'),t=all.filter(r=>r.type==='train');
+  const hw=new Set(h.filter(r=>r.res==='W').map(r=>r.ch)),tw=new Set(t.filter(r=>r.res==='W').map(r=>r.ch));
+  el.innerHTML=`<div class="kp"><div><span>역사 캠페인 도전</span><b>${h.length}</b></div><div><span>역사 캠페인 승리</span><b class="w">${h.filter(r=>r.res==='W').length}</b></div><div><span>깬 장 (서로 다른)</span><b>${hw.size}</b></div><div><span>훈련 도전</span><b>${t.length}</b></div><div><span>깬 훈련 미션</span><b>${tw.size}</b></div></div>
+  <div class="sec">최근 캠페인 기록</div>${[...h,...t].sort((x,y)=>y.t-x.t).slice(0,30).map(r=>`<div style="padding:5px 0;border-bottom:1px solid rgba(107,85,48,.35)"><span class="${r.res}">${RES[r.res]}</span> · ${dt(r.t)} · ${r.type==='hist'?`역사 제${r.ch}장 ${r.chn||''}`:`훈련 ${r.ch}`} · ${fmtT(r.dur)} · 처치 ${r.kills}</div>`).join('')||'<div class="emp">아직 캠페인 기록이 없어요.</div>'}`;return;}
+ if(!a.length){el.innerHTML='<div class="emp">아직 대전 기록이 없어요.<br>AI와 한 판 하면 여기에 쌓여요. (1분 넘게 하다 그만두면 포기로 기록)</div>'+resetBtn();bindReset();return;}
+ if(tab==='sum'){const n=a.length,w=a.filter(r=>r.res==='W').length,l=a.filter(r=>r.res==='L').length,q=n-w-l;
+  let cur=0,best=0;for(const r of a){if(r.res==='W'){cur++;best=Math.max(best,cur);}else cur=0;}
+  let streak=0,sk='';for(let i=a.length-1;i>=0;i--){const x=a[i].res==='W'?'W':'L';if(!sk)sk=x;if(x!==sk)break;streak++;}
+  const tot=a.reduce((s,r)=>s+(r.dur||0),0),k=a.reduce((s,r)=>s+r.kills,0),lo=a.reduce((s,r)=>s+r.lost,0);
+  const apms=a.map(r=>r.apm||0),wins=a.filter(r=>r.res==='W');
+  const hardest=wins.length?Math.max(...wins.map(r=>r.diff)):-1;const fastest=wins.filter(r=>r.diff===hardest).sort((x,y)=>x.dur-y.dur)[0];
+  el.innerHTML=`<div class="kp"><div><span>총 경기</span><b>${n}</b></div><div><span>승 / 패 / 포기</span><b><span class="W" style="display:inline;font-size:1em">${w}</span> / <span class="L" style="display:inline;font-size:1em">${l}</span> / <span class="Q" style="display:inline;font-size:1em">${q}</span></b></div><div><span>승률</span><b class="${pct(w,n)>=50?'w':'l'}">${pct(w,n)}%</b></div><div><span>지금 ${sk==='W'?'연승':'연패'}</span><b class="${sk==='W'?'w':'l'}">${streak}</b></div><div><span>최장 연승</span><b>${best}</b></div>
+  <div><span>총 플레이 시간</span><b>${fmtT(tot)}</b></div><div><span>평균 경기 시간</span><b>${fmtT(tot/n)}</b></div><div><span>평균 APM</span><b>${Math.round(apms.reduce((s,x)=>s+x,0)/n)}</b></div><div><span>최고 APM</span><b>${Math.max(...apms)}</b></div>
+  <div><span>총 처치 / 손실</span><b>${k} / ${lo}</b></div><div><span>처치 ÷ 손실</span><b>${lo?(k/lo).toFixed(2):k}</b></div><div><span>생산한 유닛</span><b>${a.reduce((s,r)=>s+r.made,0)}</b></div><div><span>캔 석탄</span><b>${a.reduce((s,r)=>s+r.coal,0).toLocaleString()}</b></div>
+  <div><span>이겨 본 최고 난이도</span><b style="font-size:1.1em">${hardest>=0?dn(hardest):'—'}</b></div><div><span>그 난이도 최단 승리</span><b>${fastest?fmtT(fastest.dur):'—'}</b></div></div>
+  ${spark(a.slice(-30).map(r=>r.apm||0),'#6fb4ff','최근 30경기 APM')}
+  ${spark((()=>{let w2=0;return a.slice(-30).map((r,i)=>{w2+=r.res==='W'?1:0;return Math.round(w2/(i+1)*100);});})(),'#7fe08a','최근 30경기 누적 승률(%)')}
+  ${resetBtn()}`;bindReset();return;}
+ if(tab==='fac'){el.innerHTML='<div class="sec">내 진영별</div>'+table(agg(a,r=>r.fac).sort((x,y)=>y.n-x.n),'진영',fn)+'<div class="sec">상대 진영별 (상대한 진영 기준)</div>'+table(agg(a,r=>r.foes||[]).sort((x,y)=>y.n-x.n),'상대',fn);return;}
+ if(tab==='diff'){el.innerHTML=table(agg(a,r=>r.diff).sort((x,y)=>x.k-y.k),'난이도',dn)+'<div class="sec">개인전 / 팀전</div>'+table(agg(a,r=>r.mode),'방식',k=>k==='team'?'팀전':'개인전')+'<div class="sec">상대 AI 수</div>'+table(agg(a,r=>(r.foes||[]).length).sort((x,y)=>x.k-y.k),'상대 수',k=>k+'명');return;}
+ if(tab==='map'){el.innerHTML=table(agg(a,r=>r.map).sort((x,y)=>y.n-x.n),'맵',mn);return;}
+ if(tab==='recent'){el.innerHTML=`<table><tr><th>결과</th><th>날짜</th><th>진영</th><th>상대</th><th>난이도</th><th>맵</th><th class="r">시간</th><th class="r">APM</th><th class="r">처치</th><th class="r">손실</th></tr>${a.slice(-60).reverse().map(r=>`<tr><td class="${r.res}">${RES[r.res]}</td><td>${dt(r.t)}</td><td>${fn(r.fac)}</td><td>${(r.foes||[]).map(fn).join(', ')}${r.mode==='team'?' (팀전)':''}</td><td>${dn(r.diff)}</td><td>${mn(r.map)}</td><td class="r">${fmtT(r.dur)}</td><td class="r">${r.apm}</td><td class="r">${r.kills}</td><td class="r">${r.lost}</td></tr>`).join('')}</table>`;return;}
+}
+const resetBtn=()=>`<button class="rst" id="stReset">기록 초기화</button>`;
+function bindReset(){const b=$('stReset');if(!b)return;let armed=0;b.onclick=()=>{if(!armed){armed=1;b.textContent='정말 지울까요? 한 번 더 누르면 모두 지워져요';setTimeout(()=>{armed=0;if(b.isConnected)b.textContent='기록 초기화';},3500);return;}save([]);toast('전적을 초기화했어요');body();};}
+function render(){ $('stTabs').innerHTML=TABS.map(([k,l])=>`<button data-k="${k}" class="${k===tab?'on':''}">${l}</button>`).join('');
+ $('stFlt').innerHTML=tab==='camp'?'':`기기: ${[['all','전체'],['pc','PC'],['mb','모바일']].map(([k,l])=>`<button data-p="${k}" class="${k===plat?'on':''}">${l}</button>`).join('')}`;body();}
+$('stTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.k;render();});
+$('stFlt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;plat=b.dataset.p;render();});
+$('stX').addEventListener('click',()=>{ov.classList.add('hidden');});
+window.openStats=function(){render();ov.classList.remove('hidden');};
+// 버튼: PC 타이틀, 모바일 타이틀 아래줄, 결과 화면
+function addBtn(parent,cls,before){if(!parent)return;const b=document.createElement('button');b.className=cls+' statBtn';b.textContent='📊 전적';b.addEventListener('click',e=>{e.stopPropagation();openStats();});if(before)parent.insertBefore(b,before);else parent.appendChild(b);return b;}
+try{const h=$('homeBtns');addBtn(h,'big camp',h.firstChild);}catch(e){}
+try{const bl=$('wzBotL');if(bl){const b=addBtn(bl,'big camp');}}catch(e){}
+try{const s=document.querySelector('#end .seg');if(s)addBtn(s,'',$('end2title'));}catch(e){}
 })();
 
 </script>
