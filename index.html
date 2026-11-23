@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.15</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.16</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -8157,11 +8157,11 @@ function aiCommit(p,wave,ratio,D){if(D<3||!p||!p.ai)return false;const ai=p.ai;
  const big=sup>=(D>=5?36:D>=4?44:56)||wave.length>=(D>=5?16:D>=4?20:26);
  if(big&&ratio>=(D>=5?0.42:D>=4?0.5:0.6)){ai.commitT=G.time+20;return true;}return false;}
 // 2) 공격 주기·규모: 매우 어려움·초극한급은 더 일찍, 더 자주, 더 크게
-Object.assign(AIP[4],{first:125,gap:65,size:22,grow:7});Object.assign(AIP[5],{first:85,gap:40,size:30,grow:11,workers:40});
+Object.assign(AIP[4],{first:150,gap:75,size:20,grow:6});Object.assign(AIP[5],{first:110,gap:50,size:26,grow:9,workers:40});
 // 3) 자원·생산 보너스 (스커미시 AI만, 캠페인은 그대로). 난이도 번호: 0 입문 … 3 어려움, 4 매우 어려움, 5 초극한급
-const DBON={gather:[1,1,1.25,1.55,2.1,2.8],prod:[1,1,1.2,1.4,1.8,2.4],start:[0,0,100,200,450,800],startE:[0,0,0,50,150,300],wk:[0,0,1,2,4,6],tough:[1,1,1,0.97,0.94,0.9],dmg:[1,1,1,1.03,1.06,1.1],res:[1,1,1.2,1.5,2.0,2.6],regen:[0,0,0,0.002,0.005,0.009]};
+const DBON={gather:[1,1,1.1,1.3,1.6,2.0],prod:[1,1,1.1,1.25,1.45,1.75],start:[0,0,50,100,250,450],startE:[0,0,0,25,75,150],wk:[0,0,0,1,2,4],tough:[1,1,1,1,0.97,0.94],dmg:[1,1,1,1,1.03,1.05],res:[1,1,1.1,1.25,1.5,1.8],regen:[0,0,0,0,0.002,0.004]};
 // 모바일은 조작이 어려워 보정을 따로 낮게 (PC는 위 DBON 그대로)
-const DBM={gather:[1,1,1.1,1.25,1.45,1.7],prod:[1,1,1.1,1.2,1.35,1.55],start:[0,0,50,100,200,350],startE:[0,0,0,25,75,150],wk:[0,0,0,1,2,3],tough:[1,1,1,1,1,1],dmg:[1,1,1,1,1,1],res:[1,1,1.1,1.2,1.4,1.6],regen:[0,0,0,0,0,0.003]};
+const DBM={gather:[1,1,1,1.1,1.25,1.4],prod:[1,1,1,1.1,1.2,1.35],start:[0,0,0,50,100,200],startE:[0,0,0,0,25,75],wk:[0,0,0,0,1,2],tough:[1,1,1,1,1,1],dmg:[1,1,1,1,1,1],res:[1,1,1,1.1,1.2,1.35],regen:[0,0,0,0,0,0]};
 const DBON0=DBON;const DBX=()=>{try{return (G&&G.cfg?(G.cfg.mob??!PC):!PC)?DBM:DBON;}catch(e){return DBON;}};
 const dIdx=team=>{const p=P(team);if(!p||p.human||(G&&G.camp))return 0;return Math.max(0,Math.min(5,p.diff??G.diff??2));};
 {const _g=techGatherMul;techGatherMul=function(u){return _g.apply(this,arguments)*DBX().gather[dIdx(u.team)];};}
@@ -8178,8 +8178,8 @@ try{const add=(i,t)=>{for(const A of [DIFFHUMAN_PC,DIFFHUMAN_MB])if(A[i])A[i][1]
  for(let v=2;v<=5;v++){};}catch(e){}
 // 4) 손 빠르기: 병력이 100기를 넘으면 APM이 바닥나 본대가 길 한가운데서 맴돌던 문제
 //    → 상위 난이도 APM 상향
-DIFF_PC[3][1]=230;DIFF_PC[4]=[4,340,0.35];DIFF_PC[5]=[5,600,0.12];
-DIFF_MB[4]=[4,100,1.15];DIFF_MB[5]=[5,150,0.7];
+DIFF_PC[3][1]=190;DIFF_PC[4]=[4,260,0.5];DIFF_PC[5]=[5,420,0.25];
+DIFF_MB[4]=[4,85,1.3];DIFF_MB[5]=[5,120,0.9];
 // 5) 총공세: 매우 어려움·초극한급은 병력이 충분하면 본대 전체를 적 건물로 밀어 넣음
 //    (기존 웨이브 로직이 수군까지 기다리며 중앙에서 집결·해산을 반복해 100기 넘게 모아도 적 기지에 닿지 못하던 문제)
 function aiPush(p){const ai=p.ai,sk=p.diff??2;if(sk<4||G.camp||G.time<300)return;
@@ -8201,16 +8201,17 @@ function aiPush(p){const ai=p.ai,sk=p.diff??2;if(sk<4||G.camp||G.time<300)return
 }
 {const _ah3=aiHuman;aiHuman=function(p,c){const r=_ah3.apply(this,arguments);try{if(!p.human&&p.alive&&p.ai)aiPush(p);}catch(e){console.error(e);}return r;};}
 // 난이도 설명 숫자 맞추기
-try{const fx=(A,i,a,b)=>{if(A[i])A[i][1]=A[i][1].replace(a,b);};fx(DIFFHUMAN_PC,3,'APM 210','APM 230');fx(DIFFHUMAN_PC,4,'APM 270','APM 340');fx(DIFFHUMAN_PC,5,'APM 360','APM 600');fx(DIFFHUMAN_MB,4,'APM 98','APM 100');fx(DIFFHUMAN_MB,5,'APM 136','APM 150');
+try{const fx=(A,i,a,b)=>{if(A[i])A[i][1]=A[i][1].replace(a,b);};fx(DIFFHUMAN_PC,3,'APM 210','APM 190');fx(DIFFHUMAN_PC,4,'APM 270','APM 260');fx(DIFFHUMAN_PC,5,'APM 360','APM 420');fx(DIFFHUMAN_MB,4,'APM 98','APM 85');fx(DIFFHUMAN_MB,5,'APM 136','APM 120');
  DIFFHUMAN_PC[5][0]='프로게이머급 이상 — 중수 유저가 이기기 어려움';
- const _dh=diffHtml;diffHtml=function(v){let h=_dh.apply(this,arguments);const DBON=!PC?DBM:DBON0;if(v>=2)h=h.replace('자원·능력치는 사람과 똑같음',`<b style="color:#ff9a6a">AI 자원 +${Math.round((DBON.gather[v]-1)*100)}%·생산 +${Math.round((DBON.prod[v]-1)*100)}%·연구 +${Math.round((DBON.res[v]-1)*100)}%${DBON.dmg[v]>1?'·공격력 +'+Math.round((DBON.dmg[v]-1)*100)+'%':''}${DBON.tough[v]<1?'·받는 피해 −'+Math.round((1-DBON.tough[v])*100)+'%':''}·시작 일꾼 +${DBON.wk[v]}${DBON.regen[v]?'·유닛 자동 회복':''}</b>`);return h;};}catch(e){}
+ const _dh=diffHtml;diffHtml=function(v){let h=_dh.apply(this,arguments);const DBON=!PC?DBM:DBON0;if(v>=2&&(DBON.gather[v]>1||DBON.prod[v]>1))h=h.replace('자원·능력치는 사람과 똑같음',`<b style="color:#ff9a6a">AI 자원 +${Math.round((DBON.gather[v]-1)*100)}%·생산 +${Math.round((DBON.prod[v]-1)*100)}%·연구 +${Math.round((DBON.res[v]-1)*100)}%${DBON.dmg[v]>1?'·공격력 +'+Math.round((DBON.dmg[v]-1)*100)+'%':''}${DBON.tough[v]<1?'·받는 피해 −'+Math.round((1-DBON.tough[v])*100)+'%':''}·시작 일꾼 +${DBON.wk[v]}${DBON.regen[v]?'·유닛 자동 회복':''}</b>`);return h;};}catch(e){}
 
 // 6) 상위 난이도 AI 유닛·건물이 받는 피해 감소 (매우 어려움 −7%, 초극한급 −12%)
 {const _dm2=damage;damage=function(t,amt,src){try{if(t&&amt>0&&G&&!G.camp){let k=DBX().tough[dIdx(t.team)];if(src&&src.team!=null&&src.team>=0)k*=DBX().dmg[dIdx(src.team)];if(k!==1)arguments[1]=amt*k;}}catch(e){}return _dm2.apply(this,arguments);};}
 // 모바일: 첫 공격·공격 간격을 늦춰 숨 돌릴 틈을 줌 (어려움 이상)
 {const _ap=aiProf;aiProf=function(d,mob){const r=_ap.apply(this,arguments);try{if(mob&&(d??2)>=3){r.first=Math.round((r.first||200)*1.35);r.gap=Math.round((r.gap||80)*1.25);}}catch(e){}return r;};}
 {const _ab2=aiApplyBuild;aiApplyBuild=function(p,b){_ab2.apply(this,arguments);try{const pr=p.prof;if(pr&&pr.mob&&(p.diff??G.diff)>=3){pr.first=Math.round(pr.first*1.35);pr.gap=Math.round((pr.gap||80)*1.25);p.ai.nextWave=pr.first;}}catch(e){}};}
-try{DIFFHUMAN_MB[5][1]=DIFFHUMAN_MB[5][1].replace('0.6초 안에','0.7초 안에');}catch(e){}
+try{DIFFHUMAN_MB[5][1]=DIFFHUMAN_MB[5][1].replace('0.6초 안에','0.9초 안에');}catch(e){}
+try{DIFFHUMAN_PC[5][1]=DIFFHUMAN_PC[5][1].replace('0.2초 반응','0.25초 반응');}catch(e){}
 
 // ===================== F.V.1.0.7 예약 건설 (스타크래프트2 방식) + 건설 비용 증발 버그 수정 =====================
 // 버그: 건설 중인 일꾼에게 새 건물을 지시하면 비용만 빠지고 명령이 거절돼(건설 고정) 돈이 사라졌음.
