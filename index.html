@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.0</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.2</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10398,6 +10398,68 @@ for(const f of POWNEW){const F=FAC[f];if(!F)continue;POWF.add(f);
  const s=BD[F.sup];if(s){s.power=1;s.nopow=1;if(s.desc&&!/주변에 건설/.test(s.desc))s.desc+=' · 주변에 건설 가능 (동력장)';}
  for(const k of [F.hq,F.gas])if(BD[k])BD[k].nopow=1;}
 for(const f in CREEPNEW){const F=FAC[f];if(!F)continue;const s=BD[F.sup];if(s&&s.desc&&!/영토/.test(s.desc))s.desc+=' · 주변에 영토를 펼침';}
+})();
+
+// ===================== F.V.1.1.1 공격 알림 탭 → 그곳으로 화면 이동 =====================
+(function(){
+// 가장 최근에 공격받은 곳을 계속 기억 (알림은 14초에 한 번이지만 위치는 최신으로)
+{const _dm=damage;damage=function(t,amt,src){try{if(t&&G&&t.team===0&&src&&src.team!=null&&src.team>=0&&enemy(src.team,0)&&G.warnPos&&G.time-G.warnPos[2]<14)G.warnLive=[t.x,t.y,G.time];}catch(e){}return _dm.apply(this,arguments);};}
+const T0=$('toast');
+const st=document.createElement('style');st.textContent=`#toast.warnTap{pointer-events:auto!important;cursor:pointer;border:1.5px solid #ff9a7a!important;box-shadow:0 0 0 1px #000,0 0 16px rgba(255,90,60,.6)!important;padding:8px 18px!important;font-size:14px!important}`;document.head.appendChild(st);
+{const _t=toast;toast=function(m){const r=_t.apply(this,arguments);T0.classList.remove('warnTap');if(typeof m==='string'&&m.startsWith('⚠'))setTimeout(()=>{try{if(T0.textContent!==m)return;/* 알림 직후에 위치가 기록되므로 한 박자 뒤에 확인 */const warn=G&&G.warnPos&&G.time-G.warnPos[2]<1.5;T0.classList.toggle('warnTap',!!warn);if(warn){T0.textContent=m+(PC?'  (클릭·스페이스: 이동)':'  — 탭하면 이동');clearTimeout(toast.h);toast.h=setTimeout(()=>{T0.style.opacity=0;T0.classList.remove('warnTap');},3200);}}catch(e){}},0);return r;};}
+const go=e=>{if(!T0.classList.contains('warnTap')||!G)return;e.preventDefault();e.stopPropagation();const p=(G.warnLive&&G.warnLive[2]>=(G.warnPos?G.warnPos[2]:0))?G.warnLive:G.warnPos;if(p){centerOn(p[0],p[1]);buzz(10);}T0.style.opacity=0;T0.classList.remove('warnTap');};
+T0.addEventListener('pointerdown',go);
+})();
+
+// ===================== F.V.1.1.2 화면 전환: 이전 화면 · 큰 지도 =====================
+// ↩ 이전: 화면이 크게 건너뛰면(미니맵·알림·본진·부대 이동 등) 직전 위치를 기억 → 버튼으로 돌아감 (여러 번 누르면 더 이전으로, 최대 8곳)
+// 🗺 큰 지도: 미니맵을 길게 누르거나 🗺 버튼 → 화면 가운데 큰 지도. 원하는 곳을 탭하면 그리로 이동하고 닫힘
+(function(){
+const hist=[];let last=null,skip=false;
+const ctr=()=>[cam.x+VW/cam.z/2,cam.y+(VH-BOTH-TOPH)/cam.z/2+TOPH/cam.z];
+function watch(){try{if(G&&!G.over&&typeof cam!=='undefined'){const c=ctr();if(last){const d=Math.hypot(c[0]-last[0],c[1]-last[1]),scr=VW/cam.z;if(d>scr*0.6&&!skip){hist.push(last);if(hist.length>8)hist.shift();upd();}}skip=false;last=c;}else{last=null;}}catch(e){}requestAnimationFrame(watch);}
+requestAnimationFrame(watch);
+function back(){if(!G||!hist.length){toast('돌아갈 이전 화면이 없어요');return;}const p=hist.pop();skip=true;centerOn(p[0],p[1]);last=ctr();buzz(10);upd();}
+// ---- 버튼 (미니맵 아래, ⚠공격 버튼 왼쪽) ----
+const st=document.createElement('style');st.textContent=`
+#camNav{position:fixed;display:flex;gap:6px;z-index:6}
+#camNav button{font-family:inherit;font-weight:800;font-size:13px;padding:6px 10px;border-radius:8px;border:1.5px solid #8a6d36;background:linear-gradient(#4a3a1e,#2a2112);color:#f1e3c0;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+#camNav button:disabled{opacity:.4}
+#camNav.hidden,#bigMap.hidden{display:none!important}
+#bigMap{position:fixed;inset:0;z-index:40;background:rgba(8,6,3,.82);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+#bigMap canvas{border:2px solid #c9a050;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.8);image-rendering:pixelated;touch-action:none}
+#bigMap .bmT{color:#e8c56a;font-weight:800;font-size:14px}
+`;document.head.appendChild(st);
+const nav=document.createElement('div');nav.id='camNav';nav.className='hidden';nav.innerHTML='<button id="cnBack">↩ 이전</button><button id="cnMap">🗺 지도</button>';document.body.appendChild(nav);
+const stop=e=>e.stopPropagation();
+for(const b of nav.querySelectorAll('button')){b.addEventListener('pointerdown',stop);b.addEventListener('touchstart',stop,{passive:true});}
+$('cnBack').addEventListener('click',e=>{e.stopPropagation();back();});
+$('cnMap').addEventListener('click',e=>{e.stopPropagation();openBig();});
+function upd(){const b=$('cnBack');if(b)b.disabled=!hist.length;}
+setInterval(()=>{try{const on=G&&!G.over&&!mini.classList.contains('hidden')&&$('title').classList.contains('hidden');nav.classList.toggle('hidden',!on);if(!on)return;
+ const r=mini.getBoundingClientRect(),q=$('qWarn');let right=window.innerWidth-r.right;if(q&&!q.classList.contains('hidden')){const qr=q.getBoundingClientRect();right=window.innerWidth-qr.left+6;}
+ nav.style.top=(r.bottom+6)+'px';nav.style.right=right+'px';upd();}catch(e){}},300);
+// ---- 큰 지도 ----
+const bm=document.createElement('div');bm.id='bigMap';bm.className='hidden';bm.innerHTML='<div class="bmT">🗺 가고 싶은 곳을 탭하세요 · 바깥을 누르면 닫기</div><canvas id="bmC"></canvas>';document.body.appendChild(bm);
+const bc=$('bmC'),bx=bc.getContext('2d');let open=false,saved=null;
+function openBig(){if(!G||open)return;open=true;const dpr=window.devicePixelRatio||1;const H=window.innerHeight*0.84,W=window.innerWidth*0.9;const k=Math.min(W/WW,H/WH);const cw=Math.round(WW*k),ch=Math.round(WH*k);
+ bc.style.width=cw+'px';bc.style.height=ch+'px';bc.width=Math.round(cw*dpr);bc.height=Math.round(ch*dpr);
+ saved=[mini.width,mini.height];mini.width=bc.width;mini.height=bc.height;// 미니맵을 큰 해상도로 그리게 함
+ bm.classList.remove('hidden');try{miniTap=null;miniDrag=false;}catch(_){}buzz(15);draw();}
+function closeBig(){if(!open)return;open=false;bm.classList.add('hidden');if(saved){mini.width=saved[0];mini.height=saved[1];saved=null;}}
+function draw(){if(!open)return;try{renderMini();bx.imageSmoothingEnabled=false;bx.drawImage(mini,0,0,bc.width,bc.height);}catch(e){}requestAnimationFrame(draw);}
+bc.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=bc.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*WW,y=(e.clientY-r.top)/r.height*WH;closeBig();centerOn(x,y);G.miniPing={x,y,t:performance.now(),c:'#ffffff'};buzz(10);});
+bm.addEventListener('pointerdown',e=>{if(e.target===bm||e.target.classList.contains('bmT')){e.preventDefault();e.stopPropagation();closeBig();}});
+// 미니맵 길게 누르기 → 큰 지도 (길게 누른 뒤 손을 떼도 원래 미니맵 탭 동작은 하지 않음)
+let lpT=null,lpOpened=false,lpXY=null;
+mini.addEventListener('pointerdown',e=>{if(e.button&&e.button!==0)return;lpOpened=false;lpXY=[e.clientX,e.clientY];clearTimeout(lpT);lpT=setTimeout(()=>{lpOpened=true;openBig();},450);},true);
+mini.addEventListener('pointermove',e=>{if(lpXY&&Math.hypot(e.clientX-lpXY[0],e.clientY-lpXY[1])>8)clearTimeout(lpT);},true);
+const endLp=e=>{clearTimeout(lpT);lpXY=null;if(lpOpened){lpOpened=false;e.stopImmediatePropagation();try{miniTap=null;miniDrag=false;}catch(_){}}};
+mini.addEventListener('pointerup',endLp,true);mini.addEventListener('pointercancel',endLp,true);
+// 게임이 끝나거나 타이틀로 가면 닫고 기록 비움
+{const _ng=newGame;newGame=function(){closeBig();hist.length=0;last=null;return _ng.apply(this,arguments);};}
+// PC: Backspace = 이전 화면, Tab 대신 M은 다른 단축키와 겹칠 수 있어 버튼·길게 누르기만
+window.addEventListener('keydown',e=>{if(!G||G.over)return;if(e.key==='Backspace'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){e.preventDefault();back();}if(e.key==='Escape'&&open){closeBig();}},true);
 })();
 
 </script>
