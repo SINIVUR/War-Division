@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.6</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.7</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10605,6 +10605,25 @@ el.addEventListener('pointerup',e=>{if(!down)return;const d=down;down=null;d.c.c
  const sc=el.scrollTop;prodKey='';renderProd();el.scrollTop=sc;},true);
 // 다시 그릴 때 스크롤 위치 유지
 {const _rp=renderProd;renderProd=function(){const sc=el.scrollTop;const r=_rp.apply(this,arguments);if(el.scrollTop!==sc)el.scrollTop=sc;return r;};}
+})();
+
+// ===================== F.V.1.1.7 완전 검수(888판) 반영 =====================
+// 1) 진영 밸런스: 승률이 낮은 진영(에티오피아 14% · 폴란드 16% · 멕시코 · 이탈리아 · 소련 …)은 올리고, 높은 진영(스웨덴 73% · 독일 · 남아공 64% …)은 내림
+// 2) AI 보급 막힘: 보급이 꽉 찼는데 보급 건물을 안 짓고 있으면 바로 짓기
+// 3) AI 노는 일꾼: 4초 넘게 노는 일꾼은 가까운 석탄으로
+// 4) 캠페인: '전사 시 패배' 영웅은 받는 피해 30% 감소
+(function(){
+const ADJ={et:1.24,pl:1.22,mx:1.11,it:1.1,su:1.09,uk:1.06,in:1.06,ph:1.06,ca:1.06,hu:1.05,fr:1.05,us:1.04,fi:1.04,cn:1.03,au:1.02,nz:1.02,nl:1.02,tr:1.02,bg:0.99,br:0.98,ko:0.97,no:0.96,gr:0.95,de:0.93,za:0.93,se:0.88};
+for(const f in ADJ)FBAL2[f]=(FBAL2[f]||1)*ADJ[f];
+// AI 보급 · 노는 일꾼
+{const _ah=aiHuman;aiHuman=function(p,c){const r=_ah.apply(this,arguments);try{if(p.human||!c||G.camp)return r;const ai=p.ai,F=FAC[p.fac];
+ const s=supplyOf(p.id);if(s.cap<200&&s.used>=s.cap-2&&s.cap>0){ai._supB=(ai._supB||0)+1;
+  const pend=ents.some(b=>!b.dead&&b.team===p.id&&b.type==='bld'&&b.kind===F.sup&&!b.built)||c.wk.some(u=>u.state==='site'&&u.site&&u.site.kind===F.sup);
+  if(!pend&&ai._supB>=3){const n=c.have(F.sup);c.build(F.sup);if(s.used>=s.cap&&c.have(F.sup)===n+1&&p.coal>BD[F.sup].cost[0]*2)c.build(F.sup);}}else ai._supB=0;
+ if(!(ai._idleT>G.time)){ai._idleT=G.time+4;const hqs=c.blds.filter(b=>b.built&&BD[b.kind].drop);if(hqs.length)for(const u of c.wk){if(u.state==='idle'&&!u.scouting&&!buildLock(u)){u._aiIdle=(u._aiIdle||0)+1;if(u._aiIdle>=2){u._aiIdle=0;let h=hqs[0],bd=1e9;for(const q of hqs){const d=dist(q.x,q.y,u.x,u.y);if(d<bd){bd=d;h=q;}}const co=nearestCoal(h.x,h.y);if(co)orderGather(u,co);}}else u._aiIdle=0;}}
+ }catch(e){}return r;};}
+// 캠페인 핵심 영웅 보호
+{const _dm=damage;damage=function(t,amt,src){try{if(t&&amt>0&&G&&G.camp&&t.team===0&&t.hid&&G.camp.def&&(G.camp.def.vital||[]).includes(t.hid))arguments[1]=amt*0.7;}catch(e){}return _dm.apply(this,arguments);};}
 })();
 
 </script>
