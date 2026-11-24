@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.7</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.8</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1401,7 +1401,7 @@ function pathTo(u,wx,wy){
  const pts=rawPath(L,u.x,u.y,wx,wy);if(!pts){u.path=null;return;}
  u.path=smooth(L,u.x,u.y,pts,Math.max(L==='n'?10:7,Math.min(u.r*0.8,16)));u.pi=0;u.stuck=0;
 }
-const spd=u=>{const v=UD[u.kind].sp*(u.slowT>0?0.65:1)*(u.buffT>0?1.15:1)*(u.spMul||1);return u.capSp&&u.capSp<v?u.capSp:v;};
+const spd=u=>{const v=UD[u.kind].sp*(u.slowT>0?0.65:1)*(u.buffT>0?1.15:1)*(u.spMul||1)*(u.wxSp||1);return u.capSp&&u.capSp<v?u.capSp:v;};
 function followPath(u,dt){
  if(!u.path||u.pi>=u.path.length){u.path=null;return true;}
  const last=u.pi===u.path.length-1;let p=u.path[u.pi],dx=p[0]-u.x,dy=p[1]-u.y,d=Math.hypot(dx,dy);const step=spd(u)*dt;
@@ -4755,6 +4755,7 @@ function render(){
  for(const u of ents)if(!u.dead&&u.team===0&&u.state==='site'&&u.site){const s2=u.site;ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.strokeRect(s2.tx*T,s2.ty*T,s2.w*T,s2.h*T);ctx.setLineDash([]);}
  for(const id of G.sel){const b=byId.get(id);if(b&&b.type==='bld'&&b.team===0&&b.rally){const r=b.rally.res?byId.get(b.rally.res):b.rally;if(r){ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([5,5]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(r.x,r.y);ctx.stroke();ctx.setLineDash([]);circ(r.x,r.y,4,'#6cff6c');}}}
  if(fogC){ctx.imageSmoothingEnabled=false;{const FK=fogC.width/WW,fx0=Math.max(0,Math.floor(vx0/T)-1)*T,fy0=Math.max(0,Math.floor(vy0/T)-1)*T,fx1=Math.min(WW,Math.ceil(vx1/T+1)*T),fy1=Math.min(WH,Math.ceil(vy1/T+1)*T);if(fx1>fx0&&fy1>fy0)ctx.drawImage(fogC,fx0*FK,fy0*FK,(fx1-fx0)*FK,(fy1-fy0)*FK,fx0,fy0,fx1-fx0,fy1-fy0);}ctx.fillStyle='#080705';ctx.fillRect(-400,-400,WW+800,400);ctx.fillRect(-400,WH,WW+800,400);ctx.fillRect(-400,0,400,WH);ctx.fillRect(WW,0,400,WH);} // 안개를 유닛보다 먼저 그림: 시야 가장자리의 적이 안개 무늬에 덮여 반투명해 보이던 문제
+ try{wxUnder(vx0,vy0,vx1,vy1);}catch(_){}
  const units=vis.filter(e=>e.type==='unit');
  const byL={n:[],g:[],a:[]};for(const u of units)byL[UD[u.kind].layer||'g'].push(u);
  for(const L of ['n','g','a']){const arr=byL[L].sort((a,b)=>a.y-b.y);
@@ -7405,7 +7406,7 @@ const NF_RULE={
  ro:'유전 지대: 에테르 정제소마다 에테르가 추가로 흘러나옴',
  th:'코끼리 짓밟기: 근접 공격이 주변에 범위 피해',
  bg:'복수의 맹세: 아군이 쓰러지면 주변 아군 5초간 강화',
- se:'철광석 수출: 30초마다 석탄 +40 (정제소당 +10)',
+ se:'철광석 수출: 30초마다 석탄 +30 (정제소당 +5)',
  ch:'정밀 공학: 생산 20% 빠름 · 건물 매우 튼튼',
  es:'투우사의 몸놀림: 근접 유닛이 공격의 20%를 회피',
  tr:'메흐테르 군악대: 병영 주변 아군 공격·이동 강화',
@@ -7445,7 +7446,7 @@ for(const f in NF_RULE)FTRAIT[f]=(FTRAIT[f]||'')+' · 고유: '+NF_RULE[f];
     for(const b of tr)unitsNear(b.x,b.y,240,v=>{if(v.team===b.team&&dist(v.x,v.y,b.x,b.y)<240)v.buffT=Math.max(v.buffT||0,1.3);});
     for(const b of gr)unitsNear(b.x,b.y,220,v=>{if(v.team===b.team&&UD[v.kind].bio&&dist(v.x,v.y,b.x,b.y)<220)v.barT=Math.max(v.barT||0,1.3);});
     for(const b of mx)unitsNear(b.x,b.y,320,v=>{if(v.team===b.team&&UD[v.kind].layer==='a'&&v.hp<v.maxhp)v.hp=Math.min(v.maxhp,v.hp+4);});}}
-  if(acc30>=30){acc30-=30;for(const p of G.pl){if(!p.alive||p.fac!=='se')continue;let n=0;for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='bld'&&e.built&&BD[e.kind].geyser)n++;p.coal+=40+n*10;if(p.human)toast(`⚓ 철광석 수출: 석탄 +${40+n*10}`);}}
+  if(acc30>=30){acc30-=30;for(const p of G.pl){if(!p.alive||p.fac!=='se')continue;let n=0;for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='bld'&&e.built&&BD[e.kind].geyser)n++;p.coal+=30+n*5;if(p.human)toast(`⚓ 철광석 수출: 석탄 +${30+n*5}`);}}
  }catch(e){console.error(e);}return r;};
 })();
 
@@ -10458,6 +10459,7 @@ mini.addEventListener('pointerup',endLp,true);mini.addEventListener('pointercanc
 window.addEventListener('keydown',e=>{if(!G||G.over)return;if(e.key==='Backspace'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){e.preventDefault();back();}if(e.key==='Escape'&&open){closeBig();}},true);
 })();
 
+// F.V.1.1.8: 룬(독일 문양)은 마법 판정에서 뺌 · 보호막 보병은 천 장갑 · 보병 크기는 맨몸 체력 기준
 // ===================== F.V.1.1.3 무기 5종 · 크기 3종 · 장갑 5종 상성 =====================
 // 무기: 🔫일반(소총·기관총·근접) 💥폭발(포·로켓·폭탄·범위) 🎯관통(대전차·철갑·저격·어뢰) 🔥화염(화염방사·소이) ✨마법(마법·주술)
 // 크기: 소형(보병·일꾼) 중형(경차량·기병·전투기·소형 함선) 대형(전차·대형 함선·폭격기·거대 생물·건물)
@@ -10472,23 +10474,23 @@ const XS={N:{S:1,M:1,L:1},E:{S:0.7,M:0.9,L:1.1},P:{S:0.8,M:1,L:1.15},F:{S:1.15,M
 // 무기 × 장갑
 const XA={N:{C:1.1,LA:1,HA:0.8,MS:1,FT:0.7},E:{C:0.9,LA:1,HA:1.05,MS:0.9,FT:1.25},P:{C:0.8,LA:1.1,HA:1.3,MS:0.9,FT:0.9},F:{C:1.3,LA:0.95,HA:0.7,MS:0.85,FT:0.75},M:{C:1.1,LA:0.95,HA:0.9,MS:0.7,FT:0.8}};
 const SIZE={},WT={},AT={};
-const MAGRE=/음양|마법|마도|마녀|마술|주술|술사|룬|정령|샤먼|무녀|요술|소환|신관|사제|드루이드|저주|영매|무당|도사|선인|신화|요괴|귀신|성녀|예언|축복|마나/;
+const MAGRE=/음양|마법|마도|마녀|마술|주술|술사|정령|샤먼|무녀|요술|소환|신관|사제|드루이드|저주|영매|무당|도사|선인|신화|요괴|귀신|성녀|예언|축복|마나/;
 const FIRERE=/화염|소이|불꽃|방사기|버너|불화살|불새|불뿜|네이팜/;
 const PIERRE=/대전차|철갑|저격|관통|작살|어뢰|대함|랜스|기창|창기병|장창|석궁|바주카|판처|대물/;
 const EXPRE=/척탄|포병|대포|포격|곡사|박격|로켓|미사일|폭격|폭탄|전차|자주포|구축함|순양함|전함|드레드|거포|포함|포대|수류탄|공성|투석|카농|캐논|유탄|폭뢰|폭발|자폭|고사포/;
 function classify(k){const d=UD[k];if(!d)return;const L=d.layer||'g',hp=(d.hp||0)+(d.sh||0),sup=d.sup||1;
  // 크기
- let s;if(d.worker)s='S';else if(sup>=4||hp>=320||d.carrier)s='L';else if(L!=='g'||d.mech)s=((L==='n'&&sup>=3)||hp>=240)?'L':'M';else s=(hp>=130||sup>=3)?'M':'S';
+ let s;if(d.worker)s='S';else if(sup>=4||hp>=320||d.carrier)s='L';else if(L!=='g'||d.mech)s=((L==='n'&&sup>=3)||hp>=240)?'L':'M';else s=((d.hp||0)>=150||sup>=3)?'M':'S';// 보병 크기는 보호막을 빼고 맨몸 체력으로
  if(d.hero)s=d.mech?(hp>=300?'L':'M'):'S';SIZE[k]=s;
  // 무기
  const txt=(d.n||'')+' '+(d.desc||'');let w='N';
  if(d.dmg){if(d.burn||FIRERE.test(txt))w='F';
-  else if(MAGRE.test(txt)&&!d.mech)w='M';
+  else if(MAGRE.test(txt)&&!d.mech&&!d.worker)w='M';
   else if(d.antiArmor||PROJ[k]==='torp'||PIERRE.test(txt))w='P';
   else if(!d.melee&&(d.spl||d.sg||d.suicide||PROJ[k]||d.antiBld||EXPRE.test(txt)))w='E';}
  WT[k]=w;
  // 장갑
- let a;if(d.sh&&!d.mech||(!d.mech&&MAGRE.test(txt)))a='MS';else if(d.mech||L!=='g')a=(s==='L'||(d.ar||0)>=3)?'HA':'LA';else a=(s==='L')?'HA':'C';
+ let a;if(!d.mech&&!d.worker&&MAGRE.test(txt))a='MS';/* 보호막은 장갑 종류가 아님 (마법 직종만 마법 보호) */else if(d.mech||L!=='g')a=(s==='L'||(d.ar||0)>=3)?'HA':'LA';else a=(s==='L')?'HA':'C';
  if(d.bio&&!d.mech&&a==='HA')a='LA';// 거대 생물은 두꺼운 가죽 = 경장갑
  AT[k]=a;}
 for(const k in UD)classify(k);
@@ -10624,6 +10626,227 @@ for(const f in ADJ)FBAL2[f]=(FBAL2[f]||1)*ADJ[f];
  }catch(e){}return r;};}
 // 캠페인 핵심 영웅 보호
 {const _dm=damage;damage=function(t,amt,src){try{if(t&&amt>0&&G&&G.camp&&t.team===0&&t.hid&&G.camp.def&&(G.camp.def.vital||[]).includes(t.hid))arguments[1]=amt*0.7;}catch(e){}return _dm.apply(this,arguments);};}
+})();
+
+// ===================== F.V.1.1.8 =====================
+// 1) 진영 조정: 에티오피아·폴란드 고유 능력 강화 (대신 일괄 배율은 조금 되돌림) · 스웨덴 경제 보너스 축소
+// 2) 캠페인 난이도 전체 하향 + 못 깨던 장(2·18·21·23·41·45·47·48·52~55장)은 한 번 더 하향
+// 3) 32개 진영 지상 수송 차량 (병영 보병을 태우고 땅 위로 이동)
+// 4) 밤낮 · 날씨
+(function(){
+// ---------------- 1) 진영 조정 ----------------
+for(const k in UD){const d=UD[k];if(!d||!d.f)continue;
+ if(d.f==='et'&&d.bio&&!d.worker)d.hp=Math.round(d.hp*1.25/1.15);// 생체 체력 +15% → +25%
+ if(d.f==='pl'){
+  if(d.melee&&d.dmg)d.dmg=Math.round(d.dmg*1.35/1.25);// 근접 +25% → +35%
+  if(d.layer==='a'&&d.dmg)d.dmg=Math.round(d.dmg*1.2/1.1);// 공중 +10% → +20%
+  if(d.mech&&d.cost)d.cost=d.cost.map(c=>Math.round(c*0.85/0.9/5)*5);// 기계 할인 10% → 15%
+  if(d.bio&&!d.worker&&!d.layer)d.hp=Math.round(d.hp*1.1);}// 새로: 보병 체력 +10%
+ if(d.f==='se'&&d.cost)d.cost=d.cost.map(c=>Math.round(c/0.9*0.95/5)*5);// 전 유닛 할인 10% → 5%
+}
+// 능력에 힘을 옮긴 만큼 일괄 배율은 되돌림
+FBAL2.et=(FBAL2.et||1)*1.12/1.24;FBAL2.pl=(FBAL2.pl||1)*1.1/1.22;FBAL2.se=(FBAL2.se||1)*0.94/0.88;
+// 아드와의 기억: 체력 60% 아래 → 피해 +40%, 체력 절반 아래 → 받는 피해 -15%
+{const fo=t=>G&&P(t)?P(t).fac:null;
+ const _dm=dmgMul;dmgMul=function(u){let m=_dm(u);try{if(fo(u.team)==='et'&&u.hp<u.maxhp*0.6)m*=(u.hp<u.maxhp*0.5?1.4/1.3:1.4);}catch(e){}return m;};
+ const _dg=damage;damage=function(t,amt,src){try{if(t&&t.type==='unit'&&amt>0&&t.hp<t.maxhp*0.5&&fo(t.team)==='et')arguments[1]=amt*0.85;}catch(e){}return _dg.apply(this,arguments);};}
+try{NF_RULE.et='아드와의 기억: 체력 60% 아래인 유닛 피해 +40% · 체력 절반 아래면 받는 피해 -15%';}catch(e){}
+FTRAIT.et=FTRAIT.et.replace('생체 유닛 체력 +15%','생체 유닛 체력 +25%').replace(/아드와의 기억:[^·]*$/,'').replace(/ · 고유: $/,'')+' · 고유: 아드와의 기억: 체력 60% 아래 피해 +40% · 절반 아래면 받는 피해 -15%';
+FTRAIT.pl=FTRAIT.pl.replace('근접 유닛 피해 +25%','근접 유닛 피해 +35%').replace('공중 유닛 공격 +10%','공중 유닛 공격 +20%').replace('기계 유닛 비용 10% 저렴','기계 유닛 비용 15% 저렴')+' · 보병 체력 +10%';
+FTRAIT.se=FTRAIT.se.replace('모든 유닛 비용 10% 저렴','모든 유닛 비용 5% 저렴');
+
+// ---------------- 2) 캠페인 난이도 ----------------
+const HARD=new Set(['bzura','street42','moscow','malaya','omaha','warsaw','arnhem','stratsin','budapest','iwo','castello','zhijiang']);
+const hard=()=>!!(G&&G.camp&&G.camp.hist&&G.camp.def&&HARD.has(G.camp.def.id));
+// 장 데이터: 적 생산 상한, 목표 수치 (못 깨던 장)
+try{for(const m of HIST){if(!m||!m.g)continue;const H=HARD.has(m.id);m.ecap=Math.max(4,Math.round((m.ecap||8)*(H?0.6:0.8)));
+ if(H)for(const gl of m.g){if(!gl.n||gl.fixed)continue;const o=gl.n,k={kills:0.7,evac:0.7,reach:0.8,escort:1}[gl.g];if(!k&&gl.g!=='escort')continue;
+  const nn=gl.g==='escort'?Math.max(1,o-1):Math.max(1,Math.round(o*k));if(nn===o)continue;gl.n=nn;if(gl.txt)gl.txt=gl.txt.replace(String(o),String(nn));}}}catch(e){console.error('campEasy data',e);}
+// 이벤트 증원 규모
+{const _hs=hSpawn;hSpawn=function(sp){try{if(G&&G.camp&&sp&&sp.u&&!sp.hero&&!sp.b){const t=hTeam(sp.team);if(t!==0&&P(t)&&!P(t).ally&&enemy(0,t))sp=Object.assign({},sp,{n:Math.max(1,Math.round((sp.n||1)*(hard()?0.6:0.8)))});}}catch(e){}const out=_hs.call(this,sp);try{if(G&&G.camp&&sp&&sp.tag&&!sp.b&&hTeam(sp.team)===0&&hard()&&Array.isArray(out))for(const u of out){u.maxhp=Math.round(u.maxhp*2.5);u.hp=u.maxhp;}}catch(e){}return out;};}
+// 시작 수비군·자원·적 본부 체력
+{const _hb=histBegin;histBegin=function(){const r=_hb.apply(this,arguments);try{const H=hard(),cut=H?0.4:0.2;
+ for(const p of G.pl){if(p.id===0||!enemy(0,p.id)||p.ally)continue;p.coal=Math.round(p.coal*(H?0.5:0.75));p.ether=Math.round(p.ether*(H?0.5:0.75));
+  const g=ents.filter(u=>!u.dead&&u.team===p.id&&u.type==='unit'&&u.hhome&&!u.hid&&!u.htag);let n=Math.round(g.length*cut);
+  for(let i=g.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[g[i],g[j]]=[g[j],g[i]];}
+  for(const u of g){if(n<=0)break;u.dead=true;u.silent=true;n--;}
+  if(H)for(const b of ents)if(!b.dead&&b.team===p.id&&b.type==='bld'&&BD[b.kind].drop){b.maxhp=Math.round(b.maxhp*0.75);b.hp=Math.min(b.hp,b.maxhp);}}
+ // 못 깨던 장: 지켜야 하는 내 건물(대피소·비행장 표식 등)은 체력 4배
+ if(H)for(const b of ents)if(!b.dead&&b.team===0&&b.type==='bld'&&b.htag){b.maxhp=Math.round(b.maxhp*4);b.hp=b.maxhp;}
+}catch(e){console.error('campEasy',e);}return r;};}
+// 못 깨던 장: 첫 목표(버티기)를 끝내면 '지켜야 할 표식 건물'을 잃어도 패배하지 않음 (철수·반격 단계)
+{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{const c=G&&G.camp;if(c&&c.gi>=1&&!c._tagFree&&hard()){c._tagFree=1;c.escDone=c.escDone||{};for(const l of (c.def.lose||[]))if(typeof l==='string'&&l.startsWith('tag:'))c.escDone[l.slice(4)]=1;}}catch(e){}return r;};}
+// 호송 목표 막힘 방지 (모든 캠페인): 멈춰 선 호송 유닛은 목적지로 다시 출발, 호송 유닛이 모두 쓰러지면 한 번 새로 보냄
+{const _up=update;let tk=0;update=function(dt){const r=_up.apply(this,arguments);try{const c=G&&G.camp;if(!c||!c.hist||G.over)return r;tk+=dt;if(tk<4)return r;tk=0;
+ const m=c.def,gl=m&&m.g&&m.g[c.gi];if(!gl||gl.g!=='escort'||!gl.tag)return r;const xy=hZone(gl);const mine=ents.filter(e=>!e.dead&&e.team===0&&e.type==='unit'&&e.htag===gl.tag);
+ for(const u of mine)if(u.state==='idle'&&dist(u.x,u.y,xy[0],xy[1])>(gl.r||100)*0.6){const o=AIB;AIB=null;try{orderMove(u,xy[0]+rnd(-30,30),xy[1]+rnd(-30,30));}finally{AIB=o;}}
+ if(mine.length)gl._seen=1;
+ if(gl._seen&&!mine.length&&(gl._n||0)<(gl.n||1)&&!gl._re){gl._re=1;let n=0;for(const ev of (m.ev||[]))for(const sp of (ev.spawn||[]))if(sp.tag===gl.tag&&(sp.team==='me'||sp.team===0)){const hb=P(0).base,q=Object.assign({},sp);if(hb&&Array.isArray(sp.at)&&sp.at[0]==='f'&&typeof sp.at[1]==='number')q.at=['f',Math.max(0.06,sp.at[1]*0.5),sp.at[2]||0];hSpawn(q);n++;}if(n)toast('🚚 새 호송 행렬이 출발했어요 — 끝까지 지켜 주세요');}
+}catch(e){console.error('escort',e);}return r;};}
+{const _hb=histBegin;histBegin=function(){try{for(const gl of (HIST[CAMP.h].g||[])){gl._re=0;gl._seen=0;}}catch(e){}return _hb.apply(this,arguments);};}
+// 받는 피해: 캠페인 전체 -15%, 못 깨던 장 -30% · 그 장의 내·동맹 건물(대피소·비행장 등)은 -50% · 핵심 영웅은 추가 -25%
+{const _dg=damage;damage=function(t,amt,src){try{if(G&&G.camp&&t&&amt>0&&src&&src.team!=null&&src.team>=0&&t.team>=0&&!enemy(0,t.team)&&enemy(t.team,src.team)){
+  const H=hard();let m=H?0.7:0.85;if(H&&t.type==='bld')m=t.htag?0.35:0.5;if(H&&t.hid&&G.camp.def&&(G.camp.def.vital||[]).includes(t.hid))m*=0.75;if(H&&t.type==='unit'&&t.htag)m*=0.5;/* 호송 행렬 등 표식 유닛 */arguments[1]=amt*m;}}catch(e){}return _dg.apply(this,arguments);};}
+
+// ---------------- 3) 지상 수송 차량 ----------------
+// 차체: truck 트럭 · half 하프트랙 · track 궤도 · apc 장갑차 · jeep 지프 · bus 버스 · jeepney 지프니 · steam 증기 마차 · trike 삼륜 · tractor 트랙터 수레
+// 짐승: cart(수레+짐승) · sled(썰매+짐승) · pack(짐 실은 짐승 행렬) · elephant(코끼리 가마)
+const GTR={
+ us:['GMC 트럭 "지미"','truck',{cv:1},{cap:8,sp:86,hp:200},'대용량 트럭 — 8명 탑승'],
+ su:['GAZ-AA "폴루토르카"','truck',{},{cap:6,hp:170,cost:[75,0],t:16},'값싸고 빨리 뽑는 트럭'],
+ de:['Sd.Kfz.251 하프트랙','half',{},{hp:300,ar:2,sp:74,dmg:6,rng:150,cd:.45,tg:'g'},'장갑 하프트랙 · 기관총'],
+ it:['란치아 쾌속 트럭','truck',{cv:1},{sp:98,hp:190},'아주 빠른 트럭'],
+ fr:['로렌 37L 장갑 수송차','track',{},{hp:320,ar:3,sp:62,cap:5},'튼튼한 궤도 수송차 — 5명'],
+ uk:['유니버설 캐리어','track',{small:1},{cap:4,sp:90,hp:220,ar:2,dmg:5,rng:140,cd:.45,tg:'g',cost:[90,25]},'작고 빠른 궤도차 · 브렌 기관총 — 4명'],
+ jp:['1식 반장궤차 "호하"','half',{},{hp:270,ar:2,dmg:5,rng:140,cd:.5,tg:'g'},'장갑 하프트랙 · 기관총'],
+ cn:['노새 짐수레','cart',{an:'mule'},{bio:1,hp:170,sp:70,cap:5,cost:[60,0],t:16},'값싼 노새 수레 — 5명'],
+ au:['로버 장갑 트럭','apc',{},{hp:260,ar:2,sp:84},'단단한 장갑 트럭'],
+ za:['마몬-헤링턴 장갑 트럭','apc',{gun:1},{hp:260,ar:2,dmg:5,rng:140,cd:.5,tg:'g'},'장갑 트럭 · 기관총'],
+ br:['FEB 지프','jeep',{},{cap:4,sp:104,hp:150,cost:[75,15],t:16},'아주 빠른 지프 — 4명'],
+ in:['코끼리 가마 "하우다"','elephant',{},{bio:1,hp:420,sp:54,cap:8,r:16,cost:[150,50],t:28,sup:3},'거대한 코끼리 — 8명 · 매우 튼튼'],
+ ko:['광무 증기 마차','steam',{},{hp:240,sp:74,regen:1.5},'증기 기관 마차 — 스스로 천천히 수리'],
+ hu:['보탄드 쾌속 트럭','truck',{cv:1},{sp:94,hp:210},'빠른 트럭'],
+ fi:['순록 썰매','sled',{an:'deer'},{bio:1,hp:180,sp:92,cap:5,slowImmune:1},'눈길에도 느려지지 않는 썰매 — 5명'],
+ pl:['우르수스 트럭','truck',{cv:1},{hp:220,cost:[85,20]},'값싼 트럭'],
+ ca:['CMP 장갑 트럭','apc',{six:1},{hp:280,ar:2,sp:80},'튼튼한 캐나다 표준 트럭'],
+ nz:['개조 트랙터 수레','tractor',{},{hp:320,ar:2,sp:58,cap:8},'느리지만 튼튼 — 8명'],
+ gr:['노새 산악 행렬','pack',{an:'mule'},{bio:1,hp:190,sp:78,cap:5},'산길을 넘는 노새 행렬 — 5명'],
+ nl:['DAF 트라도 장갑차','apc',{six:1},{hp:240,ar:2,sp:90},'빠른 장갑 수송차'],
+ no:['개썰매','sled',{an:'dog'},{bio:1,hp:160,sp:96,cap:4,slowImmune:1},'눈길에도 느려지지 않는 개썰매 — 4명'],
+ et:['고원 낙타 대상','pack',{an:'camel'},{bio:1,hp:220,sp:74,cap:5,regen:1},'고원을 넘는 낙타 대상 — 체력 재생'],
+ ph:['지프니','jeepney',{},{cap:8,sp:92,hp:190},'알록달록 지프니 — 8명'],
+ mx:['라 아델리타 트럭','truck',{cv:1,gay:1},{hp:210,sp:84,cap:7},'혁명군 트럭 — 7명'],
+ mn:['쌍봉낙타 대상','pack',{an:'camel2'},{bio:1,hp:240,sp:84,cap:5},'초원을 가로지르는 낙타 — 5명'],
+ ro:['로마크 유전 트럭','truck',{tank:1},{hp:220,cost:[100,0]},'에테르 없이 뽑는 트럭'],
+ th:['삼로 수레','trike',{},{cap:4,sp:98,hp:140,cost:[60,10],t:14},'작고 빠른 삼륜 수레 — 4명'],
+ bg:['발칸 우마차','cart',{an:'ox'},{bio:1,hp:230,sp:64,cap:6,cost:[70,0]},'튼튼한 황소 수레'],
+ se:['볼보 TLV 트럭','truck',{cv:1},{hp:230,sp:84},'튼튼한 스웨덴 트럭'],
+ ch:['자우러 산악 트럭','truck',{cv:1},{hp:300,ar:2,sp:72},'아주 튼튼한 산악 트럭'],
+ es:['바르셀로나 장갑 버스','bus',{},{hp:320,ar:2,sp:68,cap:8},'철판을 두른 버스 — 8명'],
+ tr:['메흐테르 군악 마차','cart',{an:'horse',drum:1},{bio:1,hp:200,sp:80},'북을 실은 군악대 마차'],
+};
+const GC={us:'#6b7344',su:'#6e7048',de:'#5d6470',it:'#7a7a54',fr:'#6d7a8a',uk:'#8a7a50',jp:'#8e7e4c',cn:'#7a5a3a',au:'#8a7a50',za:'#a08a5a',br:'#4a6a3a',in:'#c8a040',ko:'#5a3a6a',hu:'#5a7a4a',fi:'#d8dce0',pl:'#6a7050',
+ ca:'#6a6a48',nz:'#5a6a4a',gr:'#6a7a8a',nl:'#5a6a5a',no:'#c8ccd0',et:'#7a7a58',ph:'#c8302a',mx:'#7a6a48',mn:'#8a6a40',ro:'#5a6040',th:'#2a5a9a',bg:'#6a5a3a',se:'#5a6a5a',ch:'#7a2a2a',es:'#8a6a4a',tr:'#6a5a40'};
+// ---- 그림 (옆모습, 오른쪽을 봄, 34×20)
+const WH=(p,x,r)=>{p.ci(x,16,r||3,'#1c1a16');p.ci(x,16,(r||3)*0.4,'#6a6050');};
+const HEADS=(p,x0,x1,y,c)=>{for(let x=x0;x<=x1;x+=3){p.ci(x,y,1.3,c||'#e0b088');p.r(x-1,y-2,3,1,'#4a4a30');}};
+function animal(p,kind,x,sc){const s=sc||1,leg=(lx,c)=>p.r(lx,13,1,4,c);
+ if(kind==='dog'){const c='#8a8a8a';for(const dx of [0,6]){p.el(x+dx,12,2.6,1.4,c);p.ci(x+dx+3,10.6,1.2,'#5a5a5a');p.r(x+dx-2,13,1,3,c);p.r(x+dx+1,13,1,3,c);}return;}
+ const c={mule:'#7a5a3a',horse:'#5a3a22',ox:'#3a2e24',deer:'#8a6a48',camel:'#c8a060',camel2:'#a8804a'}[kind]||'#6a4a2a';
+ p.el(x,11,4.5*s,2.6,c);leg(x-3,shade(c,-0.2));leg(x-1,c);leg(x+2,shade(c,-0.2));leg(x+3,c);
+ p.r(x+3,7,2,4,c);p.el(x+5,7,2,1.4,c);// 목·머리
+ if(kind==='mule'){p.r(x+4,4,1,3,c);p.r(x+5,4,1,3,shade(c,0.2));}
+ if(kind==='horse'){p.r(x+3,6,1,4,'#2a1a10');}
+ if(kind==='ox'){p.ln(x+4,6,x+3,4,'#e8e0c8');p.ln(x+6,6,x+7,4,'#e8e0c8');}
+ if(kind==='deer'){p.ln(x+5,6,x+3,2,'#6a4a2a');p.ln(x+6,6,x+8,2,'#6a4a2a');p.p(x+3,3,'#6a4a2a');p.p(x+8,3,'#6a4a2a');}
+ if(kind==='camel'||kind==='camel2'){p.el(x-1,8,2,2,c);if(kind==='camel2')p.el(x+2,8,1.6,1.8,c);}}
+function draw(f,ch,o){const c=GC[f]||'#6a6a5a',cd=shade(c,-0.25),cl=shade(c,0.22);
+ return (p,fr)=>{
+ if(ch==='truck'){WH(p,6);WH(p,11);WH(p,27);
+  if(o.tank){p.el(13,9,10,3.6,'#3a3a34');p.r(4,9,19,1,'#5a5a50');HEADS(p,6,18,4);}else{p.r(2,9,21,5,c);p.r(2,9,21,1,cl);if(o.cv){p.poly([[2,9],[3,3],[22,3],[23,9]],o.gay?'#c8402a':shade(c,0.1));p.r(3,3,19,1,o.gay?'#2a8a40':cl);}else HEADS(p,5,19,7);}
+  p.poly([[23,6],[29,6],[31,10],[31,14],[23,14]],c);p.r(25,7,4,3,'#8fd0ff');p.r(31,11,2,2,'#2a2a26');p.r(4,11,17,1,TMc);}
+ else if(ch==='half'){p.r(2,13,17,5,'#26221c');for(let i=0;i<4;i++)p.ci(5+i*4,15.5,1.6,'#4a443a');WH(p,27);
+  p.poly([[2,8],[22,8],[30,11],[30,13],[1,13]],c);p.r(3,8,18,1,cl);HEADS(p,6,18,6);p.r(23,9,4,2,'#8fd0ff');p.r(4,10,16,1,TMc);
+  if(UD[f+'_gtr']&&UD[f+'_gtr'].dmg){p.ln(20,7,25,5,'#2a241b');}}
+ else if(ch==='track'){const sm=o.small?1:0;p.r(2,13,29-sm*5,5,'#26221c');for(let x=5;x<30-sm*5;x+=4)p.ci(x,15.5,1.6,'#4a443a');
+  p.poly([[3,7+sm*2],[27-sm*5,7+sm*2],[31-sm*5,12],[2,12]],c);p.r(3,7+sm*2,24-sm*5,1,cl);HEADS(p,7,20-sm*5,5+sm*2);p.r(4,10,22-sm*5,1,TMc);if(sm)p.ln(22,7,27,6,'#2a241b');}
+ else if(ch==='apc'){const xs=o.six?[5,11,26]:[6,26];for(const x of xs)WH(p,x);
+  p.poly([[2,7],[25,7],[31,10],[31,14],[2,14]],c);p.r(2,7,23,1,cl);for(let x=5;x<22;x+=5)p.r(x,9,3,2,'#2a2a26');p.r(26,9,3,2,'#8fd0ff');p.r(3,12,26,1,TMc);
+  if(o.gun){p.r(14,4,6,3,cd);p.ln(19,5,25,4,'#2a241b');}}
+ else if(ch==='jeep'){WH(p,8);WH(p,25);p.poly([[3,10],[27,10],[30,12],[30,14],[3,14]],c);p.r(20,6,1,4,'#8fd0ff');HEADS(p,9,18,8);p.r(4,12,24,1,TMc);p.r(28,10,2,2,'#ffe08a');}
+ else if(ch==='bus'){WH(p,7);WH(p,26);p.r(1,4,30,10,c);p.r(1,4,30,1,cl);for(let x=3;x<27;x+=4)p.r(x,6,3,3,'#3a3a34');p.r(27,6,3,4,'#8fd0ff');p.r(1,11,30,1,TMc);for(let x=4;x<30;x+=6)p.p(x,9,'#d8d0c0');}
+ else if(ch==='jeepney'){WH(p,7);WH(p,26);p.r(2,6,27,8,'#e8e4dc');p.r(2,6,27,1,'#c8302a');p.r(2,9,27,1,'#2a6ac8');p.r(2,11,27,1,'#e8c040');
+  for(let x=4;x<22;x+=4)p.r(x,7,2,2,'#3a3a34');p.poly([[24,6],[29,6],[32,10],[32,14],[24,14]],'#c8d0d8');p.r(26,7,3,3,'#8fd0ff');p.r(28,3,2,3,'#d8d8d0');p.p(29,2,'#e8c040');p.r(3,13,25,1,TMc);}
+ else if(ch==='steam'){p.ci(7,14,4,'#3a2a1a');p.ci(7,14,2,'#8a6a3a');p.ci(25,15,3,'#3a2a1a');p.ci(25,15,1.3,'#8a6a3a');
+  p.r(2,7,15,6,c);p.r(2,7,15,1,cl);HEADS(p,4,14,5);p.el(23,10,6,3,'#4a4a44');p.r(19,8,8,1,'#c8a040');p.r(27,3,2,6,'#2a2a26');
+  const t=(G?G.time:0);p.ci(28,2-((t*3)%3),1.5,'rgba(220,220,220,.6)');p.r(3,11,13,1,TMc);}
+ else if(ch==='trike'){WH(p,7,2.5);WH(p,26,2.5);p.r(3,8,15,5,c);p.poly([[2,5],[18,5],[18,8],[2,8]],shade(c,0.25));HEADS(p,6,14,9);p.poly([[18,9],[26,7],[28,12],[18,13]],cd);p.r(24,6,1,4,'#2a2a26');p.r(4,11,13,1,TMc);}
+ else if(ch==='tractor'){WH(p,4);WH(p,12);p.r(1,9,16,4,'#8a6a3a');HEADS(p,3,14,7);p.ln(17,12,20,12,'#3a3a34');
+  p.ci(24,14,4,'#1c1a16');p.ci(24,14,1.6,'#c8302a');WH(p,31,2);p.r(21,7,10,5,c);p.r(22,3,5,4,'#3a3a34');p.r(23,4,3,2,'#8fd0ff');p.r(30,4,1,4,'#2a2a26');p.r(2,11,14,1,TMc);}
+ else if(ch==='cart'){p.ci(9,14,4,'#5a3a1a');p.ci(9,14,1.4,'#8a6a3a');p.ln(6,14,12,14,'#8a6a3a');p.ln(9,11,9,17,'#8a6a3a');
+  p.r(2,8,15,5,'#8a6a3a');p.r(2,8,15,1,'#a88a5a');HEADS(p,4,14,6);if(o.drum){p.ci(10,5,3,'#c8302a');p.r(8,4,5,1,'#e8c040');}
+  p.ln(17,11,22,11,'#5a3a1a');p.r(3,11,13,1,TMc);animal(p,o.an||'mule',26);}
+ else if(ch==='sled'){p.ln(1,17,20,17,'#3a2a1a');p.ln(20,17,21,15,'#3a2a1a');p.r(2,10,16,5,c);p.r(2,10,16,1,cl);HEADS(p,4,14,8);p.r(3,13,14,1,TMc);
+  p.ln(18,13,22,12,'#3a3a34');animal(p,o.an||'deer',o.an==='dog'?24:27);}
+ else if(ch==='pack'){for(const [x,s] of [[7,0.9],[22,1]]){animal(p,o.an||'mule',x,s);p.r(x-4,6,8,3,'#8a6a3a');p.ci(x-1,5,1.3,'#e0b088');p.r(x-2,3,3,1,'#4a4a30');}p.r(15,9,4,1,TMc);}
+ else if(ch==='elephant'){const g='#8a8a88';p.el(16,11,12,5,g);for(const x of [7,12,19,24])p.r(x,14,3,4,shade(g,-0.15));p.el(27,8,4,4,g);p.ln(30,10,32,16,g);p.ln(31,10,33,16,g);p.el(24,8,2.5,3.5,shade(g,-0.1));
+  p.r(9,3,13,4,'#c8302a');p.r(9,3,13,1,'#e8c040');p.r(11,0,9,3,'#e8c040');HEADS(p,11,19,2,'#d8a878');p.r(9,6,13,1,TMc);}
+ };}
+for(const f in GTR){const F=FAC[f];if(!F)continue;const [n,ch,o,st,ds]=GTR[f],k=f+'_gtr';
+ const d=Object.assign({f,n,hp:220,ar:1,sp:80,r:13,dmg:0,cost:[100,25],t:22,sup:2,cap:6,gtr:1},st);
+ if(!d.bio)d.mech=1;d.desc=`지상 수송 · 보병 ${d.cap}명${d.dmg?'':' · 비무장'} — ${ds} (보병을 고르고 차량을 누르면 탑승)`;
+ UD[k]=d;const vb=F.build.find(b=>ROLE[b]==='veh');
+ if(vb){const used=new Set((BD[vb].train||[]).map(u=>UHK[u]));UHK[k]=['Y','U','J','V','X','Z','N','K','O','L','Q','W','E'].find(x=>!used.has(x));if(!(BD[vb].train||[]).includes(k))(BD[vb].train=BD[vb].train||[]).push(k);}
+ try{SHAPE_SKIP.add(k);}catch(e){}
+ ART[k]=[34,20,'veh',draw(f,ch,o)];}
+// 탑승: 수송 차량에는 보병(생체·비기계)만, 수송 유닛끼리는 서로 타지 않음
+const canRide=u=>{const d=UD[u.kind];return d&&!d.layer&&d.bio&&!d.mech&&!d.cap;};
+{const _tb=trBoard;trBoard=function(u,ship){if(!u||!ship||UD[u.kind].cap)return false;if(UD[ship.kind].gtr&&!canRide(u))return false;return _tb.apply(this,arguments);};}
+{const _ca=commandAt;commandAt=function(wx,wy,am,auto){if(G&&!am){const us=ownUnits(),hit=pick(wx,wy);
+ if(us.length&&hit&&hit.type==='unit'&&hit.team===0&&UD[hit.kind].gtr&&!us.includes(hit)){const gr=us.filter(canRide);
+  if(gr.length){let free=trFree(hit)-ents.filter(e=>!e.dead&&e.state==='board'&&e.target===hit.id).length,n=0;for(const u of gr){if(free<=0)break;if(trBoard(u,hit)){free--;n++;}}
+   toast(n?`🚚 ${n}명 탑승하러 가요`:'자리가 없어요');mark(hit.x,hit.y,'#6cff6c');play('cmd');return;}
+  if(us.every(u=>!canRide(u))){toast('수송 차량에는 보병만 탈 수 있어요');return;}}}
+ return _ca.apply(this,arguments);};}
+// 하선: 땅 위 차량은 그 자리까지 달려가서 내림
+{const _uo=trUnloadOrder1;trUnloadOrder1=function(s,wx,wy){if(!UD[s.kind].gtr)return _uo.apply(this,arguments);
+ const tx=Math.floor(wx/T),ty=Math.floor(wy/T),land=nearestPass('g',tx,ty,Math.floor(s.x/T),Math.floor(s.y/T),10);if(!land)return false;
+ s.trUnload={lx:land[0],ly:land[1],t:G.time};const o=AIB;AIB=null;s._unl=1;try{orderMove(s,(land[0]+.5)*T,(land[1]+.5)*T);}finally{AIB=o;s._unl=0;}return true;};}
+{const _st=trShipTick;trShipTick=function(s){if(!UD[s.kind].gtr)return _st.apply(this,arguments);if(!s.trUnload)return;
+ const u=s.trUnload,d=dist(s.x,s.y,(u.lx+.5)*T,(u.ly+.5)*T);if(d<2*T||(s.state==='idle'&&G.time-u.t>1.5)){if(trUnloadNow(s)&&s.team===0)toast('🚚 하선!');}};}
+LD_TIPS.push('모든 진영에 지상 수송 차량이 있어요(차량 공장). 보병을 고른 뒤 차량을 누르면 타고, 「하선」으로 원하는 곳에 내려요.');
+
+// ---------------- 4) 밤낮 · 날씨 ----------------
+const WXN={clear:['☀','맑음',''],rain:['🌧','비','차량 이동 -12%'],snow:['❄','눈','보병 이동 -15% · 차량 -7% (감속 면역 유닛 제외)'],fog:['🌫','안개','모든 시야 -20%'],storm:['⛈','폭풍','공중 유닛 이동·시야 -20% · 차량 이동 -12%']};
+const DAY=240,DUSK=20,NIGHT=110,CYC=DAY+DUSK+NIGHT+DUSK;
+const wxOn=()=>{try{return localStorage.getItem('wd_wx')!=='0';}catch(e){return true;}};
+function nightAmt(){const w=G&&G.wx;if(!w||!w.on||w.noNight)return 0;const t=(G.time+w.off)%CYC;if(t<DAY)return 0;if(t<DAY+DUSK)return (t-DAY)/DUSK;if(t<DAY+DUSK+NIGHT)return 1;return 1-(t-DAY-DUSK-NIGHT)/DUSK;}
+function pickWx(){const th=THM(G.cfg&&G.cfg.map),W=th==='ocean'?{clear:4,rain:3,fog:2,storm:2,snow:0.5}:th==='city'||th==='ruins'?{clear:5,rain:2,fog:2,storm:1,snow:1.5}:{clear:5,rain:2,fog:1.5,storm:1,snow:2};
+ let s=0;for(const k in W)s+=W[k];let r=Math.random()*s;for(const k in W){r-=W[k];if(r<=0)return k;}return 'clear';}
+function wxInit(){const w=G.wx={on:wxOn(),off:0,w:'clear',next:150+Math.random()*90,flash:0,flashT:20};if(!w.on)return;
+ if(G.camp){w.noNight=1;w.next=1e9;const m=G.camp.def||{},txt=(m.t||'')+' '+((m.g||[]).map(g=>g.txt||'').join(' '));
+  w.w=/혹한|겨울|설원|눈|얼음|북극|스키/.test(txt)?'snow':/정글|우기|장마|빗/.test(txt)?'rain':/안개/.test(txt)?'fog':'clear';}}
+function wxSet(k){const w=G.wx;if(!w||w.w===k)return;w.w=k;const n=WXN[k];if(G&&!G.over)toast(`${n[0]} 날씨: ${n[1]}${n[2]?' — '+n[2]:''}`);}
+function spMul(u){const w=G.wx;if(!w||!w.on)return 1;const d=UD[u.kind],L=d.layer;let m=1;
+ if((w.w==='rain'||w.w==='storm')&&!L&&d.mech)m*=0.88;
+ if(w.w==='snow'&&!L&&!d.slowImmune){m*=d.mech?0.93:0.85;}
+ if(w.w==='storm'&&L==='a')m*=0.8;return m;}
+{const _so=sightOf;sightOf=function(e){let r=_so(e);try{const w=G&&G.wx;if(w&&w.on){let m=1-0.3*nightAmt()*(e.type==='bld'?0.5:1);if(w.w==='fog')m*=0.8;if(w.w==='storm'&&e.type==='unit'&&UD[e.kind].layer==='a')m*=0.8;if(m<1)r=Math.max(3,Math.round(r*m));}}catch(_){}return r;};}
+let acc=0;
+{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G)return r;if(!G.wx)wxInit();const w=G.wx;if(!w.on||G.over)return r;
+ if(G.time>w.next){wxSet(w.w==='clear'?pickWx():(Math.random()<0.6?'clear':pickWx()));w.next=G.time+120+Math.random()*120;}
+ if(w.w==='storm'){w.flashT-=dt;if(w.flashT<=0){w.flash=0.14;w.flashT=14+Math.random()*20;}}if(w.flash>0)w.flash-=dt;
+ const nt=nightAmt();if(nt>=1&&!w.saidN){w.saidN=1;toast('🌙 밤이 됐어요 — 시야가 좁아져요');}else if(nt<=0&&w.saidN){w.saidN=0;toast('☀ 날이 밝았어요');}
+ acc+=dt;if(acc>=0.5){acc=0;for(const e of ents)if(!e.dead&&e.type==='unit')e.wxSp=spMul(e);}
+}catch(e){console.error('wx',e);}return r;};}
+// 지형 위(유닛 아래)에 깔리는 밤·안개·눈 색조 — 유닛은 어둡게 칠하지 않음
+globalThis.wxUnder=function(x0,y0,x1,y1){const w=G&&G.wx;if(!w||!w.on)return;const n=nightAmt(),W=x1-x0,H=y1-y0;
+ if(n>0){ctx.fillStyle=`rgba(10,18,48,${(0.36*n).toFixed(3)})`;ctx.fillRect(x0,y0,W,H);}
+ if(w.w==='fog'){ctx.fillStyle='rgba(205,210,215,.16)';ctx.fillRect(x0,y0,W,H);}
+ else if(w.w==='snow'){ctx.fillStyle='rgba(235,242,252,.10)';ctx.fillRect(x0,y0,W,H);}
+ else if(w.w==='rain'||w.w==='storm'){ctx.fillStyle='rgba(20,30,40,.08)';ctx.fillRect(x0,y0,W,H);}};
+// 화면 위 빗줄기·눈송이·번개 (개수는 화질 설정에 맞춤)
+const hs=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+function wxOver(){const w=G&&G.wx;if(!w||!w.on||!G||!terrC)return;const k=w.w;if(k==='clear'&&!(w.flash>0))return;
+ const Wd=cvs.width,Ht=cvs.height,t=performance.now()/1000,N=Math.round((typeof PQ!=='undefined'&&PQ>=2?40:90)*(Wd*Ht)/(1600*900)+20);
+ ctx.save();ctx.setTransform(1,0,0,1,0,0);
+ if(k==='rain'||k==='storm'){ctx.strokeStyle=k==='storm'?'rgba(190,210,235,.45)':'rgba(180,200,225,.35)';ctx.lineWidth=Math.max(1,dpr*0.8);ctx.beginPath();
+  const L=14*dpr,vx=-4*dpr,vy=L;for(let i=0;i<N;i++){const sp=0.9+hs(i)*0.6,x=((hs(i+7)*Wd+t*90*dpr*sp*-0.25)%Wd+Wd)%Wd,y=((hs(i+3)*Ht+t*900*dpr*sp)%Ht);ctx.moveTo(x,y);ctx.lineTo(x+vx,y+vy);}ctx.stroke();}
+ else if(k==='snow'){ctx.fillStyle='rgba(245,248,255,.8)';for(let i=0;i<N;i++){const sp=0.6+hs(i)*0.8,x=((hs(i+5)*Wd+Math.sin(t*1.3+i)*14*dpr)%Wd+Wd)%Wd,y=((hs(i+9)*Ht+t*60*dpr*sp)%Ht),s=(1+hs(i+2)*1.4)*dpr;ctx.fillRect(x,y,s,s);}}
+ else if(k==='fog'){const g=ctx.createLinearGradient(0,0,Wd,0),a=0.06+0.03*Math.sin(t*0.4);g.addColorStop(0,`rgba(220,224,228,${a})`);g.addColorStop(0.5,`rgba(220,224,228,${a*2})`);g.addColorStop(1,`rgba(220,224,228,${a})`);ctx.fillStyle=g;ctx.fillRect(0,0,Wd,Ht);}
+ if(w.flash>0){ctx.fillStyle=`rgba(230,240,255,${(0.16*w.flash/0.14).toFixed(3)})`;ctx.fillRect(0,0,Wd,Ht);}
+ ctx.restore();}
+{const _r=render;render=function(){_r.apply(this,arguments);try{wxOver();}catch(e){}};}
+// 상단 표시 칩: ☀/🌙 + 날씨 (누르면 효과 설명)
+setInterval(()=>{try{const top=document.getElementById('top');if(!top)return;let el=document.getElementById('rWx');
+ if(!el){el=document.createElement('span');el.id='rWx';el.className='res tchip click';el.title='밤낮 · 날씨';const a=document.getElementById('rArmy');(a?a.parentNode:top).insertBefore(el,a?a.nextSibling:null);
+  el.addEventListener('click',()=>{const w=G&&G.wx;if(!w||!w.on){toast('밤낮·날씨가 꺼져 있어요 (난이도 화면에서 켤 수 있어요)');return;}const n=WXN[w.w],nt=nightAmt();toast(`${nt>0.5?'🌙 밤 — 시야 -30%':'☀ 낮'} · ${n[0]} ${n[1]}${n[2]?' — '+n[2]:''}`);});}
+ const w=G&&G.wx;if(!w||!w.on){el.style.display='none';return;}el.style.display='';const nt=nightAmt();el.textContent=(nt>0.5?'🌙':nt>0?'🌆':'☀')+(w.w==='clear'?'':' '+WXN[w.w][0]);}catch(e){}},1000);
+// 설정: 난이도 화면에 켜기/끄기
+(function opt(){const di=document.getElementById('diffInfo');if(!di)return;const el=document.createElement('div');el.id='wxOpt';el.style.cssText='margin:6px 0 2px;font-size:12px;color:#d8c8a0';
+ const draw=()=>{const on=wxOn();el.innerHTML=`<button style="padding:6px 12px;border-radius:7px;border:1px solid #6a5838;background:${on?'#3a5a2a':'#2a241c'};color:#f0e6c8;font-size:inherit">🌦 밤낮·날씨: <b>${on?'켜짐':'꺼짐'}</b></button> <span style="opacity:.75">밤엔 시야 감소, 비·눈·안개·폭풍이 이동·시야에 영향 (캠페인은 밤 없음)</span>`;};
+ el.addEventListener('click',e=>{if(e.target.closest('button')){try{localStorage.setItem('wd_wx',wxOn()?'0':'1');}catch(_){}draw();}});draw();di.after(el);})();
+LD_TIPS.push('밤이 되면 시야가 30% 줄어요. 조명탄을 쏘는 정찰병과 탐지 유닛이 밤에 더 값져요.','눈이 오면 보병이 느려지지만 핀란드·노르웨이 보병과 썰매는 그대로 달려요.');
 })();
 
 </script>
