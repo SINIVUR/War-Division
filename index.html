@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.5</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.6</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10129,11 +10129,12 @@ const css=`
 #wiz .wz-mapR{display:flex;flex-direction:column;align-items:center;width:42%}
 #wiz #preview{width:auto!important;height:38vh!important;aspect-ratio:1;image-rendering:pixelated}
 #wiz #mapDesc{width:100%!important;flex:1;min-height:0;font-size:min(3.3vh,12.5px)!important;margin-top:1vh!important;line-height:1.45!important;overflow:auto}
-#wiz .wz-bot{display:flex;align-items:center;gap:10px;height:16vh;min-height:46px}
-#wiz .wz-bot button{height:100%;font-size:min(5.4vh,21px)!important;padding:0 3.6vh!important;border-radius:10px!important;white-space:nowrap}
+#wiz .wz-bot{display:flex;align-items:center;gap:8px;height:16vh;min-height:46px;min-width:0}
+#wiz .wz-bot button{height:100%;font-size:min(4.8vh,19px)!important;padding:0 2.2vh!important;border-radius:10px!important;white-space:nowrap;letter-spacing:0!important;min-width:0}
+#wiz #wzBotL{min-width:0;flex-shrink:1;overflow:hidden}#wiz #wzBotL button{flex-shrink:1;overflow:hidden;text-overflow:ellipsis}#wiz #wzGo,#wiz #wzNext,#wiz #wzPrev{flex-shrink:0}/* 화면이 좁으면 왼쪽 버튼이 줄어들고 출격 버튼은 항상 다 보이게 */
 #wiz .wz-bot .big{margin:0!important}
 #wiz .wz-sp{flex:1}
-#wiz #startBtn{font-size:min(7vh,28px)!important;padding:0 7vh!important}
+#wiz #startBtn{font-size:min(6.2vh,25px)!important;padding:0 4.4vh!important;letter-spacing:.06em!important}
 `;
 const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 const T=$('title');if(!T)return;
