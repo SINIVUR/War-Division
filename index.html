@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.2</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.3</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10460,6 +10460,94 @@ mini.addEventListener('pointerup',endLp,true);mini.addEventListener('pointercanc
 {const _ng=newGame;newGame=function(){closeBig();hist.length=0;last=null;return _ng.apply(this,arguments);};}
 // PC: Backspace = 이전 화면, Tab 대신 M은 다른 단축키와 겹칠 수 있어 버튼·길게 누르기만
 window.addEventListener('keydown',e=>{if(!G||G.over)return;if(e.key==='Backspace'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){e.preventDefault();back();}if(e.key==='Escape'&&open){closeBig();}},true);
+})();
+
+// ===================== F.V.1.1.3 무기 5종 · 크기 3종 · 장갑 5종 상성 =====================
+// 무기: 🔫일반(소총·기관총·근접) 💥폭발(포·로켓·폭탄·범위) 🎯관통(대전차·철갑·저격·어뢰) 🔥화염(화염방사·소이) ✨마법(마법·주술)
+// 크기: 소형(보병·일꾼) 중형(경차량·기병·전투기·소형 함선) 대형(전차·대형 함선·폭격기·거대 생물·건물)
+// 장갑: 천(보병) 경장갑(경차량·항공기·소형 함선) 중장갑(전차·대형 함선) 마법 보호(보호막·술사) 요새(건물)
+// 실제 피해 = 기본 피해 × 크기 배율 × 장갑 배율
+(function(){
+const SZN={S:'소형',M:'중형',L:'대형'};
+const WTN={N:'일반',E:'폭발',P:'관통',F:'화염',M:'마법'},WTI={N:'🔫',E:'💥',P:'🎯',F:'🔥',M:'✨'},WORD=['N','E','P','F','M'];
+const ATN={C:'천',LA:'경장갑',HA:'중장갑',MS:'마법 보호',FT:'요새'},AORD=['C','LA','HA','MS','FT'];
+// 무기 × 크기
+const XS={N:{S:1,M:1,L:1},E:{S:0.7,M:0.9,L:1.1},P:{S:0.8,M:1,L:1.15},F:{S:1.15,M:0.95,L:0.8},M:{S:1.1,M:1,L:0.85}};
+// 무기 × 장갑
+const XA={N:{C:1.1,LA:1,HA:0.8,MS:1,FT:0.7},E:{C:0.9,LA:1,HA:1.05,MS:0.9,FT:1.25},P:{C:0.8,LA:1.1,HA:1.3,MS:0.9,FT:0.9},F:{C:1.3,LA:0.95,HA:0.7,MS:0.85,FT:0.75},M:{C:1.1,LA:0.95,HA:0.9,MS:0.7,FT:0.8}};
+const SIZE={},WT={},AT={};
+const MAGRE=/음양|마법|마도|마녀|마술|주술|술사|룬|정령|샤먼|무녀|요술|소환|신관|사제|드루이드|저주|영매|무당|도사|선인|신화|요괴|귀신|성녀|예언|축복|마나/;
+const FIRERE=/화염|소이|불꽃|방사기|버너|불화살|불새|불뿜|네이팜/;
+const PIERRE=/대전차|철갑|저격|관통|작살|어뢰|대함|랜스|기창|창기병|장창|석궁|바주카|판처|대물/;
+const EXPRE=/척탄|포병|대포|포격|곡사|박격|로켓|미사일|폭격|폭탄|전차|자주포|구축함|순양함|전함|드레드|거포|포함|포대|수류탄|공성|투석|카농|캐논|유탄|폭뢰|폭발|자폭|고사포/;
+function classify(k){const d=UD[k];if(!d)return;const L=d.layer||'g',hp=(d.hp||0)+(d.sh||0),sup=d.sup||1;
+ // 크기
+ let s;if(d.worker)s='S';else if(sup>=4||hp>=320||d.carrier)s='L';else if(L!=='g'||d.mech)s=((L==='n'&&sup>=3)||hp>=240)?'L':'M';else s=(hp>=130||sup>=3)?'M':'S';
+ if(d.hero)s=d.mech?(hp>=300?'L':'M'):'S';SIZE[k]=s;
+ // 무기
+ const txt=(d.n||'')+' '+(d.desc||'');let w='N';
+ if(d.dmg){if(d.burn||FIRERE.test(txt))w='F';
+  else if(MAGRE.test(txt)&&!d.mech)w='M';
+  else if(d.antiArmor||PROJ[k]==='torp'||PIERRE.test(txt))w='P';
+  else if(!d.melee&&(d.spl||d.sg||d.suicide||PROJ[k]||d.antiBld||EXPRE.test(txt)))w='E';}
+ WT[k]=w;
+ // 장갑
+ let a;if(d.sh&&!d.mech||(!d.mech&&MAGRE.test(txt)))a='MS';else if(d.mech||L!=='g')a=(s==='L'||(d.ar||0)>=3)?'HA':'LA';else a=(s==='L')?'HA':'C';
+ if(d.bio&&!d.mech&&a==='HA')a='LA';// 거대 생물은 두꺼운 가죽 = 경장갑
+ AT[k]=a;}
+for(const k in UD)classify(k);
+const ensure=k=>{if(!(k in WT))classify(k);};
+const sizeOf=e=>e.type==='bld'?'L':(ensure(e.kind),SIZE[e.kind]||'M');
+const armOf=e=>e.type==='bld'?'FT':(ensure(e.kind),AT[e.kind]||'LA');
+const wtOf=e=>{if(e.type==='bld'){const b=BD[e.kind],a=b.atk;if(!a)return 'N';const n=b.n||'';return /화염|불/.test(n)?'F':/마법|룬|주술|정령|신|마나/.test(n)?'M':/대전차|저격|어뢰/.test(n)?'P':(a.spl||/포|캐논|카농|박격|로켓/.test(n))?'E':'N';}ensure(e.kind);return WT[e.kind]||'N';};
+const mulOf=(w,t)=>XS[w][sizeOf(t)]*XA[w][armOf(t)];
+globalThis.unitSize=sizeOf;globalThis.unitArmor=armOf;globalThis.unitWType=wtOf;globalThis.dmgVs=(src,t)=>mulOf(wtOf(src),t);
+{const _dm=damage;damage=function(t,amt,src){try{if(t&&src&&amt>0&&(src.type==='unit'||src.type==='bld')&&t.type!=='res'&&(t.type==='unit'||t.type==='bld')){const m=mulOf(wtOf(src),t);if(m!==1)arguments[1]=amt*m;}}catch(e){}return _dm.apply(this,arguments);};}
+
+// ---------- PC 유닛 정보창 (스타크래프트2처럼 자세히) ----------
+const css=`
+#info .sc2{display:grid;grid-template-columns:0.9fr 1.3fr 1.3fr;gap:6px;margin-top:4px;font-size:11.5px;color:#e6dbbd;line-height:1.35}
+#info .sc2 .bx{background:rgba(0,0,0,.32);border:1px solid #4a3a20;border-radius:6px;padding:4px 7px;min-width:0;overflow:hidden}
+#info .sc2 .bt{font-size:10.5px;color:#a88f5c;font-weight:700;letter-spacing:.04em;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+#info .sc2 .bv{font-size:14px;font-weight:800;color:#fff3cc}
+#info .sc2 .sub{font-size:11px;color:#c9b48a}
+#info .sc2 .chips{display:flex;flex-wrap:wrap;gap:3px}
+#info .sc2 .ch{font-size:10.5px;padding:1px 6px;border-radius:9px;border:1px solid #6b5530;background:#2c2215;color:#e8d8b0;white-space:nowrap}
+#info .sc2 .ch.k{border-color:#d0b050;color:#ffe7a0}
+#info .sc2 .tb{display:grid;grid-template-columns:auto repeat(5,1fr);gap:1px 4px;font-size:10.5px;margin-top:3px;align-items:center}
+#info .sc2 .tb span{text-align:center;white-space:nowrap}#info .sc2 .tb .h{color:#a88f5c}
+#info .sc2 .up{color:#7fe08a;font-weight:800}#info .sc2 .dn{color:#ff8a7a;font-weight:800}
+#info .sc2 .pips{display:inline-flex;gap:2px;vertical-align:middle}#info .sc2 .pips i{width:9px;height:9px;border-radius:2px;background:#3a2e1c;border:1px solid #6b5530}#info .sc2 .pips i.on{background:#ffd860;border-color:#ffd860}
+#info .sc2 .rkbar{height:5px;background:#3a2e1c;border-radius:3px;overflow:hidden;margin-top:3px}#info .sc2 .rkbar i{display:block;height:100%;background:linear-gradient(90deg,#c9a050,#ffe08a)}
+`;
+{const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);}
+const pct=v=>Math.round(v*100)+'%';
+const cl=(v,good)=>v>1.001?(good?'up':'dn'):v<0.999?(good?'dn':'up'):'';
+const pips=n=>`<span class="pips" title="${n}/3단계">${[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</span>`;
+function sc2Html(e){const d=UD[e.kind],pl=P(e.team),up=pl.up||{},ly=upLy(e),wl=up[ly]||0,al=up['d'+ly]||0;
+ const sz=sizeOf(e),wt=wtOf(e),at=armOf(e);const rk=rankOf(e.kills),ni=RANKS.indexOf(rk),nx=RANKS[ni+1];
+ const lay={g:'지상',a:'공중',n:'수상'}[layerOf(e)]||'지상';
+ const tags=[`<span class="ch k">${SZN[sz]}</span>`,`<span class="ch k">${ATN[at]}</span>`,d.bio?'<span class="ch">생체</span>':'',d.mech?'<span class="ch">기계</span>':'',`<span class="ch">${lay}</span>`,d.cloak?'<span class="ch">은신</span>':'',d.det?'<span class="ch">탐지</span>':'',d.hero?'<span class="ch" style="border-color:#ffd860;color:#ffe08a">영웅</span>':'',d.worker?'<span class="ch">일꾼</span>':''].join('');
+ // 분류 + 계급
+ let h=`<div class="sc2"><div class="bx"><div class="bt"><span>분류</span><span>${FAC[pl.fac]?FAC[pl.fac].n:''}</span></div><div class="chips">${tags}</div>
+ <div style="margin-top:4px"><span class="bv">${rk[1]}</span> <b style="color:#ffd860">${rk[2]}</b> · ☠ <b>${e.kills||0}</b> <span class="sub">${nx?`(${nx[1]}까지 ${nx[0]-(e.kills||0)})`:'(최고 계급)'}</span></div>${nx?`<div class="rkbar"><i style="width:${Math.min(100,((e.kills||0)-rk[0])/(nx[0]-rk[0])*100)}%"></i></div>`:''}</div>`;
+ // 무기
+ if(d.dmg){const dm=Math.round(d.dmg*dmgMul(e)*10)/10,base=d.dmg,cd=d.cd||1,rng=d.rng?Math.round(d.rng/T*10)/10:0,dps=(dm*(d.pair?2:1)/cd).toFixed(1);
+  const tg=(d.tg||'g');const tgs=[tg.includes('g')?'지상':'',tg.includes('a')?'공중':'',tg.includes('n')?'수상':''].filter(Boolean).join('·');
+  const bon=[];if(d.antiArmor)bon.push('대전차');if(d.antiBio)bon.push('대보병');if(d.antiBld)bon.push('대건물');if(d.spl)bon.push('범위');if(d.sg)bon.push('포격 모드');
+  h+=`<div class="bx"><div class="bt"><span>무기 ${WTI[wt]} <b style="color:#fff3cc">${WTN[wt]}</b></span><span>${UPN[ly]} 무기 ${pips(wl)}</span></div>
+  <div><span class="bv">${dm}</span>${dm!==base?` <span class="up">(${base}+${Math.round((dm-base)*10)/10})</span>`:''}${d.pair?' ×2':''} <span class="sub">DPS ${dps} · 사거리 ${rng||'근접'} · ${cd}초</span></div>
+  <div class="sub">대상 ${tgs}${bon.length?' · '+bon.join('·'):''}</div>
+  <div class="sub">${(()=>{const st=[],wk=[];for(const z of ['S','M','L']){const v=XS[wt][z];if(v>1.001)st.push(SZN[z]);else if(v<0.999)wk.push(SZN[z]);}for(const a of AORD){const v=XA[wt][a];if(v>1.001)st.push(ATN[a]);else if(v<0.999)wk.push(ATN[a]);}return (st.length?`<span class="up">강함</span> ${st.join('·')}`:'')+(st.length&&wk.length?' / ':'')+(wk.length?`<span class="dn">약함</span> ${wk.join('·')}`:'')||'모두에게 고르게';})()}</div></div>`;}
+ else h+=`<div class="bx"><div class="bt"><span>무기</span></div><div class="sub">비무장${d.heal?' · 치료':''}${d.worker?' · 채집·건설':''}</div></div>`;
+ // 장갑
+ const ar=(d.ar||0)+wl+al;
+ h+=`<div class="bx"><div class="bt"><span>장갑 <b style="color:#fff3cc">${ATN[at]}</b> · ${SZN[sz]}</span><span>${UPN['d'+ly]} ${pips(al)}</span></div>
+ <div><span class="bv">${ar}</span>${ar!==(d.ar||0)?` <span class="up">(${d.ar||0}+${ar-(d.ar||0)})</span>`:''} <span class="sub">체력 ${Math.ceil(e.hp)}/${e.maxhp}${e.maxsh?` · 보호막 ${Math.ceil(e.sh)}/${e.maxsh}`:''}</span></div>
+ <div class="sub">받는 피해 ${WORD.map(w=>{const v=XS[w][sz]*XA[w][at];return `<span class="${cl(v,false)}" title="${WTN[w]} 무기">${WTI[w]}${pct(v)}</span>`;}).join(' ')}</div></div></div>`;
+ return h;}
+{const _us=unitStatHtml;unitStatHtml=function(e){try{if(PC&&UD[e.kind])return sc2Html(e);}catch(err){console.error(err);}
+ let h=_us.apply(this,arguments);try{h=h.replace('<div class="ustat">',`<div class="ustat"><span>${SZN[sizeOf(e)]}·${ATN[armOf(e)]} · ${WTI[wtOf(e)]}${WTN[wtOf(e)]}</span>`);}catch(err){}return h;};}
 })();
 
 </script>
