@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.21</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -1512,10 +1512,10 @@ function drawCreep(sx,sy,sw,sh){
   let c=creepC[p.id];if(!c||creepKey[p.id]!==k){creepKey[p.id]=k;if(!c){c=document.createElement('canvas');c.width=MW*10;c.height=MH*10;creepC[p.id]=c;}const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);
    const col=CREEPCOL[p.fac],dk=shade(col,-0.35),lt=shade(col,0.3);
    for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!m[y*MW+x])continue;
-    g.fillStyle=col;for(let j=0;j<10;j++)for(let i=0;i<10;i++)if(((i+j)&1)===0||hash(x*10+i,y*10+j)>0.55)g.fillRect(x*10+i,y*10+j,1,1);
+    g.fillStyle=col;for(let j=0;j<10;j++)for(let i=0;i<10;i++)if(((i+j)&3)===0||hash(x*10+i,y*10+j)>0.82)g.fillRect(x*10+i,y*10+j,1,1);/* 영토를 연하게: 언덕·길목이 비쳐 보이게 */
     g.fillStyle=lt;if(hash(x,y)>0.6)g.fillRect(x*10+3+((hash(y,x)*4)|0),y*10+3,2,1);
     g.fillStyle=dk;if(!(x>0&&m[y*MW+x-1]))g.fillRect(x*10,y*10,1,10);if(!(x<MW-1&&m[y*MW+x+1]))g.fillRect(x*10+9,y*10,1,10);if(!(y>0&&m[(y-1)*MW+x]))g.fillRect(x*10,y*10,10,1);if(!(y<MH-1&&m[(y+1)*MW+x]))g.fillRect(x*10,y*10+9,10,1);}}
-  if(!(sw>0&&sh>0))continue;const kc=c.width/WW;ctx.globalAlpha=0.55;ctx.imageSmoothingEnabled=false;ctx.drawImage(c,sx*kc,sy*kc,sw*kc,sh*kc,sx,sy,sw,sh);ctx.globalAlpha=1;}
+  if(!(sw>0&&sh>0))continue;const kc=c.width/WW;ctx.globalAlpha=0.55;ctx.imageSmoothingEnabled=false;ctx.globalAlpha=0.38;ctx.drawImage(c,sx*kc,sy*kc,sw*kc,sh*kc,sx,sy,sw,sh);ctx.globalAlpha=1;}
 }
 
 
@@ -10386,6 +10386,18 @@ function wkStart(){const wk=ents.filter(u=>!u.dead&&u.team===0&&u.type==='unit'&
 {const _ud=update;update=function(dt){const r=_ud.apply(this,arguments);try{if(G&&G.camp&&!G.over){if(!G._wkInit&&G.time>0.2){G._wkInit=1;try{let u=0;for(const e of ents)if(!e.dead&&e.team===0&&e.type==='unit')u+=UD[e.kind].sup||0;G._sup0=u;}catch(e){}wkStart();}
  // 시작 1분 동안 대본으로 새로 생긴 일꾼도 바로 투입
  else if(G._wkInit&&G.time<60&&((G._wkT=(G._wkT||0)+(dt||0))>2)){G._wkT=0;wkStart();}}}catch(e){}return r;};}
+})();
+
+// ===================== F.V.1.0.22 신규 진영 건설 규칙 =====================
+// 동남아 계열(필리핀·태국): 영토(크립) 위에만 건설 — 본진·보급 건물 주변
+// 유럽 계열(그리스·네덜란드·노르웨이·루마니아·불가리아·스웨덴·스위스·스페인): 동력장 안에만 건설 — 보급 건물이 동력장을 펼침
+(function(){
+const CREEPNEW={ph:'#4fbf7a',th:'#d8b040'},POWNEW=['gr','nl','no','ro','bg','se','ch','es'];
+for(const f in CREEPNEW){if(!FAC[f])continue;CREEPF.add(f);CREEPCOL[f]=CREEPNEW[f];}
+for(const f of POWNEW){const F=FAC[f];if(!F)continue;POWF.add(f);
+ const s=BD[F.sup];if(s){s.power=1;s.nopow=1;if(s.desc&&!/주변에 건설/.test(s.desc))s.desc+=' · 주변에 건설 가능 (동력장)';}
+ for(const k of [F.hq,F.gas])if(BD[k])BD[k].nopow=1;}
+for(const f in CREEPNEW){const F=FAC[f];if(!F)continue;const s=BD[F.sup];if(s&&s.desc&&!/영토/.test(s.desc))s.desc+=' · 주변에 영토를 펼침';}
 })();
 
 </script>
