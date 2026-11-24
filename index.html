@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.1.8</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.2.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -3674,10 +3674,11 @@ function drawUnit(u){
  else if(cat==='sea')rot=Math.sin(t*1.6+u.id)*0.04;
  else if(cat==='air'){const df=((u.face-(u._pf??u.face)+9.42)%6.283)-3.14;u._bank=(u._bank||0)*0.85+clamp(df*6,-0.3,0.3)*0.15;u._pf=u.face;rot=u._bank*(flip?-1:1);}
  if(fa<0.16&&d.dmg&&!d.worker){const k=1-fa/0.16,rc=(cat==='inf'?1.2:cat==='air'?1.5:3.2)*k*k;ox-=fc2*rc;oy-=fs2*rc*0.5;if(cat==='inf')sqy=1-0.05*k;}
+ const _am=animMod(u,d,cat,flip,fa,fighting,t,sc);ox+=_am.ox;oy+=_am.oy;rot+=_am.rot;sqy*=_am.sqy;shx+=_am.shx;
  dx+=Math.round(ox);dy+=Math.round(oy);
  if(cat==='veh'&&fighting&&fa<0.25){sqy=1-0.04*(1-fa/0.25);}                            // 차량 사격: 차체가 눌렸다 펴짐
- const tf=rot||sqy!==1||shx;if(tf){ctx.save();const cx2=dx+w/2,cy2=dy+h-pad;ctx.translate(cx2,cy2);if(rot)ctx.rotate(rot);if(shx)ctx.transform(1,0,-shx,1,0,0);ctx.scale(1,sqy);ctx.translate(-cx2,-cy2);}
- ctx.drawImage(img,dx,dy,Math.round(w),Math.round(h));
+ const tf=rot||sqy!==1||shx||_am.sx!==1;if(tf){ctx.save();const cx2=dx+w/2,cy2=dy+h-pad;ctx.translate(cx2,cy2);if(rot)ctx.rotate(rot);if(shx)ctx.transform(1,0,-shx,1,0,0);ctx.scale(_am.sx,sqy);ctx.translate(-cx2,-cy2);}
+ animDraw(u,img,dx,dy,w,h,sc,PD,cat,flip,fa,fighting);
  if(tf)ctx.restore();
  // 총구 화염 (3프레임 픽셀 섬광)
  if(fa<0.11&&d.dmg&&!d.worker&&!d.heal&&!d.melee&&!cl){const fr2=Math.floor(fa/0.037),mz=R+(cat==='inf'?5:cat==='sea'?R*0.3:6);
@@ -4755,6 +4756,7 @@ function render(){
  for(const u of ents)if(!u.dead&&u.team===0&&u.state==='site'&&u.site){const s2=u.site;ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.strokeRect(s2.tx*T,s2.ty*T,s2.w*T,s2.h*T);ctx.setLineDash([]);}
  for(const id of G.sel){const b=byId.get(id);if(b&&b.type==='bld'&&b.team===0&&b.rally){const r=b.rally.res?byId.get(b.rally.res):b.rally;if(r){ctx.strokeStyle='rgba(108,255,108,.5)';ctx.setLineDash([5,5]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(r.x,r.y);ctx.stroke();ctx.setLineDash([]);circ(r.x,r.y,4,'#6cff6c');}}}
  if(fogC){ctx.imageSmoothingEnabled=false;{const FK=fogC.width/WW,fx0=Math.max(0,Math.floor(vx0/T)-1)*T,fy0=Math.max(0,Math.floor(vy0/T)-1)*T,fx1=Math.min(WW,Math.ceil(vx1/T+1)*T),fy1=Math.min(WH,Math.ceil(vy1/T+1)*T);if(fx1>fx0&&fy1>fy0)ctx.drawImage(fogC,fx0*FK,fy0*FK,(fx1-fx0)*FK,(fy1-fy0)*FK,fx0,fy0,fx1-fx0,fy1-fy0);}ctx.fillStyle='#080705';ctx.fillRect(-400,-400,WW+800,400);ctx.fillRect(-400,WH,WW+800,400);ctx.fillRect(-400,0,400,WH);ctx.fillRect(WW,0,400,WH);} // 안개를 유닛보다 먼저 그림: 시야 가장자리의 적이 안개 무늬에 덮여 반투명해 보이던 문제
+ try{corpseDraw();}catch(_){}
  try{wxUnder(vx0,vy0,vx1,vy1);}catch(_){}
  const units=vis.filter(e=>e.type==='unit');
  const byL={n:[],g:[],a:[]};for(const u of units)byL[UD[u.kind].layer||'g'].push(u);
@@ -10848,6 +10850,193 @@ setInterval(()=>{try{const top=document.getElementById('top');if(!top)return;let
  el.addEventListener('click',e=>{if(e.target.closest('button')){try{localStorage.setItem('wd_wx',wxOn()?'0':'1');}catch(_){}draw();}});draw();di.after(el);})();
 LD_TIPS.push('밤이 되면 시야가 30% 줄어요. 조명탄을 쏘는 정찰병과 탐지 유닛이 밤에 더 값져요.','눈이 오면 보병이 느려지지만 핀란드·노르웨이 보병과 썰매는 그대로 달려요.');
 })();
+
+// ===================== F.V.1.1.9 (QA 369판 반영) =====================
+(function(){
+// 1) 진영 배율 (시간 초과 제외 승률 기준)
+const A9={pl:1.3,hu:1.15,mn:1.12,ca:1.12,fr:1.06,cn:1.06,mx:1.04,nl:1.04,et:0.85,es:0.85,gr:0.88,ch:0.9,se:0.9,ph:0.94,no:0.94,bg:0.96,ro:0.96};
+for(const f in A9)FBAL2[f]=(FBAL2[f]||1)*A9[f];
+// 2) AI 인구 회복: 보급 건물을 잃어 인구가 막히면 모자란 만큼 한꺼번에 (최대 3채)
+{const _ah=aiHuman;aiHuman=function(p,c){const r=_ah.apply(this,arguments);try{if(p.human||!c||G.camp||!p.alive)return r;const ai=p.ai,F=FAC[p.fac],sb=BD[F.sup];if(!sb||ai._sup9T>G.time)return r;ai._sup9T=G.time+3;
+ const s=supplyOf(p.id);if(s.cap>=200||s.used<s.cap-2)return r;if(!c.wk.length||!c.blds.some(b=>b.built&&BD[b.kind].drop))return r;
+ const pend=ents.filter(b=>!b.dead&&b.team===p.id&&b.type==='bld'&&b.kind===F.sup&&!b.built).length+c.wk.filter(u=>u.state==='site'&&u.site&&u.site.kind===F.sup).length;
+ let need=Math.min(3,Math.ceil((s.used+8-s.cap)/Math.max(1,sb.sup||8)))-pend;
+ // 살아 있는 본진 곁에 직접 지음 (원래 본진 자리가 무너졌어도)
+ const hqs=c.blds.filter(b=>b.built&&BD[b.kind].drop);
+ while(need-->0&&p.coal>=sb.cost[0]&&p.ether>=(sb.cost[1]||0)){const n=c.have(F.sup);c.build(F.sup);if(c.have(F.sup)>n)continue;
+  let ok=false;for(const h of hqs){const spot=findSpot(p.id,F.sup,h.x,h.y);if(!spot)continue;const w=c.wk.filter(u=>(u.state==='gather'||u.state==='idle')&&!u.carry).sort((a,b)=>dist(a.x,a.y,h.x,h.y)-dist(b.x,b.y,h.x,h.y))[0];if(!w)break;
+   orderSite(w,F.sup,spot[0],spot[1]);ok=true;break;}if(!ok)break;}
+}catch(e){}return r;};}
+// 3) 장기전 결판: 대전에서 12분이 지나면 모든 AI가 병력을 모아 가장 가까운 적 건물로 밀고, 18분부터는 모인 병력을 바로 보냄
+function late(p){const ai=p.ai;if(G.camp||G.time<720||ai.lateT>G.time)return;ai.lateT=G.time+4;
+ const land=[],navy=[];let pw=0;for(const u of ents){if(u.dead||u.team!==p.id||u.type!=='unit')continue;const d=UD[u.kind];if(d.worker||!d.dmg||d.cap||u.raid||u.hid||u.sg||u.morph)continue;(d.layer==='n'?navy:land).push(u);pw+=d.sup||1;}
+ const sup=supplyOf(p.id).used,need=G.time>=1080?12:30;if(!(ai.lateC>G.time)&&pw<need&&sup<170)return;ai.lateC=Math.max(ai.lateC||0,G.time+15);if(!land.length)return;
+ let cx=0,cy=0;for(const u of land){cx+=u.x;cy+=u.y;}cx/=land.length;cy/=land.length;
+ let tg=null,bd=1e18;for(const b of ents){if(b.dead||b.type!=='bld'||!enemy(p.id,b.team))continue;const dd=BD[b.kind];let d2=(b.x-cx)**2+(b.y-cy)**2;if(dd.drop)d2*=0.3;else if(dd.train)d2*=0.4;if(d2<bd){bd=d2;tg=b;}}if(!tg)return;
+ const go=land.filter(u=>u.state!=='attack'&&dist(u.x,u.y,tg.x,tg.y)>260&&(u.state==='idle'||!(u._lateT>G.time-10)||u.state==='move'));
+ if(go.length)grpOrder(go.length,()=>{for(const u of go){u._lateT=G.time;u.wave=1;u.stage=0;u.reinf=0;orderMove(u,tg.x+rnd(-90,90),tg.y+rnd(-90,90),true);}});
+ const ng=navy.filter(u=>u.state!=='attack'&&(u.state==='idle'||!(u._lateT>G.time-12)));if(ng.length)grpOrder(ng.length,()=>{for(const u of ng){u._lateT=G.time;orderMove(u,tg.x+rnd(-120,120),tg.y+rnd(-120,120),true);}});}
+{const _ah=aiHuman;aiHuman=function(p,c){const r=_ah.apply(this,arguments);try{if(!p.human&&p.alive&&p.ai)late(p);}catch(e){console.error(e);}return r;};}
+// 4) AI 항복: 대전 15분 이후, 본진과 생산 건물을 모두 잃은 AI는 항복 (남은 방어탑·보급고만으로 버티며 시간을 끌지 않게)
+{const _up=update;let t9=0;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.camp||G.over||G.time<900)return r;t9+=dt;if(t9<3)return r;t9=0;
+ for(const p of G.pl){if(!p.alive||p.human)continue;const key=ents.some(e=>!e.dead&&e.team===p.id&&e.type==='bld'&&(BD[e.kind].drop||(BD[e.kind].train&&BD[e.kind].train.length)));if(key)continue;
+  p.alive=false;for(const e of ents)if(e.team===p.id&&!e.dead)kill(e,null);toast(`🏳 ${FAC[p.fac].n} ${p.ally?'동맹군이 무너졌어요!':'AI 항복!'}`);}
+}catch(e){console.error('surrender',e);}return r;};}
+})();
+
+// ===================== F.V.1.2.0 살아 숨쉬는 유닛 · 강한 처치/파괴 효과 =====================
+// · 스프라이트를 머리/몸통/다리(차체/바퀴) 띠로 잘라 각각 1~2 도트씩 따로 움직임 → 실제 픽셀이 움직이는 대기·걷기·공격 모션
+// · 유닛별 고유 동작: 카포에이라 회전 발차기, 전차 사격 반동 덜컹, 보행기 내려찍기, 캥거루 깡충, 기병 질주, 술사 시전 …
+// · 처치: 보병은 파팍 쓰러짐, 차량은 연쇄 폭발 뒤 불타는 잔해, 비행기는 연기 끌며 추락, 배는 기울며 가라앉음
+// · 건물 파괴: 연쇄 폭발 + 충격파 + 큰 파편 + 화면 흔들림 + 오래 남는 잔해
+(function(){
+const has=(k,re)=>re.test(UD[k].n||'');
+const WALK=new Set(['walker','jp_samurai','jp_oni','au_roo','ko_haetae','gr_talos','nl_windmill','no_troll','mx_serpent','ch_clock','in_elephant','th_elephant','et_lion','mn_ger','cn_lion']);
+const ARTY=new Set(['us_howitzer','fr_canon','in_mysore','ca_sexton','no_oscar','et_cannon','ph_coast','mx_cannon','ro_tacam','bg_gun','es_gun','tr_urban','ch_fortgun','gr_mule','it_semovente','fi_bt42','se_ikv','ro_maresal']);
+const ROCKET=new Set(['su_katyusha','ko_hwacha','cn_cart','in_mysore']);
+const CAV=/기병|기수|후사르|창기|기마|차로|카우보이|낙타|라이더|모토/;
+// 종류별 동작 표 (처음 쓸 때 계산해 둠)
+const KT={};
+function kt(k){let o=KT[k];if(o)return o;const d=UD[k],a=ART[k];o={};
+ o.cat=a?a[2]:'inf';o.capo=k==='br_capoeira';o.walk=WALK.has(k)||(o.cat==='veh'&&d.bio);o.beast=o.cat==='veh'&&!!d.bio;
+ o.arty=ARTY.has(k);o.rocket=ROCKET.has(k);o.roo=k==='au_roo';o.snake=k==='mx_serpent';
+ o.cav=o.cat==='inf'&&CAV.test(d.n||'');o.melee=!!d.melee;o.big=(d.r||8)>=14;
+ try{o.caster=!d.melee&&typeof unitWType==='function'&&unitWType({type:'unit',kind:k})==='M'&&o.cat==='inf';}catch(e){o.caster=false;}
+ return KT[k]=o;}
+const HQ=()=>typeof PQ!=='undefined'?PQ:0;
+let shakeT=0,shakeA=0;function shake(a,t,x,y){if(x!=null&&!onScr(x,y,80))return;shakeA=Math.max(shakeA,a);shakeT=Math.max(shakeT,t);}
+function onScr(x,y,m){try{return x>cam.x-m&&y>cam.y-m&&x<cam.x+cvs.width/(dpr*cam.z)+m&&y<cam.y+cvs.height/(dpr*cam.z)+m;}catch(e){return true;}}
+
+// ---------- 몸 전체 변형 (drawUnit 안에서 호출) ----------
+globalThis.animMod=function(u,d,cat,flip,fa,fighting,t,sc){const o=kt(u.kind),m={ox:0,oy:0,rot:0,sqy:1,shx:0,sx:1},dir=flip?-1:1,ph=u.id*1.7;
+ if(o.capo){
+  if(fa<0.45&&!u.mv){const k=fa/0.45;m.sx=Math.cos(k*6.283);m.oy=-Math.sin(Math.PI*k)*3*sc;m.rot=dir*Math.sin(k*6.283)*0.18;}// 회전 발차기
+  else if(!u.mv){m.ox=Math.sin(t*4.2+ph)*2;m.rot=Math.sin(t*4.2+ph)*0.05;}// 진가(ginga) 흔들기
+ }
+ else if(o.cav){if(u.mv){m.oy-=Math.abs(Math.sin(u.anim*9))*2.2*sc*0.5;m.rot=dir*Math.sin(u.anim*9)*0.04;}}
+ else if(o.caster){if(fa<0.35){const k=1-fa/0.35;m.oy-=2*k;m.sqy=1+0.05*k;}}
+ if(o.roo&&u.mv){m.oy-=Math.abs(Math.sin(u.anim*5.5))*7;m.rot=-dir*0.1*Math.cos(u.anim*5.5);}
+ else if(o.snake&&u.mv){m.rot=Math.sin(u.anim*7)*0.07;m.ox+=Math.sin(u.anim*7)*1.5;}
+ else if(o.walk&&!o.roo){
+  if(u.mv){const s=Math.abs(Math.sin(u.anim*(o.beast?6:4.5)));m.oy-=s*(o.big?2.5:1.5);m.sqy=1-0.03*(1-s);m.rot=dir*Math.sin(u.anim*(o.beast?6:4.5))*0.025;}
+  else if(fa<0.42&&d.dmg){// 들어 올렸다가 쾅 내려찍기
+   if(fa<0.15){const k=fa/0.15;m.oy-=5*k;m.sqy=1+0.05*k;m.rot=-dir*0.06*k;}
+   else if(fa<0.22){m.oy+=1;m.sqy=0.88;if(u._slam!==u.lastFire){u._slam=u.lastFire;stomp(u,o);}}
+   else{const k=(fa-0.22)/0.2;m.sqy=0.88+0.12*Math.min(1,k);}}
+  else{m.sqy=Math.sin(t*1.6+ph)>0.6?0.985:1;if(o.beast)m.rot=Math.sin(t*1.1+ph)*0.015;}
+ }
+ else if(cat==='veh'&&d.mech&&d.dmg&&fa<0.6){// 사격 반동 — 앞이 들렸다 덜컹 내려앉음
+  const A=o.arty?0.13:o.rocket?0.04:0.075,f=o.arty?22:28;m.rot=-dir*A*Math.exp(-fa*7)*Math.cos(fa*f);if(o.arty&&fa<0.2)m.ox-=dir*5*(1-fa/0.2);
+  if(o.rocket){m.oy+=(Math.random()<0.5?1:0);if(fa<0.3&&Math.random()<0.4&&HQ()<2)puff(u.x-dir*u.r,u.y-4,'#9a9488',0.8);}
+  if(o.arty&&u._kick!==u.lastFire){u._kick=u.lastFire;puff(u.x+dir*u.r*1.4,u.y-6,'#8a8478',1.2);if(o.big||u.kind==='tr_urban'||u.kind==='fr_canon')shake(2,0.15,u.x,u.y);}
+ }
+ else if(cat==='sea'&&d.dmg&&fa<0.8)m.rot+=-dir*0.05*Math.exp(-fa*4)*Math.cos(fa*9);
+ else if(cat==='air'&&d.dmg&&fa<0.3)m.rot+=-dir*0.06*(1-fa/0.3);
+ return m;};
+function stomp(u,o){const R=u.r;G.rings.push({x:u.x,y:u.y+R*0.5,r:R*2.2,t:0,dur:0.35,col:'rgba(200,180,140,.75)'});
+ for(let i=0;i<(HQ()>=2?2:5);i++)puff(u.x+rnd(-R,R),u.y+R*0.4,'#9a8a6a',0.9);sparks(u.x,u.y+R*0.4,HQ()>=2?2:5,'#6a5a40',70,300,0,0.4);if(o.big)shake(2.5,0.15,u.x,u.y);}
+
+// ---------- 픽셀 띠 그리기 ----------
+let nDraw=0;
+function band(img,sx,sy,sw,sh,dx,dy,sc,ox,oy){if(sw<=0||sh<=0)return;const x0=Math.round(dx+(sx+ox)*sc),x1=Math.round(dx+(sx+sw+ox)*sc),y0=Math.round(dy+(sy+oy)*sc),y1=Math.round(dy+(sy+sh+oy)*sc);ctx.drawImage(img,sx,sy,sw,sh,x0,y0,x1-x0,y1-y0);}
+globalThis.animDraw=function(u,img,dx,dy,w,h,sc,PD,cat,flip,fa,fighting){
+ const iw=img.width,ih=img.height,s=w/iw;
+ if(HQ()>=2||cat==='air'||cat==='sea'||s<0.9||++nDraw>140){/* 화면에 유닛이 아주 많으면 나머지는 통짜로 (프레임 보호) */ctx.drawImage(img,dx,dy,Math.round(w),Math.round(h));return;}
+ const o=kt(u.kind),d=UD[u.kind],t=u.anim,H=ih-2*PD,ph=u.id*1.37,dir=flip?-1:1;
+ if(cat==='inf'){
+  const yH=PD+Math.round(H*0.34),yL=PD+Math.round(H*0.62);let hx=0,hy=0,tx=0,ty=0,lL=0,lR=0;
+  if(u.mv){const st=Math.floor(t*(o.cav?12:8))%2;lL=st?-1:0;lR=st?0:-1;ty=st?0:1;hy=ty;}
+  else if(o.capo&&fa>=0.45){const st=Math.floor(t*3+ph)%2;lL=st?-1:0;lR=st?0:-1;}
+  else{const br=Math.sin(t*2.3+ph)>0.25?1:0;ty=br;hy=br;// 숨쉬기
+   const lk=(t*0.33+ph)%6;if(lk<0.8)hx=dir;else if(lk>3&&lk<3.7)hx=-dir;// 두리번
+   if(fighting&&!o.melee){ty=1;hy=1;}}
+  if(fa<0.13&&d.dmg&&!o.melee&&!d.worker){tx=-dir;hx=-dir;}// 사격 반동: 상체만 뒤로
+  if(o.caster&&fa<0.3){ty-=1;hy-=1;}
+  if(d.worker&&u.state==='gather'&&!u.mv){const sw=Math.floor(t*5+ph)%2;ty=sw;hy=sw;tx=sw?dir:0;hx=tx;}// 곡괭이질
+  const half=Math.round(iw/2);
+  band(img,0,yL,half,ih-yL,dx,dy,s,0,lL);band(img,half,yL,iw-half,ih-yL,dx,dy,s,0,lR);
+  band(img,0,yH,iw,yL-yH,dx,dy,s,tx,ty);band(img,0,0,iw,yH,dx,dy,s,hx,hy);
+  return;}
+ // 차량·짐승·보행기
+ if(o.walk){const yL=PD+Math.round(H*0.62),half=Math.round(iw/2);let lL=0,lR=0,by=0,hx=0,hy=0;
+  if(u.mv){const st=Math.floor(t*(o.beast?9:6))%2;lL=st?-2:0;lR=st?0:-2;by=st;}
+  else{by=Math.sin(t*1.6+ph)>0.6?1:0;if(o.beast){const lk=(t*0.5+ph)%5;hy=lk<0.6?1:0;}}
+  band(img,0,yL,half,ih-yL,dx,dy,s,0,lL);band(img,half,yL,iw-half,ih-yL,dx,dy,s,0,lR);
+  if(o.beast){const fw=Math.round(iw*0.36),fx=flip?0:iw-fw;band(img,flip?fw:0,0,iw-fw,yL,dx,dy,s,0,by);band(img,fx,0,fw,yL,dx,dy,s,hx,by+hy);}
+  else band(img,0,0,iw,yL,dx,dy,s,0,by);
+  return;}
+ const yW=PD+Math.round(H*0.70);let wx=0,bx=0,by=0;
+ if(u.mv){wx=Math.floor(t*16)%2?1:0;by=Math.floor(t*11+ph)%3===0?-1:0;}
+ else if(d.mech){by=Math.floor(t*9+ph)%3===0?-1:0;}// 엔진 진동: 차체만 떨림
+ if(fa<0.3&&d.dmg){const k=1-fa/0.3;bx=-dir*Math.round((o.arty?3:2)*k);}// 사격 반동: 차체만 뒤로
+ band(img,0,yW,iw,ih-yW,dx,dy,s,wx,0);band(img,0,0,iw,yW,dx,dy,s,bx,by);};
+
+// ---------- 시체·잔해 ----------
+function darkCopy(img,a){const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(img,0,0);g.globalCompositeOperation='source-atop';g.fillStyle=`rgba(22,16,10,${a})`;g.fillRect(0,0,c.width,c.height);return c;}
+function addCorpse(e,src){if(!G.corpses)G.corpses=[];if(G.corpses.length>(HQ()>=2?20:60))G.corpses.shift();
+ const d=UD[e.kind],a=ART[e.kind];if(!a)return;const o=kt(e.kind),flip=!!e._fl;let img;try{img=unitArt(e.kind,e.team,flip,0,'');}catch(_){return;}if(!img)return;
+ const sc=unitScale(e.kind),w=img.width*sc,h=img.height*sc,PD=(img.height-a[1])/2;
+ let away=src?Math.sign(e.x-src.x)||1:(flip?1:-1);
+ const c={x:e.x,y:e.y,r:e.r,w,h,pad:PD*sc,img,t:0,away,cat:a[2],kind:e.kind};
+ if(a[2]==='inf'||o.beast){c.mode='fall';c.dur=2.4;}
+ else if(a[2]==='air'){c.mode='crash';c.dur=0.75;c.vx=Math.cos(e.face||0)*60;c.spin=(Math.random()<0.5?-1:1)*rnd(2,4);}
+ else if(a[2]==='sea'){c.mode='sink';c.dur=2.6;c.img=darkCopy(img,0.35);}
+ else{c.mode='wreck';c.dur=4;c.img=darkCopy(img,0.62);}
+ G.corpses.push(c);}
+function updCorpses(dt){const C=G.corpses;if(!C)return;for(const c of C){const pt=c.t;c.t+=dt;
+ if(c.mode==='fall'&&pt<0.24&&c.t>=0.24&&HQ()<2){puff(c.x+c.away*c.r,c.y+2,'#8a7c64',0.7);puff(c.x+c.away*c.r*1.8,c.y+3,'#8a7c64',0.5);}
+ if(c.mode==='wreck'&&c.t<3){if(Math.random()<dt*(HQ()>=2?2:6))puff(c.x+rnd(-c.r,c.r)*0.6,c.y-c.r*0.5,Math.random()<0.5?'#3a3530':'#5a544c',0.9);if(Math.random()<dt*8)spark(c.x+rnd(-c.r,c.r)*0.5,c.y-c.r*0.3,rnd(-8,8),rnd(-30,-15),0.35,2.4,Math.random()<0.5?'#ffb040':'#ff7020',0,1);}
+ if(c.mode==='crash'){c.x+=c.vx*dt;if(Math.random()<dt*25)puff(c.x,c.y-20*(1-c.t/c.dur),'#4a4540',0.7);if(pt<c.dur&&c.t>=c.dur){boom(c.x,c.y,14);for(let i=0;i<3;i++)puff(c.x+rnd(-8,8),c.y,'#3a3530',1.3);shake(2,0.15,c.x,c.y);}}
+ if(c.mode==='sink'&&Math.random()<dt*10)part(c.x+rnd(-c.w*0.3,c.w*0.3),c.y-2,rnd(-4,4),rnd(-14,-6),0.6,2,'rgba(220,240,255,.8)',0);}
+ G.corpses=C.filter(c=>c.t<c.dur);}
+globalThis.corpseDraw=function(){const C=G&&G.corpses;if(!C||!C.length)return;ctx.save();ctx.imageSmoothingEnabled=false;
+ for(const c of C){if(!onScr(c.x,c.y,c.w))continue;const W=Math.round(c.w),Hh=Math.round(c.h);ctx.save();
+  if(c.mode==='fall'){const k=Math.min(1,c.t/0.24),e2=k<1?k*k*(3-2*k):1,bounce=c.t>0.24&&c.t<0.36?Math.sin((c.t-0.24)/0.12*Math.PI)*0.08:0;
+   const fx=c.x,fy=c.y+c.r*0.55;ctx.translate(fx,fy);ctx.rotate(c.away*(e2*1.45-bounce));ctx.globalAlpha=c.t>1.8?Math.max(0,1-(c.t-1.8)/0.6):1;
+   ctx.drawImage(c.img,-W/2,-(Hh-c.pad),W,Hh);if(c.t<0.08){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6;ctx.drawImage(c.img,-W/2,-(Hh-c.pad),W,Hh);}}
+  else if(c.mode==='wreck'){const j=c.t<0.3?rnd(-1.5,1.5):0;ctx.globalAlpha=c.t>3.2?Math.max(0,1-(c.t-3.2)/0.8):1;ctx.translate(c.x+j,c.y+c.r*0.55);ctx.rotate(c.away*0.06);ctx.drawImage(c.img,-W/2,-(Hh-c.pad),W,Hh);}
+  else if(c.mode==='crash'){const k=c.t/c.dur;ctx.translate(c.x,c.y-30*(1-k)+4);ctx.rotate(c.spin*k);ctx.drawImage(c.img,-W/2,-Hh/2,W,Hh);}
+  else if(c.mode==='sink'){const k=c.t/c.dur,cut=Hh*(0.62-0.62*k);ctx.globalAlpha=1-k*0.5;ctx.translate(c.x,c.y);ctx.rotate(c.away*0.25*k);ctx.beginPath();ctx.rect(-W,-Hh,W*2,Hh*0.62+1-0*cut);ctx.clip();ctx.drawImage(c.img,-W/2,-Hh*0.62+Hh*0.62*k*0.9,W,Hh);}
+  ctx.restore();}
+ // 건물 잔해
+ for(const r of (G.rubble||[])){if(!onScr(r.x,r.y,r.w))continue;const a=r.t<20?1:Math.max(0,1-(r.t-20)/5);ctx.globalAlpha=0.75*a;ctx.fillStyle='#1c1812';ctx.beginPath();ctx.ellipse(r.x,r.y,r.w*0.55,r.h*0.45,0,0,6.283);ctx.fill();ctx.globalAlpha=a;
+  for(const q of r.bits){ctx.fillStyle=q[3];ctx.fillRect(Math.round(r.x+q[0]),Math.round(r.y+q[1]),q[2],q[2]);}}
+ ctx.restore();};
+
+// ---------- 지연 효과 대기열 ----------
+function later(dt,fn){(G.fxq||(G.fxq=[])).push({t:G.time+dt,fn});}
+function bldDestroy(b){const W=b.w*T,Hh=b.h*T,x0=b.x-W/2,y0=b.y-Hh/2,n=Math.min(8,3+b.w*2),vis=onScr(b.x,b.y,W);
+ for(let i=0;i<n;i++)later(rnd(0.05,1.1),()=>{boom(x0+rnd(0.15,0.85)*W,y0+rnd(0.15,0.85)*Hh,rnd(9,18));});
+ later(0.55,()=>{G.rings.push({x:b.x,y:b.y,r:W*1.3,t:0,dur:0.5,col:'rgba(255,220,160,.9)'});G.rings.push({x:b.x,y:b.y,r:W*0.9,t:0,dur:0.35,col:'rgba(255,255,230,.9)'});
+  const nd=HQ()>=2?4:12;for(let i=0;i<nd;i++){const a=Math.random()*6.283,v=rnd(70,170);spark(b.x,b.y,Math.cos(a)*v,Math.sin(a)*v*0.6-rnd(90,170),rnd(0.7,1.2),rnd(3,5),Math.random()<0.5?'#2a241c':'#6a5a44',320,0);}
+  for(let i=0;i<(HQ()>=2?3:8);i++)puff(b.x+rnd(-W,W)*0.4,b.y+rnd(-Hh,Hh)*0.4,'#4a443c',1.6+b.w*0.2);});
+ if(vis)shake(Math.min(8,3+b.w*1.3),0.55);
+ if(!G.rubble)G.rubble=[];if(G.rubble.length>40)G.rubble.shift();
+ const bits=[],cols=['#3a342a','#5a5040','#6a5e4a','#2a241c','#7a6a52'];for(let i=0;i<10+b.w*6;i++)bits.push([rnd(-W,W)*0.45,rnd(-Hh,Hh)*0.38,Math.round(rnd(2,5)),cols[i%5]]);
+ G.rubble.push({x:b.x,y:b.y,w:W,h:Hh,t:0,bits});}
+
+// ---------- kill 확장 ----------
+{const _k=kill;kill=function(e,src){if(!e||e.dead)return _k.apply(this,arguments);let seen=true;try{seen=vis0(e)&&onScr(e.x,e.y,120);}catch(_){}
+ const r=_k.apply(this,arguments);if(!seen||e.silent)return r;
+ try{if(e.type==='unit'){const d=UD[e.kind],o=kt(e.kind);addCorpse(e,src);
+   if(o.cat==='veh'&&d.mech){later(0.22,()=>boom(e.x+rnd(-6,6),e.y-4,o.big?14:10));later(0.45,()=>boom(e.x+rnd(-6,6),e.y-6,o.big?18:12));sparks(e.x,e.y-6,HQ()>=2?3:8,'#ffb040',120,260,1,0.6);shake(o.big?3.5:2,0.2,e.x,e.y);}
+   else if(o.cat==='inf'||o.beast){sparks(e.x,e.y-6,HQ()>=2?2:5,'#d8c8a8',80,280,0,0.35);spark(e.x,e.y-6,0,0,0.07,8,'#ffffff',0,1);}
+   else if(o.cat==='sea'){boom(e.x,e.y-4,14);G.rings.push({x:e.x,y:e.y,r:e.r*2.5,t:0,dur:0.6,col:'rgba(220,240,255,.8)'});}}
+  else if(e.type==='bld')bldDestroy(e);}catch(err){console.error('deathfx',err);}
+ return r;};}
+
+// ---------- 갱신 · 화면 흔들림 ----------
+{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G)return r;
+ if(G.fxq&&G.fxq.length){const now=G.time,due=G.fxq.filter(q=>q.t<=now);if(due.length){G.fxq=G.fxq.filter(q=>q.t>now);for(const q of due)q.fn();}}
+ updCorpses(dt);if(G.rubble)for(const q of G.rubble)q.t+=dt;if(G.rubble&&G.rubble.length&&G.rubble[0].t>25)G.rubble=G.rubble.filter(q=>q.t<25);
+ if(shakeT>0){shakeT-=dt;if(shakeT<=0)shakeA=0;}}catch(e){console.error('anim',e);}return r;};}
+{const _r=render;render=function(){nDraw=0;if(!(shakeT>0)||!G||!cam)return _r.apply(this,arguments);let sx=0,sy=0;try{if(localStorage.getItem('wd_shake')!=='0'){sx=rnd(-shakeA,shakeA);sy=rnd(-shakeA,shakeA)*0.7;}}catch(e){}
+ cam.x+=sx;cam.y+=sy;try{return _r.apply(this,arguments);}finally{cam.x-=sx;cam.y-=sy;}};}
+})();
+// 설정: 화면 흔들림 켜기/끄기 (난이도 화면, 밤낮·날씨 버튼 옆)
+(function(){const w=document.getElementById('wxOpt');if(!w)return;const b=document.createElement('button');b.style.cssText='margin:4px 0 0;width:auto;align-self:flex-start;display:inline-block;padding:6px 12px;border-radius:7px;border:1px solid #6a5838;color:#f0e6c8;font-size:12px';
+ const on=()=>{try{return localStorage.getItem('wd_shake')!=='0';}catch(e){return true;}};const draw=()=>{b.style.background=on()?'#3a5a2a':'#2a241c';b.innerHTML=`💥 폭발 화면 흔들림: <b>${on()?'켜짐':'꺼짐'}</b>`;};
+ b.addEventListener('click',()=>{try{localStorage.setItem('wd_shake',on()?'0':'1');}catch(e){}draw();});draw();w.after(b);})();
 
 </script>
 </body>
