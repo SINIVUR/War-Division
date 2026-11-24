@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.20</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.0.21</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10368,6 +10368,24 @@ function addBtn(parent,cls,before){if(!parent)return;const b=document.createElem
 try{const h=$('homeBtns');addBtn(h,'big camp',h.firstChild);}catch(e){}
 try{const bl=$('wzBotL');if(bl){const b=addBtn(bl,'big camp');}}catch(e){}
 try{const s=document.querySelector('#end .seg');if(s)addBtn(s,'',$('end2title'));}catch(e){}
+})();
+
+// ===================== F.V.1.0.21 캠페인: 넉넉한 보급 · 일꾼 바로 채취 =====================
+// 캠페인(역사·훈련)에서 내 보급 한도는 보급 건물과 상관없이 최소 150, 시작 병력이 많으면 시작 병력+60 (최대 200)
+// 시작하자마자 내 일꾼은 가장 가까운 본진 옆 석탄을 캐도록 (정제소가 있으면 3명씩 가스로)
+(function(){
+{const _so=supplyOf;supplyOf=function(team){const r=_so.apply(this,arguments);try{if(G&&G.camp&&team===0){const fl=Math.min(200,Math.max(150,(G._sup0||0)+60));if(r.cap<fl)r.cap=fl;}}catch(e){}return r;};}
+function wkStart(){const wk=ents.filter(u=>!u.dead&&u.team===0&&u.type==='unit'&&UD[u.kind].worker&&(u.state==='idle'||!u.state));if(!wk.length)return;
+ const drops=ents.filter(b=>!b.dead&&b.team===0&&b.type==='bld'&&b.built&&BD[b.kind].drop);
+ const gas=ents.filter(b=>!b.dead&&b.team===0&&b.type==='bld'&&b.built&&BD[b.kind].geyser);const gasN=new Map();
+ for(const u of wk){let h=null,bd=1e9;for(const q of drops){const d=dist(q.x,q.y,u.x,u.y);if(d<bd){bd=d;h=q;}}
+  // 본진 근처 정제소에 3명까지
+  let g=null;for(const x of gas){if((gasN.get(x.id)||0)>=3)continue;if(h&&dist(x.x,x.y,h.x,h.y)>500)continue;g=x;break;}
+  try{if(g){orderGather(u,g);gasN.set(g.id,(gasN.get(g.id)||0)+1);continue;}}catch(e){}
+  const c=nearestCoal(h?h.x:u.x,h?h.y:u.y);if(c)try{orderGather(u,c);}catch(e){}}}
+{const _ud=update;update=function(dt){const r=_ud.apply(this,arguments);try{if(G&&G.camp&&!G.over){if(!G._wkInit&&G.time>0.2){G._wkInit=1;try{let u=0;for(const e of ents)if(!e.dead&&e.team===0&&e.type==='unit')u+=UD[e.kind].sup||0;G._sup0=u;}catch(e){}wkStart();}
+ // 시작 1분 동안 대본으로 새로 생긴 일꾼도 바로 투입
+ else if(G._wkInit&&G.time<60&&((G._wkT=(G._wkT||0)+(dt||0))>2)){G._wkT=0;wkStart();}}}catch(e){}return r;};}
 })();
 
 </script>
