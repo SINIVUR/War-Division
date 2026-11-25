@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.2.1</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.2.2</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10501,7 +10501,7 @@ const sizeOf=e=>e.type==='bld'?'L':(ensure(e.kind),SIZE[e.kind]||'M');
 const armOf=e=>e.type==='bld'?'FT':(ensure(e.kind),AT[e.kind]||'LA');
 const wtOf=e=>{if(e.type==='bld'){const b=BD[e.kind],a=b.atk;if(!a)return 'N';const n=b.n||'';return /화염|불/.test(n)?'F':/마법|룬|주술|정령|신|마나/.test(n)?'M':/대전차|저격|어뢰/.test(n)?'P':(a.spl||/포|캐논|카농|박격|로켓/.test(n))?'E':'N';}ensure(e.kind);return WT[e.kind]||'N';};
 const mulOf=(w,t)=>XS[w][sizeOf(t)]*XA[w][armOf(t)];
-globalThis.unitSize=sizeOf;globalThis.unitArmor=armOf;globalThis.unitWType=wtOf;globalThis.dmgVs=(src,t)=>mulOf(wtOf(src),t);
+globalThis.unitSize=sizeOf;globalThis.unitArmor=armOf;globalThis.unitWType=wtOf;globalThis.dmgVs=(src,t)=>mulOf(wtOf(src),t);globalThis.DCLS={SZN,WTN,WTI,ATN,XS,XA,WORD,AORD};
 {const _dm=damage;damage=function(t,amt,src){try{if(t&&src&&amt>0&&(src.type==='unit'||src.type==='bld')&&t.type!=='res'&&(t.type==='unit'||t.type==='bld')){const m=mulOf(wtOf(src),t);if(m!==1)arguments[1]=amt*m;}}catch(e){}return _dm.apply(this,arguments);};}
 
 // ---------- PC 유닛 정보창 (스타크래프트2처럼 자세히) ----------
@@ -11092,6 +11092,203 @@ function bldDestroy(b){const W=b.w*T,Hh=b.h*T,x0=b.x-W/2,y0=b.y-Hh/2,n=Math.min(
 (function(){const w=document.getElementById('wxOpt');if(!w)return;const b=document.createElement('button');b.style.cssText='margin:4px 0 0;width:auto;align-self:flex-start;display:inline-block;padding:6px 12px;border-radius:7px;border:1px solid #6a5838;color:#f0e6c8;font-size:12px';
  const on=()=>{try{return localStorage.getItem('wd_shake')!=='0';}catch(e){return true;}};const draw=()=>{b.style.background=on()?'#3a5a2a':'#2a241c';b.innerHTML=`💥 폭발 화면 흔들림: <b>${on()?'켜짐':'꺼짐'}</b>`;};
  b.addEventListener('click',()=>{try{localStorage.setItem('wd_shake',on()?'0':'1');}catch(e){}draw();});draw();w.after(b);})();
+
+// ===================== F.V.1.2.2 술사·치유 유닛 자동 시전 스킬 =====================
+// 각 술사·치유·지원 유닛에 재사용 대기시간이 있는 스킬 1개. 조건이 맞으면 알아서 씀 (내 유닛·AI 모두).
+//  heal 범위 치유 · repair 기계·건물 수리 · ward 받는 피해 -30% 결계 · haste 이속·공속 강화(buffT)
+//  nova 범위 피해(+느려짐) · chain 연쇄 번개 · mark 표식(받는 피해 +25%) · strike 지연 포격
+(function(){
+const SK={
+ medic:{n:'응급 처치',cd:12,heal:60,r:90,col:'#7dff8a',d:'주변 보병 체력 60 즉시 회복'},
+ hu_szanitec:{n:'야전 수술',cd:12,heal:55,ward:3,r:90,col:'#7dff8a',d:'주변 보병 체력 55 회복 · 3초간 받는 피해 -30%'},
+ br_curandeiro:{n:'숲의 정기',cd:12,heal:50,haste:4,r:100,col:'#9dff6a',d:'주변 보병 체력 50 회복 · 4초간 이속·공속 강화'},
+ mx_curandera:{n:'약초 연기',cd:11,heal:45,cleanse:1,r:110,col:'#b8ff7a',d:'주변 보병 체력 45 회복 · 느려짐 해제'},
+ th_kinnari:{n:'천상의 노래',cd:12,heal:50,r:110,air:1,col:'#ffe08a',d:'주변 아군(공중 포함) 체력 50 회복'},
+ fr_mecano:{n:'긴급 수리',cd:12,repair:90,r:90,col:'#ffd060',d:'주변 기계·건물 내구도 90 즉시 수리'},
+ et_priest:{n:'성수 축복',cd:15,heal:40,ward:4,r:100,col:'#fff2b0',d:'주변 아군 체력 40 회복 · 4초간 받는 피해 -30%'},
+ th_monk:{n:'금강 결계',cd:15,heal:25,ward:5,r:100,col:'#ffcf60',d:'주변 아군 5초간 받는 피해 -30% · 체력 25 회복'},
+ tr_dervish:{n:'회전 무아',cd:14,heal:20,haste:6,r:110,col:'#ffd8a0',d:'주변 아군 6초간 이속·공속 강화 · 체력 20 회복'},
+ ko_mudang:{n:'작두굿',cd:14,heal:25,haste:6,r:110,col:'#ff8ad8',d:'주변 아군 6초간 이속·공속 강화 · 체력 25 회복'},
+ mage:{n:'에테르 방벽',cd:15,ward:5,r:100,col:'#8ad8ff',d:'주변 아군 5초간 받는 피해 -30%'},
+ in_sadhu:{n:'삼매 결계',cd:15,ward:5,r:110,col:'#ffb070',d:'주변 아군 5초간 받는 피해 -30%'},
+ shaman:{n:'혹한 폭풍',cd:12,nova:30,slow:3,R:70,rng:180,col:'#bfe8ff',d:'적 밀집지에 피해 30 · 3초간 느려짐'},
+ mn_shaman:{n:'텡그리의 바람',cd:13,nova:26,slow:3,R:80,rng:180,col:'#c8f0ff',d:'적 밀집지에 피해 26 · 3초간 느려짐'},
+ jp_onmyoji:{n:'부적 폭발',cd:11,nova:36,R:60,rng:170,col:'#ff6a6a',d:'적 밀집지에 부적 폭발 피해 36'},
+ it_alchimista:{n:'산성 플라스크',cd:11,nova:28,mark:5,R:60,rng:170,col:'#9dff4a',d:'적 밀집지에 피해 28 · 5초간 받는 피해 +25%'},
+ cn_taoist:{n:'오뢰정법',cd:12,chain:32,jumps:4,rng:180,col:'#bfefff',d:'번개가 적 4기를 튀며 각각 피해 32'},
+ gr_oracle:{n:'예언',cd:14,mark:6,R:90,rng:200,col:'#ffe07a',d:'적 밀집지 표식 — 6초간 받는 피해 +25%'},
+ pl_enigma:{n:'암호 해독',cd:14,mark:6,R:110,rng:220,col:'#9ad0ff',d:'넓은 범위 적에 표식 — 6초간 받는 피해 +25%'},
+ uk_signal:{n:'포격 유도',cd:16,strike:26,R:65,rng:260,col:'#ffb040',d:'적 밀집지에 포탄 3발 유도 (각 피해 26)'},
+ radio:{n:'집중 포격',cd:16,strike:28,R:65,rng:260,col:'#ffb040',d:'적 밀집지에 포탄 3발 요청 (각 피해 28)'},
+};
+for(const k in SK){const d=UD[k],s=SK[k];if(!d)continue;d.sk=s;d.desc=(d.desc||'')+` · 🔮 자동 시전 「${s.n}」: ${s.d} (재사용 ${s.cd}초)`;}
+const dd=(a,b)=>(a.x-b.x)**2+(a.y-b.y)**2;
+const LIM=()=>typeof PQ!=='undefined'&&PQ>=2;
+// 떠오르는 스킬 이름 (화면 좌표로 유닛 위에)
+function label(u,s){if(!G.sktx)G.sktx=[];if(G.sktx.length>24)G.sktx.shift();G.sktx.push({x:u.x,y:u.y-u.r-10,t:0,txt:'🔮 '+s.n,col:s.col});}
+function ring(x,y,r,col,dur){G.rings.push({x,y,r,t:0,dur:dur||0.45,col});}
+function bestCluster(u,s){const R=s.R||70,rng=(s.rng||180),R2=R*R,g=[];
+ for(const e of ents){if(e.dead||e.type!=='unit'||!enemy(u.team,e.team)||e.cloakOn&&!e.revealT)continue;if(dd(e,u)>rng*rng)continue;if(UD[e.kind].layer==='a'&&!s.air&&!s.chain)continue;g.push(e);}
+ if(!g.length)return null;let best=null,bn=0;for(const a of g){let n=0;for(const b of g)if(dd(a,b)<=R2)n+=UD[b.kind].mech?2:1;if(n>bn){bn=n;best=a;}}
+ return bn>=2?{x:best.x,y:best.y,n:bn,list:g}:null;}
+function allies(u,r,f){const out=[];for(const e of ents){if(e.dead||e.team<0||(e.team!==u.team&&enemy(u.team,e.team)))continue;if(dd(e,u)>r*r)continue;if(f(e))out.push(e);}return out;}
+function cast(u,s){const d=UD[u.kind];
+ if(s.heal||s.ward||s.haste||s.repair){const R=s.r||100;
+  const bio=e=>e.type==='unit'&&UD[e.kind].bio&&(s.air||UD[e.kind].layer!=='a');
+  if(s.repair){const L=allies(u,R,e=>(e.type==='bld'&&e.built)||(e.type==='unit'&&UD[e.kind].mech));let miss=0;for(const e of L)miss+=e.maxhp-e.hp;if(miss<60)return false;
+   for(const e of L){e.hp=Math.min(e.maxhp,e.hp+s.repair);if(!LIM())sparks(e.x,e.y-6,3,'#ffd060',60,200,1,0.4);}ring(u.x,u.y,R,'rgba(255,208,96,.8)');label(u,s);return true;}
+  const L=allies(u,R,e=>e.type==='unit'&&(s.ward||s.haste?!UD[e.kind].worker&&(s.air||UD[e.kind].layer!=='a'):bio(e)));
+  let miss=0;for(const e of L)if(bio(e))miss+=e.maxhp-e.hp;
+  const fight=ents.some(e=>!e.dead&&e.type==='unit'&&enemy(u.team,e.team)&&dd(e,u)<(R+160)**2);
+  const want=(s.heal&&miss>=(s.ward||s.haste?40:50))||((s.ward||s.haste)&&fight&&L.length>=3);if(!want)return false;
+  for(const e of L){if(s.heal&&bio(e)){e.hp=Math.min(e.maxhp,e.hp+s.heal);if(!LIM())part(e.x,e.y-10,0,-18,0.6,2.5,s.col,0);}
+   if(s.ward)e._wardT=G.time+s.ward;if(s.haste)e.buffT=Math.max(e.buffT||0,s.haste);if(s.cleanse)e.slowT=0;}
+  ring(u.x,u.y,R,s.ward?'rgba(140,216,255,.85)':s.haste?'rgba(255,170,220,.85)':'rgba(125,255,138,.85)');if(!LIM())for(let i=0;i<8;i++)part(u.x+rnd(-R,R)*0.6,u.y+rnd(-R,R)*0.4,0,-24,0.7,2.4,s.col,0);label(u,s);return true;}
+ const c=bestCluster(u,s);if(!c)return false;const R=s.R||70;
+ if(s.chain){let cur=u,hit=new Set();for(let j=0;j<(s.jumps||4);j++){let nx=null,bd=1e18;for(const e of c.list){if(e.dead||hit.has(e))continue;const q=dd(e,cur);if(q<bd&&q<170*170){bd=q;nx=e;}}if(!nx)break;hit.add(nx);
+   bolt(cur.x,cur.y-8,nx.x,nx.y-6,s.col);damage(nx,s.chain,u);nx.slowT=Math.max(nx.slowT||0,0.5);cur=nx;}label(u,s);return hit.size>0;}
+ if(s.strike){label(u,s);ring(c.x,c.y,R,'rgba(255,80,60,.9)',0.9);for(let i=0;i<3;i++){const x=c.x+rnd(-R,R)*0.6,y=c.y+rnd(-R,R)*0.6;later(0.7+i*0.25,()=>{boom(x,y,14);for(const e of ents)if(!e.dead&&enemy(u.team,e.team)&&dd(e,{x,y})<(R*0.7)**2&&UD[e.kind]&&UD[e.kind].layer!=='a')damage(e,s.strike,u.dead?null:u);});}return true;}
+ // nova / mark
+ for(const e of c.list){if(e.dead||dd(e,c)>R*R)continue;if(s.nova)damage(e,s.nova,u);if(s.slow)e.slowT=Math.max(e.slowT||0,s.slow);if(s.mark)e._markT=G.time+s.mark;}
+ ring(c.x,c.y,R,s.mark&&!s.nova?'rgba(255,224,122,.9)':'rgba(255,255,255,.85)',0.4);ring(c.x,c.y,R*0.6,s.col,0.3);
+ if(!LIM())for(let i=0;i<(s.nova?12:6);i++){const a=Math.random()*6.283,v=rnd(40,120);spark(c.x,c.y-4,Math.cos(a)*v,Math.sin(a)*v*0.6-30,0.45,2.6,s.col,60,1);}
+ if(s.nova)part(c.x,c.y-6,0,0,0.12,R*0.5,s.col);bolt(u.x,u.y-10,c.x,c.y-6,s.col,true);label(u,s);return true;}
+function bolt(x0,y0,x1,y1,col,soft){if(!G.bolts)G.bolts=[];G.bolts.push({x0,y0,x1,y1,col,t:0,dur:soft?0.18:0.25,soft});}
+function later(dt,fn){(G.fxq||(G.fxq=[])).push({t:G.time+dt,fn});}
+// 결계·표식 피해 보정
+{const _dg=damage;damage=function(t,amt,src){try{if(t&&amt>0){if(t._wardT>G.time)arguments[1]*=0.7;if(t._markT>G.time&&src&&src.team!=null&&enemy(src.team,t.team))arguments[1]*=1.25;}}catch(e){}return _dg.apply(this,arguments);};}
+// 시전 루프 (0.25초마다)
+let acc=0;
+{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over)return r;
+ if(G.sktx)for(const q of G.sktx)q.t+=dt;if(G.sktx&&G.sktx.length)G.sktx=G.sktx.filter(q=>q.t<1.2);if(G.bolts){for(const b of G.bolts)b.t+=dt;G.bolts=G.bolts.filter(b=>b.t<b.dur);}
+ acc+=dt;if(acc<0.25)return r;acc=0;
+ for(const u of ents){if(u.dead||u.type!=='unit')continue;const s=UD[u.kind].sk;if(!s)continue;if(u.state==='board'||u.inCargo)continue;
+  if(u._skT==null){u._skT=G.time+rnd(2,5);continue;}if(G.time<u._skT)continue;
+  if(cast(u,s)){u._skT=G.time+s.cd;u.lastFire=G.time;}else u._skT=G.time+0.75;}
+}catch(e){console.error('skills',e);}return r;};}
+// 그리기: 번개선 (월드 좌표, 유닛 아래 깔림 방지 위해 화면 좌표로 변환해 위에 그림) · 스킬 이름
+function w2s(x,y){const z=cam.z*dpr;return [(x-cam.x)*z,(y-cam.y)*z];}
+{const _r=render;render=function(){_r.apply(this,arguments);try{if(!G||(!G.bolts||!G.bolts.length)&&(!G.sktx||!G.sktx.length))return;ctx.save();ctx.setTransform(1,0,0,1,0,0);
+ for(const b of (G.bolts||[])){const [a0,a1]=w2s(b.x0,b.y0),[c0,c1]=w2s(b.x1,b.y1),al=1-b.t/b.dur;ctx.globalAlpha=al;ctx.strokeStyle=b.col;ctx.lineWidth=(b.soft?1.5:2.5)*dpr;ctx.beginPath();ctx.moveTo(a0,a1);
+  const n=b.soft?3:6;for(let i=1;i<n;i++){const k=i/n;ctx.lineTo(a0+(c0-a0)*k+(b.soft?0:rnd(-8,8)*dpr),a1+(c1-a1)*k+(b.soft?0:rnd(-8,8)*dpr));}ctx.lineTo(c0,c1);ctx.stroke();}
+ ctx.globalAlpha=1;ctx.font=`bold ${Math.round(11*dpr)}px sans-serif`;ctx.textAlign='center';
+ for(const q of (G.sktx||[])){const [sx,sy]=w2s(q.x,q.y-q.t*18);ctx.globalAlpha=Math.max(0,1-q.t/1.2);ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(q.txt,sx+dpr,sy+dpr);ctx.fillStyle=q.col;ctx.fillText(q.txt,sx,sy);}
+ ctx.restore();}catch(e){}};}
+LD_TIPS.push('술사·치유 유닛은 「🔮 자동 시전」 스킬을 알아서 써요 — 범위 치유, 결계, 번개, 표식, 포격 유도 등.');
+})();
+
+// ===================== F.V.1.2.2 📖 백과사전 =====================
+// 타이틀·일시정지 메뉴에서 연다. 게임 데이터(FAC·UD·BD·TECHS)에서 바로 만들어 항상 최신.
+//  진영: 고유 능력·고유 규칙·건설 방식 / 건물 / 연구(무기 1~3단계 + 고급 연구 5종) / 유닛(그림·능력치·분류·특수)
+//  상성표: 무기 5종 × 크기 3종 · 장갑 5종 배율 / 시스템: 자원·건설·수송·밤낮·날씨·자동 시전
+(function(){
+const css=`
+#codex{z-index:40}
+#codex .cw{width:min(1100px,97vw);height:min(720px,95vh);display:flex;flex-direction:column;background:linear-gradient(#2a2116,#17120b);border:2px solid #6b5530;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.7);overflow:hidden;font-family:inherit}
+#codex .ch{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #4a3a20}
+#codex .ch h3{margin:0;font-size:clamp(17px,4.4vh,24px);color:#e8c56a;white-space:nowrap}
+#codex .ctabs{display:flex;gap:6px;flex:1;overflow-x:auto}
+#codex button{font-family:inherit}
+#codex .ctabs button,#codex .fl button{font-size:clamp(12px,3.3vh,15px);padding:6px 12px;border-radius:8px;border:1.5px solid #6b5530;background:#2c2215;color:#c9b48a;white-space:nowrap;cursor:pointer}
+#codex .ctabs button.on,#codex .fl button.on{background:linear-gradient(#7a5f2e,#4a3a1c);border-color:#f0d080;color:#fff3cc}
+#codex .cx{font-size:clamp(14px,4vh,18px);padding:6px 14px;border-radius:8px;border:1.5px solid #8a5030;background:#3a1e14;color:#ffd0b0;cursor:pointer}
+#codex .cm{flex:1;display:flex;min-height:0}
+#codex .fl{width:150px;flex:none;overflow:auto;padding:8px;border-right:1px solid #4a3a20;display:flex;flex-direction:column;gap:5px}
+#codex .fl button{text-align:left;padding:6px 9px}
+#codex .fl .grp{color:#8a7448;font-size:11px;margin:6px 2px 0}
+#codex .cb{flex:1;overflow:auto;padding:12px 16px 20px;color:#e8dcc0;font-size:clamp(12px,3.3vh,14.5px);line-height:1.55}
+#codex h4{margin:16px 0 6px;color:#e8c56a;font-size:1.15em;border-bottom:1px solid #4a3a20;padding-bottom:4px}
+#codex h2{margin:0 0 4px;color:#ffe7a8;font-size:1.6em}
+#codex .sub{color:#a88f5c;margin-bottom:8px}
+#codex .box{background:rgba(0,0,0,.28);border:1px solid #4a3a20;border-radius:9px;padding:8px 11px;margin:6px 0}
+#codex .box b{color:#f4d98a}
+#codex .tag{display:inline-block;padding:1px 7px;margin:1px 3px 1px 0;border-radius:10px;background:#3a2e1c;border:1px solid #5a4828;color:#e8d4a0;font-size:.86em;white-space:nowrap}
+#codex .ug{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+#codex .uc{background:rgba(0,0,0,.28);border:1px solid #4a3a20;border-radius:9px;padding:8px 10px;display:flex;gap:10px}
+#codex .uc img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated;flex:none;background:rgba(255,255,255,.04);border-radius:6px}
+#codex .uc .nm{color:#ffe7a8;font-weight:700}
+#codex .uc .st{display:grid;grid-template-columns:repeat(3,auto);gap:0 10px;font-size:.88em;color:#cdbb92;margin:3px 0}
+#codex .uc .ds{font-size:.86em;color:#d8c8a0}
+#codex table{width:100%;border-collapse:collapse;font-size:.92em}
+#codex th{text-align:left;color:#a88f5c;font-weight:600;padding:4px 6px;border-bottom:1px solid #4a3a20;background:#1d170e;position:sticky;top:0}
+#codex td{padding:5px 6px;border-bottom:1px solid rgba(107,85,48,.35);vertical-align:top}
+#codex td.c{text-align:center}
+#codex .hi{color:#7fe08a;font-weight:700}#codex .lo{color:#ff8a7a;font-weight:700}
+@media (max-height:520px),(max-width:700px){#codex .cm{flex-direction:column}#codex .fl{width:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:none;border-bottom:1px solid #4a3a20;padding:6px}#codex .fl .grp{display:none}#codex .ug{grid-template-columns:1fr}}
+`;
+const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+const ov=document.createElement('div');ov.id='codex';ov.className='overlay hidden';
+ov.innerHTML=`<div class="cw"><div class="ch"><h3>📖 백과사전</h3><div class="ctabs" id="cxTabs"></div><button class="cx" id="cxX">✕ 닫기</button></div><div class="cm"><div class="fl" id="cxList"></div><div class="cb" id="cxBody"></div></div></div>`;
+document.body.appendChild(ov);
+const $c=id=>document.getElementById(id);
+let tab='fac',cur=Object.keys(FAC)[0],sec='all';
+const OLD=new Set(['us','su','de','it','fr','uk','jp','cn','au','za','br','in','ko','hu','fi','pl']);
+const RN={hq:'본진',sup:'보급',gas:'정제소',inf:'보병 생산',veh:'차량 생산',air:'공군 생산',sea:'해군 생산',def:'방어',up:'연구'};
+const TGN=t=>!t?'—':[...new Set(t.split(''))].map(c=>({g:'지상',a:'공중',n:'수상'}[c])).filter(Boolean).join('·')||'—';
+const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const IMG={};function icon(k){if(IMG[k]!=null)return IMG[k];let u='';try{const c=unitArt(k,0,false,0,'');if(c&&c.toDataURL)u=c.toDataURL();}catch(e){}return IMG[k]=u;}
+const fdesc=f=>{try{const e=document.querySelector(`[data-f="${f}"] .fd`);return e?e.textContent:'';}catch(e){return '';}};
+const zone=f=>{try{return CREEPF.has(f)?'영토 위에만 건설':POWF.has(f)?'동력장 안에만 건설':'어디에나 건설';}catch(e){return '어디에나 건설';}};
+const coop=f=>{try{return {stay:'일꾼이 곁에서 건설',team:'여러 일꾼이 협동 건설 (많을수록 빠름)',consume:'일꾼이 건물로 변함 (일꾼 소모)',warp:'일꾼이 소환만 하고 건물이 스스로 완성'}[FAC[f].mode]||'';}catch(e){return '';}};
+const cost=c=>c?`석탄 ${c[0]}${c[1]?` · 에테르 ${c[1]}`:''}`:'—';
+function cls(k){try{const D=DCLS,e={type:'unit',kind:k},w=unitWType(e);return {s:D.SZN[unitSize(e)],a:D.ATN[unitArmor(e)],w:(D.WTI[w]||'')+D.WTN[w]};}catch(err){return {s:'',a:'',w:''};}}
+function unitCard(k){const d=UD[k],c=cls(k),tags=[];
+ if(d.worker)tags.push('일꾼');if(d.hero)tags.push('영웅');if(d.melee)tags.push('근접');if(d.det)tags.push('은신 탐지');if(d.cloak)tags.push('은신');if(d.heal)tags.push(`치료 ${d.heal}/초`);if(d.cap)tags.push(`수송 ${d.cap}명`);if(d.suicide)tags.push('자폭');if(d.regen)tags.push(`재생 ${d.regen}/초`);if(d.slowImmune)tags.push('감속 면역');if(d.sk)tags.push('🔮 자동 시전');
+ const dps=d.dmg&&d.cd?(d.dmg/d.cd).toFixed(1):'—',L=d.layer==='a'?'공중':d.layer==='n'?'수상':'지상';
+ return `<div class="uc"><img src="${icon(k)}" alt=""><div style="min-width:0"><div class="nm">${esc(d.n)}</div>
+ <div><span class="tag">${L}</span><span class="tag">${c.s}</span><span class="tag">${c.a}</span>${d.dmg?`<span class="tag">${c.w}</span>`:''}${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+ <div class="st"><span>체력 <b>${Math.round(d.hp)}</b></span><span>방어 <b>${d.ar||0}</b></span><span>이동 <b>${d.sp||0}</b></span>
+ <span>피해 <b>${d.dmg?+(+d.dmg).toFixed(1):'—'}</b></span><span>사거리 <b>${d.rng||'—'}</b></span><span>DPS <b>${dps}</b></span>
+ <span>대상 <b>${TGN(d.tg)}</b></span><span>인구 <b>${d.sup||1}</b></span><span>생산 <b>${d.t||'—'}초</b></span></div>
+ <div class="st" style="grid-template-columns:1fr"><span>비용 <b>${cost(d.cost)}</b></span></div>
+ <div class="ds">${esc(d.desc||'')}</div></div></div>`;}
+function facPage(f){const F=FAC[f];let h=`<h2>${esc(F.n)}</h2><div class="sub">${esc(fdesc(f))}</div>`;
+ h+=`<div class="box"><b>고유 능력</b> — ${esc(FTRAIT[f]||'')}</div>`;
+ try{if(typeof NF_RULE!=='undefined'&&NF_RULE[f]&&!(FTRAIT[f]||'').includes(NF_RULE[f]))h+=`<div class="box"><b>고유 규칙</b> — ${esc(NF_RULE[f])}</div>`;}catch(e){}
+ h+=`<div class="box"><b>건설 방식</b> — ${zone(f)} · ${coop(f)} · 일꾼: ${esc(UD[F.worker]?UD[F.worker].n:'')} · 본진: ${esc(BD[F.hq]?BD[F.hq].n:'')}</div>`;
+ // 건물
+ const blds=F.build.filter(k=>BD[k]);h+=`<h4>🏗 건물 (${blds.length})</h4><table><tr><th>건물</th><th>역할</th><th>크기</th><th>내구도</th><th>비용</th><th>시간</th><th>필요</th><th>생산·기능</th></tr>`;
+ for(const k of blds){const b=BD[k],fn=[];if(b.train&&b.train.length)fn.push('생산: '+b.train.filter(u=>UD[u]).map(u=>UD[u].n).join(', '));if(b.atk)fn.push(`공격 ${b.atk.dmg} · 사거리 ${b.atk.rng} · 대상 ${TGN(b.atk.tg)}`);if(b.sup)fn.push(`인구 +${b.sup}`);if(b.det)fn.push('은신 탐지');if(b.move)fn.push('이동 가능');if(b.up)fn.push('무기 업그레이드 (지상·공중·수상 3단계)');if(b.advLab)fn.push('고급 연구 5종');if(b.desc){for(const t of b.desc.split(/\s*·\s*/))if(t&&!fn.some(x=>x.includes(t)))fn.push(t);}
+  h+=`<tr><td><b>${esc(b.n)}</b></td><td>${RN[ROLE[k]]||''}</td><td class="c">${b.w}×${b.h}</td><td class="c">${b.hp}</td><td>${cost(b.cost)}</td><td class="c">${b.t||''}초</td><td>${b.req&&BD[b.req]?esc(BD[b.req].n):''}</td><td>${esc(fn.join(' · '))}</td></tr>`;}
+ h+='</table>';
+ // 연구
+ h+=`<h4>🔬 연구</h4><div class="box"><b>무기 업그레이드</b> (연구소) — 지상 · 공중 · 수상 각각 1~3단계 · 단계마다 공격 강화`;
+ try{h+=' · 비용: '+[1,2,3].map(l=>{const c=upCost(l,0);return `${l}단계 ${c[0]}/${c[1]}`;}).join(', ');}catch(e){}h+='</div>';
+ try{const L=TECHS[f]||[];if(L.length){h+=`<table><tr><th>고급 연구 (${esc(TECH_BLD[f]||'')})</th><th>효과</th><th>비용</th><th>시간</th></tr>`;L.forEach((t,i)=>{const c=TECH_COST[i]||[0,0,0];h+=`<tr><td><b>${esc(t[0])}</b></td><td>${esc(t[1])}</td><td>${c[0]}/${c[1]}</td><td class="c">${c[2]}초</td></tr>`;});h+='</table>';}}catch(e){}
+ // 유닛 (생산 건물 순서)
+ const seen=new Set(),groups=[];for(const k of blds){const b=BD[k];if(!b.train)continue;const us=b.train.filter(u=>UD[u]&&!seen.has(u));us.forEach(u=>seen.add(u));if(us.length)groups.push([b.n,us]);}
+ const rest=Object.keys(UD).filter(k=>UD[k].f===f&&!seen.has(k)&&!UD[k].hero&&!k.startsWith('h_')&&ART[k]);if(rest.length)groups.push(['기타',rest]);
+ h+=`<h4>⚔ 유닛 (${[...seen].length+rest.length})</h4>`;for(const [n,us] of groups)h+=`<div class="sub" style="margin:10px 0 4px">${esc(n)}</div><div class="ug">${us.map(unitCard).join('')}</div>`;
+ return h;}
+function matrixPage(){const D=DCLS;let h=`<h2>무기 상성표</h2><div class="sub">실제 피해 = 기본 피해 × 크기 배율 × 장갑 배율. 초록은 유리(1 초과), 빨강은 불리(1 미만)예요.</div>`;
+ const cell=v=>`<td class="c ${v>1.001?'hi':v<0.999?'lo':''}">×${v.toFixed(2)}</td>`;
+ h+=`<h4>무기 × 크기</h4><table><tr><th>무기</th>${['S','M','L'].map(s=>`<th>${D.SZN[s]}</th>`).join('')}</tr>${D.WORD.map(w=>`<tr><td><b>${D.WTI[w]} ${D.WTN[w]}</b></td>${['S','M','L'].map(s=>cell(D.XS[w][s])).join('')}</tr>`).join('')}</table>`;
+ h+=`<h4>무기 × 장갑</h4><table><tr><th>무기</th>${D.AORD.map(a=>`<th>${D.ATN[a]}</th>`).join('')}</tr>${D.WORD.map(w=>`<tr><td><b>${D.WTI[w]} ${D.WTN[w]}</b></td>${D.AORD.map(a=>cell(D.XA[w][a])).join('')}</tr>`).join('')}</table>`;
+ h+=`<h4>분류 기준</h4><div class="box"><b>크기</b> — 보병은 소형(맨몸 체력 150 이상·인구 3 이상은 중형), 차량·짐승은 중형, 거대 유닛은 대형<br><b>장갑</b> — 천(보병) · 경장갑(가벼운 차량·공중) · 중장갑(전차·큰 배) · 마법 보호(술사·정령) · 요새(건물)<br><b>무기</b> — 일반(소총·기관총) · 폭발(포·폭탄) · 관통(대전차·저격·어뢰) · 화염(화염방사·불) · 마법(술법)</div>`;
+ return h;}
+function sysPage(){return `<h2>시스템 안내</h2>
+<h4>자원과 인구</h4><div class="box"><b>석탄</b>은 일꾼이 광맥에서 캐고, <b>에테르</b>는 에테르 샘 위 정제소에서 모아요. 인구는 본진과 보급 건물이 늘려 주고, 최대 200이에요.</div>
+<h4>건설 방식</h4><div class="box"><b>자유</b> 어디에나 · <b>영토</b> 영토(크립) 위에만 (동남아·일부 진영) · <b>동력장</b> 보급 건물이 만든 동력장 안에만 (유럽 진영) · 일꾼이 <b>곁에서 짓는</b> 진영, 여러 일꾼이 <b>협동</b>하는 진영, 일꾼이 <b>건물로 변하는</b> 진영, 일꾼은 <b>소환만</b> 하는 진영이 있어요.</div>
+<h4>연구</h4><div class="box">연구소에서 지상·공중·수상 무기를 각각 3단계까지 올려요. 고급 연구소에서는 진영 고유 연구 5종을 할 수 있어요.</div>
+<h4>수송</h4><div class="box">모든 진영에 <b>공중 수송</b>(비행장, 8명), <b>해상 수송</b>(조선소, 12명), <b>지상 수송 차량</b>(차량 공장, 보병 4~8명)이 있어요. 땅 유닛을 고른 뒤 수송 유닛을 누르면 타고, 「하선」으로 원하는 곳에 내려요.</div>
+<h4>🔮 자동 시전</h4><div class="box">술사·치유·지원 유닛은 재사용 대기시간마다 스킬을 알아서 써요. 범위 치유, 결계(받는 피해 -30%), 강화(이속·공속), 범위 피해, 연쇄 번개, 표식(받는 피해 +25%), 포격 유도 등이 있어요. 유닛 설명에 스킬 이름과 효과가 적혀 있어요.</div>
+<h4>밤낮과 날씨</h4><div class="box">낮 4분, 밤 약 2분이 번갈아 와요. 밤에는 시야가 30% 줄어요.<br>🌧 비: 차량 이동 -12% · ❄ 눈: 보병 이동 -15%, 차량 -7% (감속 면역 유닛 제외) · 🌫 안개: 모든 시야 -20% · ⛈ 폭풍: 공중 이동·시야 -20%, 차량 이동 -12%<br>캠페인은 밤이 없고 장에 맞는 날씨로 고정돼요. 난이도 화면에서 끌 수 있어요.</div>
+<h4>상성</h4><div class="box">유닛마다 크기 3종 · 장갑 5종 · 무기 5종이 있고, 맞물려 피해가 달라져요. 「상성표」 탭에서 배율을 볼 수 있어요.</div>`;}
+function drawList(){const L=$c('cxList');if(tab!=='fac'){L.style.display='none';return;}L.style.display='';
+ const fs=Object.keys(FAC);let h='<div class="grp">기존 16개 진영</div>';fs.filter(f=>OLD.has(f)).forEach(f=>h+=`<button data-f="${f}" class="${f===cur?'on':''}">${esc(FAC[f].n)}</button>`);
+ h+='<div class="grp">신규 16개 진영</div>';fs.filter(f=>!OLD.has(f)).forEach(f=>h+=`<button data-f="${f}" class="${f===cur?'on':''}">${esc(FAC[f].n)}</button>`);L.innerHTML=h;}
+function draw(){$c('cxTabs').innerHTML=[['fac','진영'],['mx','상성표'],['sys','시스템']].map(([k,n])=>`<button data-t="${k}" class="${k===tab?'on':''}">${n}</button>`).join('');
+ drawList();const B=$c('cxBody');try{B.innerHTML=tab==='fac'?facPage(cur):tab==='mx'?matrixPage():sysPage();}catch(e){B.textContent='불러오지 못했어요: '+e.message;console.error(e);}B.scrollTop=0;}
+$c('cxTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;draw();});
+$c('cxList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cur=b.dataset.f;draw();});
+$c('cxX').addEventListener('click',()=>ov.classList.add('hidden'));
+window.openCodex=function(f){if(f&&FAC[f]){cur=f;tab='fac';}else{try{const s=document.querySelector('#facGrid .on,[data-f].on');if(s&&FAC[s.dataset.f])cur=s.dataset.f;}catch(e){}}draw();ov.classList.remove('hidden');};
+// 버튼: PC 타이틀 · 모바일 타이틀 아래줄 · 일시정지 메뉴
+function add(parent,cls,label,before){if(!parent)return;const b=document.createElement('button');b.className=cls+' codexBtn';b.textContent=label;b.style.fontFamily='inherit';b.addEventListener('click',e=>{e.stopPropagation();openCodex(G&&!G.over&&P(0)?P(0).fac:null);});if(before)parent.insertBefore(b,before);else parent.appendChild(b);}
+try{const h=$c('homeBtns');if(h)add(h,'big camp','📖 백과사전',h.firstChild);}catch(e){}
+try{const bl=$c('wzBotL');if(bl)add(bl,'big camp','📖 사전');}catch(e){}
+try{const q=$c('quitBtn');if(q&&q.parentNode)add(q.parentNode,'','📖 백과사전');}catch(e){}
+})();
 
 </script>
 </body>
