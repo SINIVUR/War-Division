@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.2.2</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.2.3</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -2771,7 +2771,7 @@ function aiHuman(p,c){
   const d=UD[e.kind],L=d.layer||'g',w=0.05;if(L==='a')intel.air+=w;else if(L==='n')intel.nav+=w;else intel.gnd+=w;if(d.mech)intel.mech+=w;if(d.bio)intel.bio+=w;}
  // --- 노릴 상대: 가깝고, 나를 때렸고, 약한 상대
  const foes=G.pl.filter(q=>q.alive&&q.id!==p.id&&enemy(p.id,q.id));
- const fscore=q=>{const kb=knownOf(q.id);if(!kb)return 50-(ai.hate[q.id]||0)*0.004;const d=(p.id&&G.ally&&!G.camp&&friend0(p.id)&&P(0).alive?(dist(kb.x,kb.y,base.x,base.y)+dist(kb.x,kb.y,P(0).base.x,P(0).base.y)*1.5)/2.5:dist(kb.x,kb.y,base.x,base.y))/600;return d+aiEnemyPow(p,q.id)/4000-(ai.hate[q.id]||0)*0.004;};
+ const fscore=q=>{const kb=knownOf(q.id);if(!kb)return 50-(ai.hate[q.id]||0)*0.004+(playerPen(p,q.id)>1?6:0);const d=(p.id&&G.ally&&!G.camp&&friend0(p.id)&&P(0).alive?(dist(kb.x,kb.y,base.x,base.y)+dist(kb.x,kb.y,P(0).base.x,P(0).base.y)*1.5)/2.5:dist(kb.x,kb.y,base.x,base.y))/600;return d+aiEnemyPow(p,q.id)/4000-Math.min(1.5,(ai.hate[q.id]||0)*0.004)+(playerPen(p,q.id)>1?60:0);};
  if(!ai.focus||!P(ai.focus).alive||G.time>(ai.focusT||0)||(ai.focusBlind&&knownOf(null))){ai.focusBlind=!knownOf(null);const f=foes.sort((a,b)=>fscore(a)-fscore(b))[0];ai.focus=f?f.id:null;ai.focusT=G.time+60+rnd(0,40);}
  // 목표 건물에 걸어서 못 가면(경사로를 건물로 막음) 길을 막은 적 건물부터 부숨 — 사람처럼
  const touches=(b,lab,c)=>{const w=((b.kind&&BD[b.kind]?BD[b.kind].w:2)||2)/2+1,bx=b.x/T,by=b.y/T;for(let dy=-w;dy<=w;dy++)for(let dx=-w;dx<=w;dx++){if(Math.abs(dx)<w-0.6&&Math.abs(dy)<w-0.6)continue;const x=Math.floor(bx+dx),y=Math.floor(by+dy);if(x<0||y<0||x>=MW||y>=MH)continue;if(lab[y*MW+x]===c)return true;}return false;};
@@ -8185,6 +8185,8 @@ DIFF_PC[3][1]=190;DIFF_PC[4]=[4,260,0.5];DIFF_PC[5]=[5,420,0.25];
 DIFF_MB[4]=[4,85,1.3];DIFF_MB[5]=[5,120,0.9];
 // 5) 총공세: 매우 어려움·초극한급은 병력이 충분하면 본대 전체를 적 건물로 밀어 넣음
 //    (기존 웨이브 로직이 수군까지 기다리며 중앙에서 집결·해산을 반복해 100기 넘게 모아도 적 기지에 닿지 못하던 문제)
+// 팀전: 적 AI는 다른 적(유저의 동맹 AI)이 살아 있는 동안 유저를 1순위로 노리지 않음
+function playerPen(p,team){if(team!==0||!G||!G.ally||G.camp)return 1;return G.pl.some(q=>q.alive&&q.id!==0&&q.id!==p.id&&enemy(p.id,q.id))?6:1;}
 function aiPush(p){const ai=p.ai,sk=p.diff??2;if(sk<5||G.camp||G.time<420)return;
  if(ai.pushT>G.time)return;ai.pushT=G.time+3;
  const land=[],navy=[];let pw=0;
@@ -8194,7 +8196,7 @@ function aiPush(p){const ai=p.ai,sk=p.diff??2;if(sk<5||G.camp||G.time<420)return
  ai.commitT=Math.max(ai.commitT||0,G.time+12);
  if(!land.length)return;let cx=0,cy=0;for(const u of land){cx+=u.x;cy+=u.y;}cx/=land.length;cy/=land.length;
  // 목표: 본대에서 가장 가까운 적 건물 (생산·본진 우선)
- let tg=null,bd=1e18;for(const b of ents){if(b.dead||b.type!=='bld'||!enemy(p.id,b.team))continue;const dd=BD[b.kind];let d2=(b.x-cx)**2+(b.y-cy)**2;if(dd.train||dd.drop)d2*=0.7;if(d2<bd){bd=d2;tg=b;}}
+ let tg=null,bd=1e18;for(const b of ents){if(b.dead||b.type!=='bld'||!enemy(p.id,b.team))continue;const dd=BD[b.kind];let d2=(b.x-cx)**2+(b.y-cy)**2;if(dd.train||dd.drop)d2*=0.7;d2*=playerPen(p,b.team);if(d2<bd){bd=d2;tg=b;}}
  if(!tg)return;ai.pushTg=tg.id;
  const go=land.filter(u=>u.state!=='attack'&&dist(u.x,u.y,tg.x,tg.y)>260&&(u.state==='idle'||!(u._pushT>G.time-8)||u.state==='move'));
  if(go.length)grpOrder(go.length,()=>{for(const u of go){u._pushT=G.time;u.wave=1;u.stage=0;u.reinf=0;orderMove(u,tg.x+rnd(-90,90),tg.y+rnd(-90,90),true);}});
@@ -10116,7 +10118,7 @@ const css=`
 #wiz #facRow .fac[data-f="et"] .fn,#wiz #facRow .fac[data-f="ko"] .fn,#wiz #facRow .fac[data-f="nz"] .fn{font-size:min(3.9vh,15px)!important;letter-spacing:-.8px}
 #wiz #facRow .fac .fd{font-size:min(2.9vh,11px);margin-top:1px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:1.25}
 #wiz #facRow .fac.sel{box-shadow:0 0 0 2px #f0d080,0 0 14px rgba(240,208,128,.5)}
-#wiz #facTrait{font-size:min(3.8vh,15px)!important;min-height:4.6vh!important;margin:6px 2px 0!important;text-align:left}
+#wiz #facTrait{font-size:min(3.8vh,15px)!important;min-height:4.6vh!important;margin:6px 2px 0!important;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #wiz .wz-row{display:flex;align-items:center;gap:14px;margin:1.6vh 0}
 #wiz .wz-row .wz-l{width:24%;font-size:min(4.6vh,18px);font-weight:800;color:#e0c890}
 #wiz .seg{gap:10px;justify-content:flex-start}
@@ -10654,6 +10656,7 @@ FBAL2.et=(FBAL2.et||1)*1.12/1.24;FBAL2.pl=(FBAL2.pl||1)*1.1/1.22;FBAL2.se=(FBAL2
  const _dg=damage;damage=function(t,amt,src){try{if(t&&t.type==='unit'&&amt>0&&t.hp<t.maxhp*0.5&&fo(t.team)==='et')arguments[1]=amt*0.85;}catch(e){}return _dg.apply(this,arguments);};}
 try{NF_RULE.et='아드와의 기억: 체력 60% 아래인 유닛 피해 +40% · 체력 절반 아래면 받는 피해 -15%';}catch(e){}
 FTRAIT.et=FTRAIT.et.replace('생체 유닛 체력 +15%','생체 유닛 체력 +25%').replace(/아드와의 기억:[^·]*$/,'').replace(/ · 고유: $/,'')+' · 고유: 아드와의 기억: 체력 60% 아래 피해 +40% · 절반 아래면 받는 피해 -15%';
+FTRAIT.et='고원의 용사: 생체 체력 +25%·은신 이동 +10% · 아드와의 기억: 위기 시 피해 +40%·받는 피해 -15%';// 모바일 한 줄 (자세한 규칙은 백과사전)
 FTRAIT.pl=FTRAIT.pl.replace('근접 유닛 피해 +25%','근접 유닛 피해 +35%').replace('공중 유닛 공격 +10%','공중 유닛 공격 +20%').replace('기계 유닛 비용 10% 저렴','기계 유닛 비용 15% 저렴')+' · 보병 체력 +10%';
 FTRAIT.se=FTRAIT.se.replace('모든 유닛 비용 10% 저렴','모든 유닛 비용 5% 저렴');
 
@@ -10872,7 +10875,7 @@ function late(p){const ai=p.ai;if(G.camp||G.time<720||ai.lateT>G.time)return;ai.
  const land=[],navy=[];let pw=0;for(const u of ents){if(u.dead||u.team!==p.id||u.type!=='unit')continue;const d=UD[u.kind];if(d.worker||!d.dmg||d.cap||u.raid||u.hid||u.sg||u.morph)continue;(d.layer==='n'?navy:land).push(u);pw+=d.sup||1;}
  const sup=supplyOf(p.id).used,need=G.time>=1080?12:30;if(!(ai.lateC>G.time)&&pw<need&&sup<170)return;ai.lateC=Math.max(ai.lateC||0,G.time+15);if(!land.length)return;
  let cx=0,cy=0;for(const u of land){cx+=u.x;cy+=u.y;}cx/=land.length;cy/=land.length;
- let tg=null,bd=1e18;for(const b of ents){if(b.dead||b.type!=='bld'||!enemy(p.id,b.team))continue;const dd=BD[b.kind];let d2=(b.x-cx)**2+(b.y-cy)**2;if(dd.drop)d2*=0.3;else if(dd.train)d2*=0.4;if(d2<bd){bd=d2;tg=b;}}if(!tg)return;
+ let tg=null,bd=1e18;for(const b of ents){if(b.dead||b.type!=='bld'||!enemy(p.id,b.team))continue;const dd=BD[b.kind];let d2=(b.x-cx)**2+(b.y-cy)**2;if(dd.drop)d2*=0.3;else if(dd.train)d2*=0.4;d2*=playerPen(p,b.team);if(d2<bd){bd=d2;tg=b;}}if(!tg)return;
  const go=land.filter(u=>u.state!=='attack'&&dist(u.x,u.y,tg.x,tg.y)>260&&(u.state==='idle'||!(u._lateT>G.time-10)||u.state==='move'));
  if(go.length)grpOrder(go.length,()=>{for(const u of go){u._lateT=G.time;u.wave=1;u.stage=0;u.reinf=0;orderMove(u,tg.x+rnd(-90,90),tg.y+rnd(-90,90),true);}});
  const ng=navy.filter(u=>u.state!=='attack'&&(u.state==='idle'||!(u._lateT>G.time-12)));if(ng.length)grpOrder(ng.length,()=>{for(const u of ng){u._lateT=G.time;orderMove(u,tg.x+rnd(-120,120),tg.y+rnd(-120,120),true);}});}
