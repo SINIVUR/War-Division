@@ -12965,6 +12965,73 @@ function tick(p){const m=M(p),ai=p.ai;ai.lateT=G.time+1e6;ai.pushT=G.time+1e6;
 globalThis.AIMASS={M,tick};
 })();
 
+// ===================== PC 타이틀 화면 리디자인 (F.V.1.3.0) =====================
+// DOM은 옮기지 않고(모바일 위저드와 충돌 방지) CSS 그리드로 전체 화면 배치 — 44개 진영이 스크롤 없이 한 화면에
+(function(){
+const $q=s=>document.querySelector(s);
+// 1) 배치용 이름표
+try{const L=[...document.querySelectorAll('#title .left > .lbl')];const nm=['t-lai','t-lmode','t-ldiff'];L.forEach((e,i)=>{if(nm[i])e.classList.add(nm[i]);});
+ const ms=document.getElementById('modeSeg');if(ms&&ms.parentNode&&ms.parentNode.id!=='title')ms.parentNode.classList.add('t-mode');}catch(e){}
+function tagLate(){try{const w=document.getElementById('wxOpt');if(w&&w.nextElementSibling&&w.nextElementSibling.tagName==='BUTTON'&&!w.nextElementSibling.id)w.nextElementSibling.id='shakeOpt';}catch(e){}}
+// 2) 진영 카드: 대표 유닛 그림 · 진영 편 표시
+function decorate(){try{for(const el of document.querySelectorAll('#facRow .fac')){if(el.querySelector('.uimg'))continue;const f=el.dataset.f,F=FAC[f];if(!F)continue;
+  const ks=[];for(const b of F.build)for(const k of (BD[b]&&BD[b].train)||[])if(UD[k]&&!UD[k].worker&&!UD[k].cap)ks.push(k);
+  const pickK=ks.find(k=>UD[k].adv&&!UD[k].layer)||ks.find(k=>UD[k].mech&&!UD[k].layer&&UD[k].cost[0]>=150)||ks[1]||ks[0];
+  if(pickK){const c=unitArt(pickK,0,false,0,'');if(c){const im=document.createElement('img');im.className='uimg';im.src=c.toDataURL();im.alt='';el.appendChild(im);}}
+  const sd=document.createElement('span');const s=(typeof FSIDE!=='undefined'&&FSIDE[f])||'';sd.className='fside '+(s==='연합'?'al':s==='추축'?'ax':'ne');sd.textContent=s;el.appendChild(sd);}}catch(e){console.error(e);}}
+// 3) 진영 설명: PC에서는 고유 규칙도 함께
+{const _st=showTrait;showTrait=function(){const r=_st.apply(this,arguments);try{const el=document.getElementById('facTrait');if(!PC||!el)return r;const f=cfg.fac,rule=(typeof NF_RULE!=='undefined'&&NF_RULE[f])||'';
+ el.innerHTML=`<b>${FAC[f]?FAC[f].n:''}</b> <span class="fs">${(typeof FSIDE!=='undefined'&&FSIDE[f])||''}</span> ★ ${FTRAIT[f]||''}${rule?'<div class="rule">'+rule.replace(/[<>&]/g,'').replace(/\n/g,'<br>')+'</div>':''}`;}catch(e){}return r;};}
+const css=`
+body.pc #title:not(.wizOn){padding:0;overflow:hidden;background:radial-gradient(ellipse at 30% 20%,#3b2d19 0%,#17120b 55%,#0b0907 100%)}
+body.pc #title:not(.wizOn)>.wrap{zoom:1!important;width:100vw;height:100vh;max-width:none;box-sizing:border-box;padding:clamp(10px,1.6vh,22px) clamp(14px,1.6vw,30px);display:grid;gap:clamp(4px,.7vh,10px) clamp(10px,1.1vw,20px);
+ grid-template-columns:minmax(0,1fr) clamp(260px,19vw,380px) clamp(230px,17vw,340px);grid-template-rows:auto repeat(10,auto) minmax(0,1fr) auto auto;align-items:start}
+body.pc #title:not(.wizOn) .left,body.pc #title:not(.wizOn) .right{display:contents}
+body.pc #title:not(.wizOn) .wrap::before{content:'';grid-column:2/4;grid-row:2/13;align-self:stretch;margin:-6px -8px;border:1px solid #5a4528;border-radius:12px;background:linear-gradient(rgba(42,33,22,.85),rgba(20,16,10,.85));box-shadow:inset 0 1px 0 rgba(255,220,150,.08)}
+body.pc #title:not(.wizOn) .wrap::after{content:'';grid-column:2/4;grid-row:2/13;justify-self:center;align-self:stretch;width:1px;margin:4px 0;background:linear-gradient(transparent,#5a4528,transparent);transform:translateX(calc(clamp(260px,19vw,380px)/2 - clamp(230px,17vw,340px)/2))}
+body.pc #title:not(.wizOn) .wrap>*,body.pc #title:not(.wizOn) .left>*,body.pc #title:not(.wizOn) .right>*{position:relative;z-index:1;margin:0}
+body.pc #title:not(.wizOn) h1{grid-column:1;grid-row:1;justify-self:start;font-size:clamp(26px,3.6vh,48px);display:flex;align-items:baseline;gap:14px}
+body.pc #title:not(.wizOn) .en{grid-column:2/4;grid-row:1;justify-self:end;align-self:center;font-size:clamp(9px,1.1vh,13px);letter-spacing:.45em}
+body.pc #title:not(.wizOn) #facRow{grid-column:1;grid-row:2/13;align-self:stretch;width:100%;height:100%;max-width:none;overflow:hidden;padding:0;box-sizing:border-box;
+ display:grid;grid-auto-flow:column;grid-template-rows:repeat(4,minmax(0,1fr));grid-template-columns:repeat(11,minmax(0,1fr));gap:clamp(4px,.6vw,10px)}
+body.pc #title:not(.wizOn) #facRow .fac{width:auto;min-width:0;height:auto;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:clamp(4px,.6vh,9px) clamp(5px,.5vw,9px);border-radius:9px;border:1.5px solid #5a4528;background:linear-gradient(rgba(40,31,20,.95),rgba(18,14,9,.95));cursor:pointer;transition:transform .08s,border-color .08s}
+body.pc #title:not(.wizOn) #facRow .fac:hover{border-color:#c8a050;transform:translateY(-2px)}
+body.pc #title:not(.wizOn) #facRow .fac.sel{border-color:#f0d080;box-shadow:0 0 0 2px #f0d080,0 0 22px rgba(240,208,128,.35);background:linear-gradient(rgba(74,58,30,.95),rgba(30,23,13,.95))}
+body.pc #title:not(.wizOn) #facRow .fac .bar{height:clamp(3px,.45vh,6px);margin-bottom:clamp(3px,.5vh,6px)}
+body.pc #title:not(.wizOn) #facRow .fac .fn{font-size:clamp(12px,1.75vh,21px)!important;letter-spacing:-.02em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.pc #title:not(.wizOn) #facRow .fac .fn.l5{font-size:clamp(11px,1.5vh,18px)!important;letter-spacing:-.06em!important}
+body.pc #title:not(.wizOn) #facRow .fac .fd{font-size:clamp(9px,1.18vh,13px);white-space:normal;line-height:1.25;max-height:2.6em;overflow:hidden}
+body.pc #title:not(.wizOn) #facRow .fac .uimg{position:absolute;right:3%;bottom:5%;height:54%;max-width:88%;object-fit:contain;image-rendering:pixelated;opacity:.92;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+body.pc #title:not(.wizOn) #facRow .fac .fside{position:absolute;left:clamp(5px,.5vw,9px);bottom:clamp(4px,.6vh,8px);font-size:clamp(8px,1vh,11px);padding:1px 5px;border-radius:4px;font-weight:700}
+.fside{display:none}.uimg{display:none}body.pc #title:not(.wizOn) .fside,body.pc #title:not(.wizOn) .uimg{display:block}
+.fside.al{background:#2a4a7a;color:#cfe0ff}.fside.ax{background:#6a2a22;color:#ffd0c8}.fside.ne{background:#4a4a40;color:#e8e0c8}
+body.pc #title:not(.wizOn) #facTrait{grid-column:1/4;grid-row:13;font-size:clamp(11px,1.45vh,16px)!important;line-height:1.45;min-height:3.2em;margin:0!important;padding:clamp(5px,.8vh,10px) 14px;border:1px solid #5a4528;border-radius:10px;background:rgba(20,16,10,.85);color:#e8d49a}
+body.pc #title:not(.wizOn) #facTrait b{color:#f0d080}body.pc #title:not(.wizOn) #facTrait .fs{font-size:.85em;color:#b5a585;margin-right:6px}
+body.pc #title:not(.wizOn) #facTrait .rule{font-size:.88em;color:#c8b890;margin-top:2px}
+body.pc #title:not(.wizOn) .t-lai{grid-column:2;grid-row:2}body.pc #title:not(.wizOn) #aiSeg{grid-column:2;grid-row:3}
+body.pc #title:not(.wizOn) .t-lmode{grid-column:2;grid-row:4}body.pc #title:not(.wizOn) .t-mode{grid-column:2;grid-row:5}body.pc #title:not(.wizOn) #teamSum{grid-column:2;grid-row:6}
+body.pc #title:not(.wizOn) .t-ldiff{grid-column:2;grid-row:7}body.pc #title:not(.wizOn) #diffSeg{grid-column:2;grid-row:8;display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+body.pc #title:not(.wizOn) #diffInfo{grid-column:2;grid-row:9;max-width:none!important;font-size:clamp(10px,1.2vh,13px)!important}
+body.pc #title:not(.wizOn) #wxOpt{grid-column:2;grid-row:10;font-size:clamp(10px,1.2vh,13px)}body.pc #title:not(.wizOn) #shakeOpt{grid-column:2;grid-row:11;justify-self:start}
+body.pc #title:not(.wizOn) .lbl{font-size:clamp(11px,1.35vh,15px);color:#e8c56a;font-weight:700;text-align:left;justify-self:start;letter-spacing:.04em;margin-top:clamp(2px,.6vh,8px)!important}
+body.pc #title:not(.wizOn) .seg,body.pc #title:not(.wizOn) .t-mode{justify-content:flex-start!important}
+body.pc #title:not(.wizOn) .seg button{font-size:clamp(11px,1.35vh,15px);padding:clamp(5px,.7vh,9px) clamp(8px,.7vw,14px)}
+body.pc #title:not(.wizOn) #aiSeg button{min-width:clamp(34px,3vw,52px)}
+body.pc #title:not(.wizOn) #mapSeg{grid-column:3;grid-row:2/5;align-self:start;width:100%;grid-template-columns:repeat(2,1fr)!important;margin:0!important}
+body.pc #title:not(.wizOn) #mapSeg button{font-size:clamp(10px,1.25vh,14px);padding:clamp(4px,.6vh,8px) 4px}
+body.pc #title:not(.wizOn) #preview{grid-column:3;grid-row:5/11;justify-self:center;align-self:center;width:min(100%,clamp(150px,26vh,320px))!important;height:auto!important;aspect-ratio:1}
+body.pc #title:not(.wizOn) #mapDesc{grid-column:3;grid-row:11/13;width:100%;font-size:clamp(10px,1.2vh,13px);align-self:start}
+body.pc #title:not(.wizOn) #homeBtns{grid-column:1/4;grid-row:14;width:100%;display:flex!important;gap:clamp(8px,.8vw,14px);align-items:stretch;justify-content:flex-start}
+body.pc #title:not(.wizOn) #homeBtns button{margin:0;font-size:clamp(12px,1.55vh,18px);padding:clamp(8px,1.1vh,14px) clamp(14px,1.3vw,26px)}
+body.pc #title:not(.wizOn) #homeBtns #startBtn{margin-left:auto;font-size:clamp(17px,2.4vh,28px);padding:clamp(10px,1.4vh,18px) clamp(50px,6vw,120px)}
+`;
+const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+const run=()=>{tagLate();decorate();try{showTrait();}catch(e){}try{fitAll();}catch(e){}};
+setTimeout(run,0);setTimeout(run,700);
+{const _sp=setPC;setPC=function(){const r=_sp.apply(this,arguments);setTimeout(run,60);return r;};}
+document.querySelectorAll('#facRow .fac').forEach(el=>el.addEventListener('click',()=>setTimeout(()=>{try{showTrait();}catch(e){}},0)));
+})();
+
 </script>
 </body>
 </html>
