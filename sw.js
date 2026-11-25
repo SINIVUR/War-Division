@@ -1,5 +1,5 @@
 // 워 디비전 서비스 워커: 오프라인에서도 실행되도록 파일을 캐시합니다.
-const CACHE = 'war-division-F.V.1.1.8';
+const CACHE = 'war-division-F.V.1.3.0';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
