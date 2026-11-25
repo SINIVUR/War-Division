@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.2.0</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.2.1</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -10878,11 +10878,33 @@ function late(p){const ai=p.ai;if(G.camp||G.time<720||ai.lateT>G.time)return;ai.
  const ng=navy.filter(u=>u.state!=='attack'&&(u.state==='idle'||!(u._lateT>G.time-12)));if(ng.length)grpOrder(ng.length,()=>{for(const u of ng){u._lateT=G.time;orderMove(u,tg.x+rnd(-120,120),tg.y+rnd(-120,120),true);}});}
 {const _ah=aiHuman;aiHuman=function(p,c){const r=_ah.apply(this,arguments);try{if(!p.human&&p.alive&&p.ai)late(p);}catch(e){console.error(e);}return r;};}
 // 4) AI 항복: 대전 15분 이후, 본진과 생산 건물을 모두 잃은 AI는 항복 (남은 방어탑·보급고만으로 버티며 시간을 끌지 않게)
-{const _up=update;let t9=0;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.camp||G.over||G.time<900)return r;t9+=dt;if(t9<3)return r;t9=0;
+{const _up=update;let t9=0;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over||(G.camp&&G.camp.hist)||G.time<(G.camp?600:900))return r;t9+=dt;if(t9<3)return r;t9=0;
  for(const p of G.pl){if(!p.alive||p.human)continue;const key=ents.some(e=>!e.dead&&e.team===p.id&&e.type==='bld'&&(BD[e.kind].drop||(BD[e.kind].train&&BD[e.kind].train.length)));if(key)continue;
   p.alive=false;for(const e of ents)if(e.team===p.id&&!e.dead)kill(e,null);toast(`🏳 ${FAC[p.fac].n} ${p.ally?'동맹군이 무너졌어요!':'AI 항복!'}`);}
 }catch(e){console.error('surrender',e);}return r;};}
 })();
+
+// ===================== F.V.1.2.1 (완전검수 888판 반영) =====================
+(function(){
+// 1) 진영 배율: 폴란드 77% 과보정 되돌림 · 하위권(에티오피아 26%, 스위스·이탈리아 29%, 스웨덴 30%) 상향
+const A={pl:0.85,su:0.95,tr:0.95,ko:0.96,nl:0.97,et:1.18,ch:1.12,it:1.12,se:1.12,mx:1.08,es:1.08,cn:1.06,ro:1.05,bg:1.04,th:1.04,in:1.04,au:1.03,uk:1.03,no:1.03};
+for(const f in A)FBAL2[f]=(FBAL2[f]||1)*A[f];
+if(UD.pl_tks&&UD.pl_tks.dmg)UD.pl_tks.dmg=Math.max(1,Math.round(UD.pl_tks.dmg*0.85));// 효율 4.36으로 독보적
+// 2) 훈련 캠페인: 적 AI 한 단계 낮춤 · 동맹 한 단계 올림 · 적 시작 자원 -40%
+{const _cc=campCfg;campCfg=function(){const c=_cc.apply(this,arguments);try{const nB=c.plist.filter(q=>q.side==='B').length;for(const q of c.plist){if(q.side==='B')q.diff=Math.max(0,q.diff-(nB>=2?2:1));else if(q.ally)q.diff=Math.min(5,q.diff+1);}}catch(e){}return c;};}
+{const _cb=campBegin;campBegin=function(){const r=_cb.apply(this,arguments);try{const foes=G.pl.filter(p=>p.id!==0&&!p.ally&&enemy(0,p.id));for(const p of foes){p.coal=Math.round(p.coal*0.6);p.ether=Math.round(p.ether*0.6);}
+  // 적이 둘 이상인 '모두 격파' 미션: 적 시작 병력 -40%, 받는 피해 추가 감소
+  if(foes.length>=2){G.camp._multi=1;for(const p of foes){const a=ents.filter(u=>!u.dead&&u.team===p.id&&u.type==='unit'&&!UD[u.kind].worker);let n=Math.round(a.length*0.4);for(const u of a){if(n--<=0)break;u.dead=true;u.silent=true;}}}
+ }catch(e){}return r;};}
+{const _dg=damage;damage=function(t,amt,src){try{if(G&&G.camp&&G.camp._multi&&t&&amt>0&&t.team>=0&&!enemy(0,t.team)&&src&&src.team!=null&&enemy(t.team,src.team))arguments[1]=amt*0.75;}catch(e){}return _dg.apply(this,arguments);};}
+// 3) 역사 캠페인: 증원을 줄인 만큼 처치 목표도 줄임 (못 깨던 장은 이미 -30%) — 처치 수가 모자라 끝나지 않던 26장 등
+try{const H=new Set(['bzura','street42','moscow','malaya','omaha','warsaw','arnhem','stratsin','budapest','iwo','castello','zhijiang']);
+ for(const m of HIST){if(!m||!m.g||H.has(m.id))continue;for(const gl of m.g){if(gl.g!=='kills'||!gl.n||gl.fixed)continue;const o=gl.n,n=Math.max(1,Math.round(o*0.8));if(n===o)continue;gl.n=n;if(gl.txt)gl.txt=gl.txt.replace(String(o),String(n));}}}catch(e){}
+// 4) 지켜야 할 표식 유닛·건물(아이들·물 보급소 등)과 핵심 영웅: 캠페인 전체에서 받는 피해 추가 감소
+{const _dg=damage;damage=function(t,amt,src){try{if(G&&G.camp&&G.camp.hist&&t&&amt>0&&t.team>=0&&!enemy(0,t.team)&&src&&src.team!=null&&enemy(t.team,src.team)){let m=1;
+  if(t.htag)m*=0.7;if(t.hid&&(G.camp.def.vital||[]).includes(t.hid))m*=0.8;if(m<1)arguments[1]=amt*m;}}catch(e){}return _dg.apply(this,arguments);};}
+})();
+
 
 // ===================== F.V.1.2.0 살아 숨쉬는 유닛 · 강한 처치/파괴 효과 =====================
 // · 스프라이트를 머리/몸통/다리(차체/바퀴) 띠로 잘라 각각 1~2 도트씩 따로 움직임 → 실제 픽셀이 움직이는 대기·걷기·공격 모션
