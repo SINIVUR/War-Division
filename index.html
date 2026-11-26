@@ -9140,10 +9140,10 @@ function hGoalProg(gl,c){
   case 'destroy':{const n=ents.filter(e=>!e.dead&&e.htag===gl.tag).length,tot=gl._tot??(gl._tot=Math.max(n,1));return [n===0,`${tot-n}/${tot}`];}
   case 'reach':{const xy=hZone(gl),r=gl.r||110;const us=hMine().filter(u=>inZ(u,xy,r)&&(gl.who==='hero'?UD[u.kind].hero:gl.who?u.hid===gl.who:true));const need=gl.n||1;return [us.length>=need,`${Math.min(us.length,need)}/${need}`];}
   case 'hold':{const xy=hZone(gl),r=gl.r||140;let mine=0,foe=0;unitsNear(xy[0],xy[1],r,v=>{if(dist(v.x,v.y,xy[0],xy[1])<r){if(v.team===0)mine++;else if(enemy(0,v.team))foe++;}});
-   gl._h=gl._h||0;if(mine>0&&mine>=foe)gl._h+=c._dt;const left=Math.max(0,gl.s-gl._h);return [left<=0,mine>0?(mine>=foe?`${Math.ceil(left)}초`:'⚠ 적이 더 많아요'):'⚠ 지점을 비웠어요'];}
+   gl._h=gl._h||0;if(mine>0&&mine*1.4>=foe)gl._h+=c._dt;const left=Math.max(0,gl.s-gl._h);return [left<=0,mine>0?(mine*1.4>=foe?`${Math.ceil(left)}초`:'⚠ 적이 더 많아요'):'⚠ 지점을 비웠어요'];}
   case 'evac':{const xy=hZone(gl),r=gl.r||110;gl._n=gl._n||0;
    for(const u of hMine()){if(!inZ(u,xy,r))continue;if(UD[u.kind].hero){c.heroOut[u.hid]=1;}u.dead=true;u.evac=1;gl._n++;part(u.x,u.y,0,-30,0.6,4,'#8fe8ff');}
-   const need=Math.max(1,Math.round(gl.n*(gl.fixed?1:[0.6,0.75,0.9,1,1.1,1.2][campDiff])));gl._need=need;return [gl._n>=need,`${gl._n}/${need}`];}
+   const need=Math.max(1,Math.round(gl.n*(gl.fixed?1:[0.6,0.75,0.9,1,1.1,1.2][campDiff])));const alive=hMine().length;const need2=(c.def&&c.gi===c.def.g.length-1)?Math.max(Math.ceil(need*0.5),Math.min(need,gl._n+alive)):need;gl._need=need2;return [gl._n>=need2,`${gl._n}/${need2}`];}
   case 'escort':{const xy=hZone(gl),r=gl.r||100;gl._n=gl._n||0;for(const u of ents)if(!u.dead&&u.htag===gl.tag&&u.team===0&&inZ(u,xy,r)){u.dead=true;gl._n++;part(u.x,u.y,0,-30,0.6,4,'#8fe8ff');}
    const need=gl.n||1;return [gl._n>=need,`${gl._n}/${need}`];}
   case 'protect':{const left=Math.max(0,gl.s-(G.time-c.gt));return [left<=0,`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')} 남음`];}
@@ -9385,14 +9385,14 @@ const HIST_OLD=[
   e:[{f:'de',d:0,blds:['bar','veh'],passive:true}],
   st:{noEco:1,coal:0,ether:0,hqHp:5,spawn:[{u:'uk_tommy',n:14,at:['f',0.56,0]},{u:'uk_commando',n:3,at:['f',0.56,0.05]},{u:'uk_matilda',n:2,at:['f',0.54,-0.05]},{u:'uk_bofors',n:2,at:['f',0.53,0]}]},
   g:[{g:'reach',at:['f',0.3,0],r:160,n:10,txt:'병력 10명 이상을 해안 방어선까지 물리세요',hint:'모두 선택해 방어선(노란 원)으로 이동시키세요. 뒤처진 병사는 버려지지 않게!'},
-     {g:'hold',at:['f',0.3,0],r:170,s:180,txt:'방어선을 3분 동안 지키세요',hint:'홀 중위의 포격 요청(T)은 해상 구축함의 함포 지원이에요'},
+     {g:'hold',at:['f',0.3,0],r:170,s:150,txt:'방어선을 2분 30초 동안 지키세요',hint:'홀 중위의 포격 요청(T)은 해상 구축함의 함포 지원이에요'},
      {g:'evac',at:['m'],r:170,n:12,txt:'병력 12명 이상을 해변(본진)으로 철수시키세요 — 배가 기다려요',hint:'해변 원 안에 들어간 병사는 배에 올라 사라져요'}],
   bonus:[{g:'kills',n:40,txt:'적 40기 처치'}],
   lose:['hq','army'],
   ev:[{t:1,say:[['collins','길이 끊겼다. 남은 길은 바다 쪽뿐이야.'],['hall','해안 방어선까지 6킬로미터. 함포 지원 주파수는 살아 있어요.'],['fletcher','마틸다 두 대, 아직 굴러갑니다. 맨 뒤는 제가 맡죠.']],spawn:[{team:'e1',u:[['bar',0],['bar',1]],n:5,at:['f',0.8,0],go:['f',0.55,0]}]},
    {g:0,every:30,first:20,spawn:[{team:'e1',u:[['bar',0],['bar',2]],n:3,at:['f',0.85,0],go:['f',0.4,0]}],grow:0.3},
    {g:1,say:[[HQ('uk'),'해변에 배가 모이고 있다. 구축함, 어선, 유람선… 템스 강의 작은 배들까지 왔다.'],['collins','3분. 3분만 버티면 된다.']]},
-   {g:1,every:35,first:10,spawn:[{team:'e1',u:[['bar',0],['bar',1],['veh',0]],n:4,at:['f',0.8,0],go:['f',0.3,0]}],grow:0.6,toast:'⚠ 독일군 추격대'},
+   {g:1,every:40,first:12,spawn:[{team:'e1',u:[['bar',0],['bar',1],['veh',0]],n:3,at:['f',0.8,0],go:['f',0.3,0]}],grow:0.25,toast:'⚠ 독일군 추격대'},
    {g:1,dt:50,bomb:{at:['m'],n:3,team:'e1',dmg:24},say:[['hall','해변에 폭격이에요! 줄 선 병사들 위로…']]},
    {g:1,dt:110,spawn:[{team:'e1',hero:'e_vogel',at:['f',0.8,0],go:['f',0.3,0]}],say:[['fletcher','독일 중전차다. 지휘관 전차가 앞장섰어요.']]},
    {g:2,say:[['collins','철수 개시! 다친 사람부터 태워!'],['fletcher','방어선은 마지막까지 지킵니다. 먼저들 가세요.']],attack:'e1'},
@@ -9440,7 +9440,7 @@ const HIST_OLD=[
    {g:0,dt:90,spawn:[{team:'e1',u:[['bar',0],['bar',1]],n:5,at:['e',0],go:['f',0.3,0]}],say:[['virtanen','소련군 증원이 숲길로 들어오고 있어요.']]},
    {g:1,say:[['korpela','고리를 끊었다. 이제 비푸리다.']],spawn:[{team:'e1',hero:'e_volkov',at:['f',0.72,0]},{team:'e1',u:[['bar',0],['bar',1]],n:5,at:['f',0.72,0]}]},
    {g:2,say:[['virtanen','본부 위치 확인. 그런데… 독일 연락 장교가 "더 동쪽까지" 가자고 해요.'],['korpela','우린 우리 땅까지만 간다. 그걸 잊지 마라.'],[HQ('fi'),'돌격포 대대가 합류한다. 비푸리를 되찾아라.']],attack:'e1',spawn:[{team:'me',u:'fi_bt42',n:2,at:['f',0.4,0],go:['f',0.6,0]},{team:'me',u:'fi_jaeger',n:6,at:['f',0.4,0.04],go:['f',0.6,0]}]},
-   {g:2,every:45,first:20,spawn:[{team:'e1',u:[['bar',0],['veh',0],['bar',1]],n:4,at:['e',0],go:['f',0.35,0]}],grow:0.5}],
+   {g:2,every:55,first:25,spawn:[{team:'e1',u:[['bar',0],['veh',0],['bar',1]],n:3,at:['e',0],go:['f',0.35,0]}],grow:0.3}],
   outro:[['korpela','비푸리의 종이 울린다. 하지만 이 종소리가 오래 갈지는…'],['laitinen','오늘은 그냥 집에 온 걸로 해 두죠, 대위님.']],
   ep:'핀란드군은 1941년 8월 29일 비푸리(비보르크)를 되찾았어요. 그러나 옛 국경을 넘어 동카렐리야까지 진격하면서 이 전쟁은 "고향 되찾기"를 넘어섰어요. 그곳의 소련 민간인 다수는 수용소에 갇혔어요. 1944년 여름 소련의 대공세로 핀란드는 9월 휴전에 서명했고, 카렐리야를 다시 잃었어요. 주민들은 두 번째로 고향을 떠나야 했어요. 이어 핀란드는 휴전 조건에 따라 북부의 독일군과 싸운 라플란드 전쟁을 치렀어요.'},
 
@@ -9721,7 +9721,7 @@ Object.assign(HCH,{
   heroes:[{hero:'fujita',at:['f',0.12,0]},{hero:'kobayashi',at:['f',0.12,0.04]},{hero:'mori',at:['f',0.12,-0.04]}],vital:['fujita'],
   e:[{f:'us',d:-1,blds:['air','sea'],passive:true}],
   st:{coal:300,ether:100,hqHp:5,blds:['sup','air','sea'],spawn:[{u:'jp_cruiser',n:4,at:['f',0.14,0],tag:'kido'},{u:'jp_fighter',n:6,at:['f',0.12,0.05]},{u:'jp_type97',n:3,at:['f',0.1,-0.05]}]},
-  setup:[{team:'e1',u:'us_carrier',n:1,at:['f',0.65,0],tag:'york'},{team:'e1',u:'destroyer',n:3,at:['f',0.62,0.05]}],
+  setup:[{team:'e1',u:'us_carrier',n:1,at:['f',0.65,0],tag:'york'},{team:'e1',u:'destroyer',n:2,at:['f',0.62,0.05]}],
   g:[{g:'kills',n:15,txt:'미국 뇌격기 편대를 막아 내세요 (15기 격추)',hint:'모리 조종사의 저격(Z)이 낮게 오는 뇌격기를 노려요'},
      {g:'survive',s:90,txt:'급강하 폭격을 버티세요'},
      {g:'destroy',tag:'york',txt:'마지막 항모 히류의 반격: 미국 항모를 공격하세요',hint:'고바야시 비행대장의 폭격 요청(R)을 항모에 집중하세요'}],
@@ -11002,7 +11002,7 @@ Object.assign(HCH,{
   setup:[{team:'e1',b:'sup',n:3,at:['f',0.4,0.12],tag:'sup'},{team:'e1',u:['bar',0],n:8,at:['f',0.42,0]}],
   g:[{g:'destroy',tag:'sup',txt:'정글 보급 창고 3곳을 파괴하세요',hint:'자우 라의 저격(Z)으로 경비병부터 소리 없이 쓰러뜨리세요'},
      {g:'hold',at:['f',0.35,0],r:170,s:150,txt:'비행장을 2분 30초 동안 지키세요',hint:'나우 폴라의 암호 해독(J)으로 다가오는 적을 먼저 보세요'},
-     {g:'killhq',txt:'미치나 시가지의 일본군 거점을 무너뜨리세요'}],
+     {g:'kills',n:25,txt:'미치나 시가지의 일본군 수비대 25기를 쓰러뜨리세요',hint:'은신한 보병의 첫 공격은 피해가 두 배예요'}],
   bonus:[{g:'kills',n:40,txt:'적 40기 처치'}],
   lose:['hq'],
   ev:[{t:1,say:[['zau','이 숲의 길은 우리 할아버지들이 냈다. 적은 모른다.'],['naw','OSS 무전이 들어왔어요. 비행장을 잡으면 수송기가 내려온대요.'],['thein','국민군은 아직 일본 편에 서 있지만… 우리 중 몇은 이미 다른 날을 기다리고 있소.']]},
@@ -11060,7 +11060,7 @@ Object.assign(HCH,{
   setup:[{team:'e1',b:'def',n:4,at:['f',0.38,0],tag:'line',hp:0.6},{team:'e1',u:['bar',0],n:8,at:['f',0.4,0]}],
   g:[{g:'destroy',tag:'line',txt:'고개 아래 진지 4곳을 파괴하세요',hint:'노바크 중위의 결사 항전(G)로 군단을 한 번에 밀어 넣으세요'},
      {g:'hold',at:['f',0.48,0],r:160,s:150,txt:'고개 꼭대기를 2분 30초 동안 지키세요'},
-     {g:'killhq',txt:'국경 너머의 적 거점을 무너뜨리세요'}],
+     {g:'kills',n:25,txt:'국경 너머의 적 수비대 25기를 쓰러뜨리세요',hint:'기계 유닛은 4초간 맞지 않으면 스스로 수리돼요'}],
   bonus:[{g:'kills',n:45,txt:'적 45기 처치'}],
   lose:['hq'],
   ev:[{t:1,say:[['novak_cz','이 고개를 넘으면 고향이다.'],['dvorak','안개가 짙습니다. 바로 앞의 전차도 안 보여요.']]},
@@ -11135,8 +11135,8 @@ Object.assign(HCH,{
   st:{coal:450,ether:150,hqHp:3,blds:['sup','sup','bar','veh'],at:['f',0.12,0],spawn:[{u:'idn_peta',n:12,at:['f',0.15,0]},{u:'idn_bambu',n:9,at:['f',0.15,0.05]},{u:'idn_truck',n:2,at:['f',0.12,-0.04]}]},
   setup:[{team:'e1',b:'def',n:3,at:['f',0.4,0.08],tag:'arm',hp:0.6},{team:'e1',u:['bar',0],n:8,at:['f',0.42,0]},{team:'me',b:'sup',n:2,at:['f',0.22,0.1],tag:'civ'}],
   g:[{g:'destroy',tag:'arm',txt:'일본군 무기고 경비 진지 3곳을 무너뜨리세요',hint:'밤방의 돌격 나팔(C)으로 의용군을 앞장세우세요'},
-     {g:'protect',s:150,txt:'시민들이 모인 지역을 2분 30초 동안 지키세요',hint:'수트리스노의 결사 항전(G)로 흩어진 부대를 모으세요'},
-     {g:'killhq',txt:'스마랑의 일본군 주둔지를 무너뜨리세요'}],
+     {g:'protect',s:120,txt:'시민들이 모인 지역을 2분 동안 지키세요',hint:'수트리스노의 결사 항전(G)로 흩어진 부대를 모으세요'},
+     {g:'kills',n:25,txt:'스마랑의 일본군 수비대 25기를 쓰러뜨리세요',hint:'건물이 공격받으면 의용군이 달려와요'}],
   bonus:[{g:'kills',n:40,txt:'적 40기 처치'}],
   lose:['hq','tag:civ'],loseTxt:{civ:'시민들이 모인 지역이 무너졌어요'},
   ev:[{t:1,say:[['kartini_s','시내 병원과 정수장 근처에 사람들이 몰려 있어요.'],['sutrisno','무기를 넘기라고 했지만 대답이 없다.'],['bambang','메르데카! 다들 대나무를 들어!']]},
@@ -13072,6 +13072,50 @@ try{const inf=document.getElementById('info');if(inf)new MutationObserver(soon).
 try{const cmd=document.getElementById('cmd');if(cmd)new MutationObserver(soon).observe(cmd,{childList:true,subtree:true,characterData:true});}catch(e){}
 addEventListener('resize',()=>setTimeout(soon,100));setInterval(soon,1500);
 {const _sp=setPC;setPC=function(){const r=_sp.apply(this,arguments);setTimeout(soon,80);return r;};}
+})();
+
+// ===================== F.V.1.3.0 완전 검수(968판) 반영 =====================
+(function(){
+// 1) 진영 밸런스 (승률: 에티오피아 71% · 몽골 67% · 헝가리 60% ↔ 스위스 25% · 그리스 29% · 뉴질랜드 30% · 프랑스 33%)
+const A={et:0.9,mn:0.92,hu:0.95,ch:1.1,gr:1.08,nz:1.08,fr:1.06,ro:1.04,it:1.04,su:1.04,fi:1.04,za:1.03,no:1.03};
+for(const f in A)FBAL2[f]=(FBAL2[f]||1)*A[f];
+// 지나치게 효율이 높은 유닛 (처치/손실)
+const nerf=(k,hp,dmg)=>{const d=UD[k];if(!d)return;if(hp)d.hp=Math.round(d.hp*hp);if(dmg&&d.dmg)d.dmg=+(d.dmg*dmg).toFixed(1);};
+nerf('mn_ger',0.85,0.8);   // 효율 11.9
+nerf('in_vimana',0.9,0.85);// 효율 6.8
+nerf('et_guard',0.9,0.95); // 1307기 생산 · 효율 4.7
+nerf('be_eben',0.9,0.9);   // 효율 3.8
+nerf('ma_sloop',0.92,0.92);
+// 2) 버마 '수상 가옥'은 플레이어만 (AI가 물가에 지어 자기 병력·배를 가두던 문제 — 끼임 1,793건의 원인)
+{const _cp=canPlace;canPlace=function(kind,tx,ty,team){const d=BD[kind];if(d&&d.f==='bu'&&team!=null){try{const p=P(team);if(!p.human){const r=_cp.apply(this,arguments);if(!r)return r;for(let y=ty;y<ty+d.h;y++)for(let x=tx;x<tx+d.w;x++)if(terr[y*MW+x]===1)return null;return r;}
+  // 플레이어도 배가 있는 물 위에는 못 짓게
+  for(const e of ents)if(e.type==='unit'&&!e.dead&&UD[e.kind].layer==='n'&&e.x>tx*T-8&&e.x<(tx+d.w)*T+8&&e.y>ty*T-8&&e.y<(ty+d.h)*T+8){const r=_cp.apply(this,arguments);if(r){let w=false;for(let y=ty;y<ty+d.h;y++)for(let x=tx;x<tx+d.w;x++)if(terr[y*MW+x]===1)w=true;if(w)return null;}return r;}}catch(e){}}
+ return _cp.apply(this,arguments);};}
+// 이미 갇힌 유닛 구출: 이동 중 20초 넘게 제자리인 AI 지상 유닛은 가까운 빈 땅으로 옮김
+function unstick(){for(const u of ents){if(u.type!=='unit'||u.dead||u.team<0)continue;const p=G.pl[u.team];if(!p||p.human)continue;const d=UD[u.kind];if(d.layer==='a')continue;
+ if(u.state!=='move'&&u.state!=='amove'){u._stk=null;continue;}const s=u._stk;if(!s||Math.hypot(u.x-s.x,u.y-s.y)>20){u._stk={x:u.x,y:u.y,t:G.time};continue;}
+ if(G.time-s.t>20){const L=d.layer==='n'?'n':'g';const n=nearestPass(L,Math.floor(u.x/T),Math.floor(u.y/T),Math.floor(u.x/T),Math.floor(u.y/T),10);
+  // 지금 칸이 막혀 있거나(건물 안) 계속 못 가면 → 근처 빈 칸으로, 그래도 안 되면 목적지 포기
+  const tx=Math.floor(u.x/T),ty=Math.floor(u.y/T);if(!pass(L,tx,ty)&&n){u.x=(n[0]+.5)*T;u.y=(n[1]+.5)*T;u.path=null;}else{u.state='idle';u.path=null;}u._stk=null;}}}
+// 3) 캠페인 막힘 지원: 같은 목표에서 5분 넘게 진전이 없으면 아군 강화(8분이면 한 단계 더), 적 본진 공략 목표면 적 본진 약화
+function campAssist(){const c=G.camp;if(!c)return;if(c._agi!==c.gi){c._agi=c.gi;c._at=G.time;c._lv=0;return;}const dt=G.time-(c._at||G.time);
+ const lv=dt>480?2:dt>300?1:0;if(lv>(c._lv||0)){c._lv=lv;try{toast(lv===1?'📯 지원군의 사기가 오릅니다 — 아군 피해 +25% · 받는 피해 -25%':'📯 총반격 — 아군 피해 +50% · 받는 피해 -40%');}catch(e){}
+  const g=(c.def&&c.def.g||[])[c.gi];if(g&&(g.g==='killhq'||g.g==='kill'))for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team>0&&enemy(0,b.team)&&BD[b.kind].drop){b.hp=Math.min(b.hp,b.maxhp*(lv===1?0.6:0.35));}}}
+{const _dm=dmgMul;dmgMul=function(u){let m=_dm(u);try{const c=G.camp;if(c&&c._lv&&u.team===0||(c&&c._lv&&G.pl[u.team]&&G.pl[u.team].ally))m*=c._lv===2?1.5:1.25;}catch(e){}return m;};}
+{const _dg=damage;damage=function(t,amt,src){try{const c=G.camp;if(c&&t&&!t.dead&&(t.team===0||(G.pl[t.team]&&G.pl[t.team].ally))){
+  if(c._lv)amt*=c._lv===2?0.6:0.75;
+  if(c.hist&&(G.diff||0)>=3)amt*=0.85;                                  // 어려운 난이도 역사 캠페인: 아군 받는 피해 추가 -15%
+  if(c.hist&&t.type==='unit'&&/^h_/.test(t.kind))amt*=0.8;              // 영웅(전사하면 패배) 보호
+  if(c._ease)amt*=0.8;
+  const gs=c.def&&c.def.g;if(c.hist&&gs&&c.gi===gs.length-1&&(G.diff||0)>=3){amt*=0.85;if(t.hid&&(c.def.vital||[]).includes(t.hid))amt*=0.7;}   // 마지막 목표(철수·결전) 구간 추가 보호, 핵심 영웅은 더
+  // 핵심 영웅 '결사 항전': 미션당 영웅마다 1회, 쓰러질 피해를 받으면 체력 45%로 버티고 4초 무적
+  if(c.hist&&t.type==='unit'&&t.hid&&(c.def.vital||[]).includes(t.hid)){if(t._ls&&G.time<t._ls)return;if(!t._lsU&&t.hp-amt<t.maxhp*0.15){t._lsU=1;t._ls=G.time+4;t.hp=Math.max(t.hp,t.maxhp*0.45);try{toast('🎖 '+(UD[t.kind].name||'영웅')+' — 결사 항전! 4초간 버팁니다');part(t.x,t.y,0,-30,0.8,10,'#ffd24a');}catch(e){}return;}}}}catch(e){}return _dg.call(this,t,amt,src);};}
+// 4) 훈련소 '명량' · '백야' (난이도 1에서도 전멸): 적 자원 -40% · 아군 받는 피해 -20%
+{const _cb=campBegin;campBegin=function(){const r=_cb.apply(this,arguments);try{const t=G.camp&&G.camp.def&&G.camp.def.t;if(t==='명량'||t==='백야'){G.camp._ease=1;for(const p of G.pl)if(p.id!==0&&!p.ally&&enemy(0,p.id)){p.coal=Math.round(p.coal*0.6);p.ether=Math.round(p.ether*0.6);}}}catch(e){}return r;};}
+// 5) AI: 에테르만 쌓이고 석탄이 바닥나면 무역소로 바꿔 씀 (루마니아 에테르 3,000 방치)
+function aiConvert(p){if(p.human||!p.alive||!globalThis.f3Trade)return;if(p.ether<1500||p.coal>200)return;const has=ents.some(e=>e.type==='bld'&&!e.dead&&e.team===p.id&&e.built&&ROLE[e.kind]==='trade');if(!has)return;
+ for(let i=0;i<3&&p.ether>1200&&p.coal<400;i++){if(!f3Trade(p,3))break;f3Trade(p,0);}}
+let acc=0,acc2=0;{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over||!G.pl)return r;acc+=dt;acc2+=dt;if(acc>=2){acc=0;unstick();campAssist();}if(acc2>=10){acc2=0;for(const p of G.pl)aiConvert(p);}}catch(e){console.error(e);}return r;};}
 })();
 
 </script>
