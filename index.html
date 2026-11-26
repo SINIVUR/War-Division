@@ -409,7 +409,7 @@ body.pc #cmd .btn.hasic>span{font-size:11px}
   <div class="wrap">
     <div class="left">
       <h1>워 디비전</h1>
-      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.3.0</span></div>
+      <div class="en">WAR DIVISION · 1943 <span style="opacity:.7;letter-spacing:1px">F.V.1.4.0</span></div>
       <div class="row" id="facRow">
         <div class="fac sel" data-f="us"><div class="bar" style="background:#6a6b4c"></div><div class="fn">미국</div><div class="fd">건물 이동 · 만능</div></div>
         <div class="fac" data-f="su"><div class="bar" style="background:#a8261e"></div><div class="fn">소련</div><div class="fd">일꾼이 건물로 · 물량</div></div>
@@ -705,7 +705,7 @@ Object.assign(BD,{
  uk_lab:{f:'uk',n:'왕립 연구소',w:2,h:2,hp:700,cost:[125,0],t:22,up:1,req:'uk_barracks',desc:'지상·공중·수상 무기 업그레이드'},
 });
 const UPN={g:'지상',a:'공중',n:'수상',dg:'지상 방어',da:'공중 방어',dn:'수상 방어'},UPK={g:'G',a:'A',n:'N',dg:'Z',da:'X',dn:'C'};const UPL=ly=>ly[0]==='d'?UPN[ly]:UPN[ly]+' 무기';
-const upCost=(lv,t)=>{const k=(t!==undefined&&typeof G!=='undefined'&&G&&G.pl&&G.pl[t]&&G.pl[t].fac==='it')?0.75:1;return [Math.round(100*lv*k),Math.round(100*lv*k)];},upTime=lv=>40+20*lv;
+const upCost=(lv,t)=>{const k=(t!==undefined&&typeof G!=='undefined'&&G&&G.pl&&G.pl[t]&&G.pl[t].fac==='it')?0.6:1;return [Math.round(100*lv*k),Math.round(100*lv*k)];},upTime=lv=>40+20*lv;
 const upLy=u=>{const L=UD[u.kind].layer;return L==='a'?'a':L==='n'?'n':'g';};
 // role for upgrade buildings above
 const ROLE_={};const ROLE={jp_hq:'hq',cn_hq:'hq',jp_store:'sup',cn_granary:'sup',jp_refinery:'gas',cn_refinery:'gas',jp_barracks:'inf',cn_barracks:'inf',jp_forge:'veh',cn_works:'veh',jp_airfield:'air',cn_kitefield:'air',jp_naval:'sea',cn_dock:'sea',jp_tower:'def',cn_wall:'def',us_lab:'up',su_forge:'up',de_forge:'up',it_lab:'up',fr_lab:'up',uk_lab:'up',jp_lab:'up',cn_lab:'up',hq_us:'hq',hq_su:'hq',citadel:'hq',it_palazzo:'hq',fr_hq:'hq',uk_hq:'hq',depot:'sup',ration:'sup',rune:'rune',it_magazzino:'sup',fr_entrepot:'sup',uk_depot:'sup',
@@ -1553,8 +1553,8 @@ function updUnit(u,dt){
  if(u.buffT>0)u.buffT-=dt;if(u.capSp&&(u.state==='attack'||!u.wave||G.time-u.capT>70||(u.amove&&dist(u.x,u.y,u.amove[0],u.amove[1])<320)))u.capSp=0;
  const fc0=P(u.team).fac;
  if(u.barT>0)u.barT-=dt;if(u.rngT>0)u.rngT-=dt;
- if(u.cd>0)u.cd-=dt*(u.slowT>0?0.7:1)*(u.buffT>0?1.18:1)*(fc0==='jp'&&u.hp<u.maxhp*0.5?1.35:1);
- if(fc0==='cn'&&!u.maxsh){u.shT+=dt;if(u.shT>3&&u.hp<u.maxhp)u.hp=Math.min(u.maxhp,u.hp+1.2*dt);}if(u.flash>0)u.flash-=dt;if(u.abCd>0)u.abCd-=dt;if(u.slowT>0)u.slowT-=dt;if(u.revealT>0)u.revealT-=dt;
+ if(u.cd>0)u.cd-=dt*(u.slowT>0?0.7:1)*(u.buffT>0?1.18:1)*(u.asMul||1);
+ if(u.flash>0)u.flash-=dt;if(u.abCd>0)u.abCd-=dt;if(u.slowT>0)u.slowT-=dt;if(u.revealT>0)u.revealT-=dt;
  if(u.maxsh){u.shT+=dt;if(u.shT>(fc0==='de'?3:5)&&u.sh<u.maxsh)u.sh=Math.min(u.maxsh,u.sh+(fc0==='de'?6:3)*(u.kind==='de_eboot'?2:1)*dt);}
  if(d.regen&&u.hp<u.maxhp)u.hp=Math.min(u.maxhp,u.hp+d.regen*dt);
  if(u.state==='board'){trBoardTick(u,dt);return;}
@@ -1720,16 +1720,16 @@ const FTRAIT={
 };
 (function applyTraits(){
  for(const k in UD){const d=UD[k],f=d.f;if(!f)continue;
-  if(f==='us'&&d.mech)d.t=Math.round(d.t*0.8);
-  if(f==='su'&&d.bio&&!d.worker)d.cost=d.cost.map(c=>Math.round(c*0.85/5)*5);
-  if(f==='de'&&d.mech)d.sh=(d.sh||0)+40;
-  if(f==='it')d.sp=Math.round(d.sp*1.12);
-  if(f==='uk'&&d.layer==='n'){d.hp=Math.round(d.hp*1.2);d.rng=Math.round(d.rng*1.15);}
+  if(f==='us'&&d.mech)d.t=Math.round(d.t*0.62);
+  if(f==='su'&&d.bio&&!d.worker)d.cost=d.cost.map(c=>Math.round(c*0.7/5)*5);
+  if(f==='de'&&d.mech)d.sh=(d.sh||0)+80;
+  if(f==='it')d.sp=Math.round(d.sp*1.25);
+  if(f==='uk'&&d.layer==='n'){d.hp=Math.round(d.hp*1.4);d.rng=Math.round(d.rng*1.25);}
  }
  for(const k in BD){const d=BD[k],f=d.f;if(!f)continue;
-  if(f==='us'&&d.sup&&ROLE[k]==='sup')d.sup+=2;
-  if(f==='fr'){d.hp=Math.round(d.hp*1.25);if(d.atk)d.atk.rng=Math.round(d.atk.rng*1.15);}
-  if(f==='cn'&&ROLE[k]==='sup')d.cost=d.cost.map(c=>Math.round(c*0.75/5)*5);
+  if(f==='us'&&d.sup&&ROLE[k]==='sup')d.sup+=4;
+  if(f==='fr'){d.hp=Math.round(d.hp*1.6);if(d.atk)d.atk.rng=Math.round(d.atk.rng*1.3);}
+  if(f==='cn'&&ROLE[k]==='sup')d.cost=d.cost.map(c=>Math.round(c*0.6/5)*5);
  }
 })();
 // 보너스 피해 계산
@@ -1746,8 +1746,8 @@ function bonusMul(d,t,u){
  if(d.rage)m*=1+clamp(1-u.hp/u.maxhp,0,1);
  if(d.swarm){let n=0;unitsNear(u.x,u.y,160,v=>{if(v!==u&&v.team===u.team&&UD[v.kind].swarm)n++;});m*=1+Math.min(n,8)*0.08;}
  const fac=P(u.team).fac;
- if(fac==='jp'){if(G.time-(u.lastFire||-99)>5)m*=2;}
- if(fac==='su'&&UD[u.kind].bio){if(!(u._nbT>G.time)){u._nbT=G.time+1;u._nb=false;for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===u.team&&dist(b.x,b.y,u.x,u.y)<300){u._nb=true;break;}}if(u._nb)m*=1.15;}
+ if(fac==='jp'){if(G.time-(u.lastFire||-99)>5)m*=3;}
+ if(fac==='su'&&UD[u.kind].bio){if(!(u._nbT>G.time)){u._nbT=G.time+1;u._nb=false;for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===u.team&&dist(b.x,b.y,u.x,u.y)<300){u._nb=true;break;}}if(u._nb)m*=1.3;}
  return m;
 }
 
@@ -1892,16 +1892,7 @@ FTRAIT.de='동력장: 룬 마법진 범위에만 건설 · 일꾼이 터만 잡�
 FTRAIT.au='동력장: 양털 창고 범위에만 건설 · 자동 건설 · '+FTRAIT.au;
 FTRAIT.uk='동력장: 보급 막사 범위에만 건설 · 자동 건설 · '+FTRAIT.uk;
 for(const f of ['cn','jp','in'])FTRAIT[f]='영토: 본진·보급 건물 주변 영토 위에만 건설 · '+FTRAIT[f];
-for(const k in UD){const d=UD[k];if(d.f==='au'||d.f==='za')d.sh=(d.sh||0)+Math.round(d.hp*0.4);}
-FTRAIT.au='보호막(체력의 40%) · '+FTRAIT.au;FTRAIT.za='보호막(체력의 40%) · '+FTRAIT.za;
-(function applyTraits2(){
- for(const k in UD){const d=UD[k],f=d.f;
-  if(f==='au'){if(d.worker)d.hp=Math.round(d.hp*1.5);else if(d.bio&&d.rng>30)d.rng=Math.round(d.rng*1.1);}
-  if(f==='za'&&d.mech)d.ar=(d.ar||0)+1;
-  if(f==='br'){d.sp=Math.round(d.sp*1.06);if(d.melee)d.dodge=Math.max(d.dodge||0,0.15);if(d.mech)d.hp=Math.round(d.hp*1.1);}
-  if(f==='in'){if(d.bio)d.hp=Math.round(d.hp*1.15);if(d.hp>=300)d.t=Math.round(d.t*0.85);}
- }
-})();
+
 // ======================== 신규 4진영: 대한제국·헝가리·핀란드·폴란드 ========================
 Object.assign(UD,{
  // ---- 대한제국: 신기전, 거북선, 광무개혁
@@ -1990,15 +1981,7 @@ Object.assign(FTRAIT,{
  fi:'시수(Sisu): 전 유닛 체력 +10% · 생체 유닛 감속 면역 · 협동 건설',
  pl:'날개의 기세: 근접 유닛 피해 +25% · 공중 유닛 공격 +10% · 기계 유닛 비용 10% 저렴',
 });
-(function applyTraits3(){
- for(const k in UD){const d=UD[k],f=d.f;
-  if(f==='ko'){if(d.layer==='n')d.ar=(d.ar||0)+1;if(d.bio&&!d.worker&&d.cd)d.cd=+(d.cd/1.1).toFixed(2);}
-  if(f==='hu'&&d.bio)d.sp=Math.round(d.sp*1.15);
-  if(f==='fi'){d.hp=Math.round(d.hp*1.1);if(d.bio)d.slowImmune=1;}
-  if(f==='pl'){if(d.melee)d.dmg=Math.round(d.dmg*1.25);if(d.layer==='a'&&d.dmg)d.dmg=Math.round(d.dmg*1.1);if(d.mech)d.cost=d.cost.map(c=>Math.round(c*0.9/5)*5);}
- }
- for(const k in BD){const d=BD[k];if(d.f==='hu'&&d.atk)d.atk.dmg=Math.round(d.atk.dmg*1.2);}
-})();
+
 // ===== 진영 밸런스 보정 (AI 대전 시뮬레이션으로 조정) — 전투력 배율: 체력·공격력에 각각 √배율 =====
 const FBAL={us:1.15,su:1.53,de:1.34,it:0.66,fr:1.36,uk:1.19,jp:1.23,cn:0.74,au:0.62,za:0.62,br:0.89,in:1.19,ko:1.1,hu:0.88,fi:0.82,pl:0.75};
 function applyBal(tb){for(const k in UD){const d=UD[k];if(d.worker)continue;if(d._bh==null){d._bh=d.hp;d._bd=d.dmg||0;d._bs=d.sh||0;}const m=Math.sqrt(tb[d.f]||1);
@@ -2112,8 +2095,8 @@ function gatherTick(u,dt){
   if(r.type==='res'&&Math.random()<dt*3&&u.team===0)play('mine',u.x,u.y,0.5);
   if(r.type==='res'&&Math.random()<dt*3)part(u.x+Math.cos(u.face)*10,u.y+Math.sin(u.face)*10,rnd(-30,30),rnd(-30,10),0.3,1.5,'#ffd27a');
   if(u.timer<=0){
-   if(r.type==='res'){const n=Math.min(Math.round(((P(u.team).fac==='cn'||P(u.team).fac==='za')?10:8)*techGatherMul(u)),r.amount);r.amount-=n;u.carry=n;u.carryT='coal';if(r.amount<=0){r.dead=true;setOcc(r,0);}}
-   else{u.carry=(P(u.team).fac==='cn'||P(u.team).fac==='za')?10:8;u.carryT='ether';}
+   if(r.type==='res'){const n=Math.min(Math.round(fxCarry(u,'coal')*techGatherMul(u)),r.amount);r.amount-=n;u.carry=n;u.carryT='coal';if(r.amount<=0){r.dead=true;setOcc(r,0);}}
+   else{u.carry=fxCarry(u,'ether');u.carryT='ether';}
    u.phase='back';u.path=null;u.repathT=0;
   }
   return;
@@ -2252,7 +2235,7 @@ function kill(e,src){
 // ======================== 건물 업데이트 ========================
 function updBld(b,dt){
  const d=BD[b.kind];b.anim+=dt;if(b.flash>0)b.flash-=dt;
- if(b.built&&!b.maxsh&&P(b.team).fac==='it'){b.shT+=dt;if(b.shT>4&&b.hp<b.maxhp)b.hp=Math.min(b.maxhp,b.hp+4*dt);}
+
  if(b.maxsh&&b.built){b.shT+=dt;if(b.shT>5&&b.sh<b.maxsh)b.sh=Math.min(b.maxsh,b.sh+4*dt);}
  if(b.moving){
   const m=b.moving,tx=(m.tx+b.w/2)*T,ty=(m.ty+b.h/2)*T,dx=tx-b.x,dy=ty-b.y,dd=Math.hypot(dx,dy),s=34*dt;
@@ -2272,7 +2255,7 @@ function updBld(b,dt){
  }
  const pw=isPowered(b);b.unpowered=!pw;
  if(!pw)return;
- if(b.rs){b.rs.p+=dt/(upTime(b.rs.lv)*(P(b.team).fac==='ko'?0.7:1));if(b.rs.p>=1){const pl=P(b.team);pl.up[b.rs.ly]=Math.max(pl.up[b.rs.ly],b.rs.lv);if(pl.human){toast(`${UPL(b.rs.ly)} ${b.rs.lv}단계 완료`);play('done');}b.rs=null;}}
+ if(b.rs){b.rs.p+=dt/(upTime(b.rs.lv)*(P(b.team).fac==='ko'?0.35:1));if(b.rs.p>=1){const pl=P(b.team);pl.up[b.rs.ly]=Math.max(pl.up[b.rs.ly],b.rs.lv);if(pl.human){toast(`${UPL(b.rs.ly)} ${b.rs.lv}단계 완료`);play('done');}b.rs=null;}}
  if(b.queue.length){b.qp+=dt/UD[b.queue[0]].t*techProdMul(b);if(b.qp>=1){b.qp=0;spawnFrom(b,b.queue.shift());}}
  if(d.atk){
   if(b.cd>0)b.cd-=dt;b.scanT-=dt;
@@ -2439,7 +2422,7 @@ function aiThink(p){
  const wk=units.filter(u=>UD[u.kind].worker),army=units.filter(u=>!UD[u.kind].worker);
  const sup=supplyOf(p.id);
  // 일꾼 우선: 목표치에 한참 못 미치면 다른 지출보다 먼저 일꾼부터
- {const tw=AP.workers+(p.fac==='su'?4:0);if(wk.length<tw*0.8&&sup.cap-sup.used>=1)for(const h of blds)if(h.built&&h.kind===F.hq&&h.queue.length<2&&tm.coal>=UD[F.worker].cost[0])tryTrain(h,F.worker,true);}
+ {const tw=AP.workers+(FAC[p.fac].mode==='consume'?4:0);if(wk.length<tw*0.8&&sup.cap-sup.used>=1)for(const h of blds)if(h.built&&h.kind===F.hq&&h.queue.length<2&&tm.coal>=UD[F.worker].cost[0])tryTrain(h,F.worker,true);}
  const siting=k=>wk.some(u=>u.state==='site'&&u.site&&u.site.kind===k);
  const have=k=>blds.filter(b=>b.kind===k).length+wk.filter(u=>u.state==='site'&&u.site&&u.site.kind===k).length;
  const done=k=>blds.some(b=>b.kind===k&&b.built);
@@ -2460,12 +2443,12 @@ function aiThink(p){
   const pendN=blds.filter(b=>b.kind===F.sup&&!b.built).length+wk.filter(u=>u.state==='site'&&u.site&&u.site.kind===F.sup).length;
   const v2s=!p.noV2&&!p.noSUP,mg2=v2s&&G.time>(p.noHM?150:110)?Math.max(margin,(p.noHM?5:6)+prodN*(p.noHM?2.5:gn(p,'sm',3.2))):margin,pmax=v2s?1+Math.floor(prodN/4):2;
   if(!acted&&sup.cap<200&&sup.cap-sup.used<=mg2&&(pendN===0||pendN<pmax&&(v2s||sup.cap-sup.used<=margin/2&&G.time>240))){build(F.sup);acted=true;}}
- const wkMin=p.fac==='su'?11:6; // 소련: 노동자가 건물로 사라지므로 일꾼을 먼저 충분히
+ const wkMin=FAC[p.fac].mode==='consume'?11:6; // 소련: 노동자가 건물로 사라지므로 일꾼을 먼저 충분히
  if(!acted&&wk.length>=wkMin&&!p.ai.opOn){
   const need={};
   for(const k of PL.order){need[k]=(need[k]||0)+1;if(have(k)<need[k]){if(BD[k].shore&&p.noShore)continue;if(!p.noV2&&!p.noBO&&BD[k].geyser&&have(k)===0&&G.time<120&&!blds.some(b=>PL.army[b.kind]))continue;const r=build(k);if(r==='nospot'&&!BD[k].shore&&(POWF.has(p.fac)||CREEPF.has(p.fac))&&!pending(F.sup))build(F.sup);if(r==='nospot'&&BD[k].shore){p.noShoreT=(p.noShoreT||0)+1;if(p.noShoreT>5)p.noShore=true;}break;}}
  }
- if(!acted&&!p.ai.opOn&&wk.length>=wkMin+2+(p.fac==='su'?3:0)&&tm.coal>(G.diff>=4?180:G.diff>=3?250:300+G.time*0.2)){const prods=Object.keys(PL.army).filter(k=>reqMet(p.id,k)&&!(BD[k].shore&&p.noShore));const cnt=prods.reduce((s,k)=>s+have(k),0);if(prods.length&&cnt<prods.length+AP.prod+(p.ai.style==='aggro'?1:0)+(G.diff>=3?blds.filter(b=>BD[b.kind].drop&&b.built).length*(G.diff>=5?3:2):0)){const k=prods.sort((a,b)=>have(a)-have(b))[0];if(!pending(k))build(k);}}
+ if(!acted&&!p.ai.opOn&&wk.length>=wkMin+2+(FAC[p.fac].mode==='consume'?3:0)&&tm.coal>(G.diff>=4?180:G.diff>=3?250:300+G.time*0.2)){const prods=Object.keys(PL.army).filter(k=>reqMet(p.id,k)&&!(BD[k].shore&&p.noShore));const cnt=prods.reduce((s,k)=>s+have(k),0);if(prods.length&&cnt<prods.length+AP.prod+(p.ai.style==='aggro'?1:0)+(G.diff>=3?blds.filter(b=>BD[b.kind].drop&&b.built).length*(G.diff>=5?3:2):0)){const k=prods.sort((a,b)=>have(a)-have(b))[0];if(!pending(k))build(k);}}
  if(p.fac==='fr')for(const b of blds)if(!b.built){const n=wk.filter(u=>u.state==='build'&&u.target===b.id).length;if(n<2){const w=wk.find(u=>u.state==='gather'&&!u.carry);if(w){w.state='build';w.target=b.id;w.path=null;w.repathT=0;}}}
  // 에테르 일꾼
  const gas=blds.filter(b=>BD[b.kind].geyser&&b.built);
@@ -2477,7 +2460,7 @@ function aiThink(p){
  const catOf=k=>{const L=UD[k].layer;return L==='n'?'n':L==='a'?'a':'g';},catN={g:0,a:0,n:0};for(const u of army)catN[catOf(u.kind)]++;
  const catCap={n:THM(G.cfg.map)==='ocean'?0.4:0.2,a:0.3,g:1},armyN=Math.max(6,army.length);
  // 일꾼이 모자라면 일꾼 몫(석탄 55)을 남겨 두고 병력 생산 (경제가 말라붙지 않게)
- const ecoLow=G.time>40&&wk.length<(AP.workers+(p.fac==='su'?4:0))*0.7;
+ const ecoLow=G.time>40&&wk.length<(AP.workers+(FAC[p.fac].mode==='consume'?4:0))*0.7;
  const supWait=!p.noV2&&!p.noBO&&sup.cap<200&&sup.cap-sup.used<=3&&!blds.some(b=>b.kind===F.sup&&!b.built)&&!wk.some(u=>u.state==='site'&&u.site&&u.site.kind===F.sup)&&p.coal<BD[F.sup].cost[0]+60;
  for(const b of blds){if(!b.built||b.queue.length>=(G.diff>=4?3:G.diff>=3?2:1))continue;if(army.length>=armyCap||supWait)break;if(p.ai.saveHQ&&!p.ai.threatNow&&p.coal<BD[F.hq].cost[0]+80)break;if(G.diff<=1&&Math.random()<(G.diff===0?0.6:0.4))continue;const list=PL.army[b.kind];if(!list)continue;
   {const c0=catOf(list[0]);if(c0!=='g'&&catN[c0]>=armyN*catCap[c0])continue;}
@@ -2816,7 +2799,7 @@ const safe=!ai.desp&&(!v2||ai.depleted)||!ai.desp&&(prodN2>=(p.noBO?hqs.length+1
  // 새 본진이 생기면 일꾼 일부를 옮김
  for(const h of hqs)if(h.built&&!h.aiStaffed&&dist(h.x,h.y,base.x,base.y)>400){h.aiStaffed=1;const cl=nearestCoal(h.x,h.y);if(cl){let n=0;for(const u of wk)if(n<Math.floor(wk.length/3)&&u.state==='gather'&&!u.scouting){orderGather(u,cl);n++;}}}
  // 본진마다 일꾼 생산
- for(const h of hqs)if(h.built&&h.kind===F.hq&&h.queue.length<(D>=2&&wk.length<AP.workers*0.8?2:1)&&wk.length<Math.min(66,AP.workers*Math.min(hqs.length,3))+(p.fac==='su'?4:0))tryTrain(h,F.worker,true);
+ for(const h of hqs)if(h.built&&h.kind===F.hq&&h.queue.length<(D>=2&&wk.length<AP.workers*0.8?2:1)&&wk.length<Math.min(66,AP.workers*Math.min(hqs.length,3))+(FAC[p.fac].mode==='consume'?4:0))tryTrain(h,F.worker,true);
  // 기지별 일꾼 균형: 과포화 기지에서 부족한 기지로 옮김
  if(G.time>(ai.balT||0)){ai.balT=G.time+8;const bh=hqs.filter(h=>h.built&&!h.moving);if(bh.length>=2){
   const info=bh.map(h=>{let pt=0;for(const e of ents)if(e.type==='res'&&e.kind==='coal'&&!e.dead&&e.amount>0&&dist(e.x,e.y,h.x,h.y)<420)pt++;const ws=wk.filter(u=>u.state==='gather'&&!u.scouting&&byId.get(u.res)?.type==='res'&&byId.get(u.res).kind==='coal'&&dist(byId.get(u.res).x,byId.get(u.res).y,h.x,h.y)<420);return {h,pt,ws,want:pt*2};});
@@ -6698,29 +6681,6 @@ function nfBuild(ORD){
   FCOL[f]=P.flag[1]==='#f0f0f0'?'#ffe8c8':shade(P.flag[1],0.3);
   FTRAIT[f]=D.trait;
  }
- // 진영 특성 (정적 보정)
- for(const k in UD){const d=UD[k],f=d.f;if(!ORD.includes(f))continue;
-  if(f==='ca'){if(d.bio&&!d.worker)d.hp=Math.round(d.hp*1.1);}
-  if(f==='nz'){if(d.melee)d.dmg=Math.round(d.dmg*1.2);if(d.bio&&!d.worker)d.regen=(d.regen||0)+0.6;}
-  if(f==='gr'){if(d.bio&&!d.worker&&!d.layer)d.ar=(d.ar||0)+1;}
-  if(f==='nl'){if(d.layer==='n')d.hp=Math.round(d.hp*1.15);}
-  if(f==='no'){if(d.bio)d.slowImmune=1;if(d.layer==='n'&&d.rng)d.rng=Math.round(d.rng*1.1);}
-  if(f==='et'){if(d.bio&&!d.worker)d.hp=Math.round(d.hp*1.15);if(d.cloak)d.sp=Math.round(d.sp*1.1);}
-  if(f==='ph'){if(d.bio&&!d.worker)d.regen=(d.regen||0)+0.6;if(d.cloak&&d.dmg)d.dmg=+(d.dmg*1.15).toFixed(1);}
-  if(f==='mx'){if(d.layer==='a'&&d.dmg){d.dmg=+(d.dmg*1.2).toFixed(1);d.rng=Math.round(d.rng*1.1);}}
-  if(f==='mn'){d.sp=Math.round(d.sp*1.15);}
-  if(f==='ro'){if(d.mech&&d.cost[1])d.cost=[d.cost[0],Math.round(d.cost[1]*0.8/5)*5];}
-  if(f==='bg'){if(d.bio&&!d.worker){d.cost=[Math.round(d.cost[0]*0.9/5)*5,d.cost[1]];d.regen=(d.regen||0)+0.5;}}
-  if(f==='se'){d.cost=d.cost.map(c=>Math.round(c*0.9/5)*5);}
-  if(f==='es'){if(d.melee){d.sp=Math.round(d.sp*1.2);d.dmg=+(d.dmg*1.1).toFixed(1);}}
-  if(f==='tr'){if(d.layer==='n')d.hp=Math.round(d.hp*1.15);}
- }
- for(const k in BD){const d=BD[k],f=d.f;if(!ORD.includes(f))continue;
-  if(f==='gr'&&ROLE[k]==='def')d.hp=Math.round(d.hp*1.25);
-  if(f==='th')d.cost=d.cost.map(c=>Math.round(c*0.85/5)*5);
-  if(f==='ch'){d.hp=Math.round(d.hp*1.3);if(d.atk)d.atk.dmg=Math.round(d.atk.dmg*1.2);}
-  if((f==='se'||f==='tr')&&d.atk)d.atk.rng=Math.round(d.atk.rng*1.1);
- }
  // 국기 문장 (건물 위)
  if(!nfBuild._em){nfBuild._em=1;const oldE=emblemPx;emblemPx=function(p,fac,x,y){if(NFP[fac]){const c=NFP[fac].flag;p.r(x,y,5,2,c[0]);p.r(x,y+2,5,1,c[1]);p.r(x,y+3,5,2,c[2]);return;}return oldE(p,fac,x,y);};}
 }
@@ -6780,7 +6740,7 @@ Object.assign(NFP,{
   b:{wall:'#e8c8a8',wallD:'#b89878',roof:'#4a8aa8',roofL:'#6aaac8',roofD:'#2a5a7a',trim:'#c8302a',win:'#ffe8a0',pat:'stucco',rs:'tile',door:'#2a5a3a'}},
 });
 Object.assign(NF,{
- yu:{n:'유고슬라비아',d:'파르티잔 · 노획',mode:'stay',names:['드바르 산채 사령부','산채 창고','숲속 정제소','파르티잔 막사','노획 공방','임시 활주로','달마치야 부두','산악 매복진','티토 비밀 학당'],
+ yu:{n:'유고슬라비아',d:'파르티잔 · 노획',mode:'consume',names:['드바르 산채 사령부','산채 창고','숲속 정제소','파르티잔 막사','노획 공방','임시 활주로','달마치야 부두','산악 매복진','티토 비밀 학당'],
   w:['yu_seljak','산골 농부',{},'채집 · 건설',{tool:'pick'}],
   inf:[['yu_partizan','파르티잔','rifle',{cost:[45,0]},'특수: 값싼 산악 보병'],['yu_proleter','프롤레타리아 여단','elite',{hp:88},'특수: 정예 돌격대'],['yu_bombas','폭탄 투척병','at',{dmg:26},'특수: 집속 수류탄 — 차량 사냥',{}]],
   veh:[['yu_trofej','노획 판처','med',{cost:[150,50]},'특수: 빼앗은 전차 — 에테르 적게'],['yu_m3','M3 스튜어트','light',{},'경전차 (발칸 공군 지원)'],['yu_zis','ZiS 야포 트럭','arty',{},'장거리 포격']],
@@ -6801,21 +6761,21 @@ Object.assign(NF,{
   air:[['be_gladiator','글래디에이터','fighter',{},'복엽 전투기'],['be_fox','페어리 폭스','fbomb',{},'지상 공격기'],['be_spirit','안개의 기사 정령','flyer',{det:1},'특수: 브라반트 기사의 혼령 — 탐지',{art:'cn_phoenix'}]],
   sea:[['be_pt','벨기에 경비정','pt',{},'경비정'],['be_artevelde','아르테벨데 호위함','dd',{},'호위함'],['be_sub','벨기에 잠수함','sub',{},'잠수함']],
   trait:'요새 국가: 건물 체력 +15% · 보병 방어 +1'},
- bu:{n:'버마 저항군',d:'정글 · 매복 · 고무',mode:'stay',names:['산악 부족 본채','대나무 곳간','정글 정제소','카친 산채','정글 공방','정글 활주로','이라와디 나루','대나무 목책','파고다 학당'],
+ bu:{n:'버마 저항군',d:'정글 · 매복 · 고무',mode:'consume',names:['산악 부족 본채','대나무 곳간','정글 정제소','카친 산채','정글 공방','정글 활주로','이라와디 나루','대나무 목책','파고다 학당'],
   w:['bu_tapper','고무 채취꾼',{},'채집 · 건설',{tool:'hoe'}],
   inf:[['bu_karen','카렌 의용대','rifle',{cost:[45,0]},'특수: 값싼 산악 부족 보병'],['bu_kachin','카친 레인저','guer',{dmg:10},'특수: 정글 매복 — 은신'],['bu_bna','버마 국민군 봉기대','elite',{},'특수: 1945년 봉기의 정예']],
   veh:[['bu_elephant','전투 코끼리','beast',{},'특수: 정글 코끼리 — 강력한 근접',{art:'in_elephant'}],['bu_jeep','보급 지프','apc',{sp:96},'빠른 지프'],['bu_stuart','스튜어트 경전차','light',{},'경전차']],
   air:[['bu_nat','낫 정령','flyer',{regen:1},'특수: 버마의 수호 정령 — 회복',{art:'in_vimana'}],['bu_dakota','다코타 보급기','recon',{hp:120},'특수: 정찰·탐지'],['bu_hurri','허리케인 폭격기','fbomb',{},'지상 공격기']],
   sea:[['bu_sampan','삼판 배','pt',{cloak:1},'특수: 은신 강배'],['bu_torp','강 어뢰정','torp',{},'어뢰정'],['bu_gunboat','이라와디 포함','dd',{},'강 포함']],
   trait:'정글의 아들: 생체 유닛 이동 +10% · 은신 유닛 피해 +15%'},
- idn:{n:'인도네시아',d:'메르데카 · 군도 · 고무',mode:'team',names:['욕야카르타 크라톤','쌀 곳간','야자 정제소','페타 병영','반둥 공방','마구오 비행장','수라바야 부두','대나무 요새','반둥 공과대학'],
+ idn:{n:'인도네시아',d:'메르데카 · 군도 · 고무',mode:'consume',names:['욕야카르타 크라톤','쌀 곳간','야자 정제소','페타 병영','반둥 공방','마구오 비행장','수라바야 부두','대나무 요새','반둥 공과대학'],
   w:['idn_tani','농민',{},'채집 · 협동 건설',{tool:'hoe'}],
   inf:[['idn_bambu','대나무창 의용군','melee',{hp:70,dmg:11,cost:[90,0],t:18,sup:1},'특수: 한 번에 3명씩 출동',{gun:'staff'}],['idn_peta','페타 의용군','rifle',{hp:52},'보병'],['idn_pemuda','프무다 게릴라','guer',{},'특수: 청년 게릴라 — 은신']],
   veh:[['idn_ha','노획 하고 전차','light',{},'경전차'],['idn_truck','무장 트럭','apc',{},'빠른 장갑 트럭'],['idn_gun','산포','arty',{},'장거리 포격']],
   air:[['idn_garuda','가루다','flyer',{hp:150,dmg:16},'특수: 신조 가루다',{art:'cn_phoenix'}],['idn_cureng','추렝 연습기','fighter',{hp:95},'노획 연습기 전투기'],['idn_guntei','군테이 폭격기','fbomb',{},'노획 지상 공격기']],
   sea:[['idn_pinisi','피니시 범선','pt',{},'특수: 군도의 범선'],['idn_perahu','프라후 어뢰선','torp',{},'어뢰선'],['idn_kapal','노획 포함','dd',{},'포함']],
   trait:'고똥 로용: 협동 건설 · 생체 유닛 체력 +10%'},
- vn:{n:'베트남',d:'땅굴 · 자전거 · 고무',mode:'stay',names:['비엣박 동굴 사령부','땅굴 입구','논 정제소','비엣민 막사','정글 공방','숲속 활주로','통킹 부두','땅굴 진지','민족 학당'],
+ vn:{n:'베트남',d:'땅굴 · 자전거 · 고무',mode:'consume',names:['비엣박 동굴 사령부','땅굴 입구','논 정제소','비엣민 막사','정글 공방','숲속 활주로','통킹 부두','땅굴 진지','민족 학당'],
   w:['vn_dan','자전거 짐꾼',{},'채집 · 건설',{tool:'hoe'}],
   inf:[['vn_vietminh','비엣민 보병','rifle',{},'보병'],['vn_dankich','단끼엔 특공대','guer',{dmg:11},'특수: 은신 특공대'],['vn_bazooka','바주카 사수','at',{},'대전차']],
   veh:[['vn_bike','자전거 보급대','apc',{hp:110,sp:102,ar:0},'특수: 아주 빠른 보급대'],['vn_ft','노획 FT 전차','light',{},'경전차'],['vn_mortar','박격포 차량','arty',{},'장거리 포격']],
@@ -6850,7 +6810,7 @@ Object.assign(NF,{
   air:[['sn_dew','드부아틴 전투기','fighter',{},'전투기'],['sn_martin','글렌 마틴 폭격기','fbomb',{},'폭격기'],['sn_ninki','닌키 난카','flyer',{hp:150},'특수: 늪의 용',{art:'cn_kite'}]],
   sea:[['sn_richelieu','리슐리외 전함','bb',{},'특수: 다카르의 거대 전함'],['sn_sub','베제지에 잠수함','sub',{},'잠수함'],['sn_pt','항만 경비정','pt',{},'경비정']],
   trait:'다카르 항: 수상 유닛 체력 +15% · 근접 유닛 체력 +10%'},
- ve:{n:'베네수엘라',d:'유정 · 야네로',mode:'team',names:['미라플로레스 궁','항구 창고','마라카이보 정유소','야네로 병영','정유 공방','마이케티아 비행장','라과이라 조선소','유정 보루','볼리바르 학당'],
+ ve:{n:'베네수엘라',d:'유정 · 야네로',mode:'stay',names:['미라플로레스 궁','항구 창고','마라카이보 정유소','야네로 병영','정유 공방','마이케티아 비행장','라과이라 조선소','유정 보루','볼리바르 학당'],
   w:['ve_petrolero','석유 노동자',{},'채집 · 협동 건설',{tool:'wrench'}],
   inf:[['ve_rifle','베네수엘라 보병','rifle',{},'보병'],['ve_llanero','야네로 창기병','cav',{sp:108},'특수: 평원의 창기병',{horse:'#8a5a2a'}],['ve_flamer','화염방사병','elite',{dmg:14,rng:70,spl:22,antiBio:1.3},'특수: 석유 화염 — 범위 피해',{gun:'flamer'}]],
   veh:[['ve_tanker','유조 장갑차','apc',{hp:170},'장갑 유조차'],['ve_light','경전차','light',{},'경전차'],['ve_derrick','유정탑 보행기','walker',{},'특수: 걷는 시추탑',{art:'walker'}]],
@@ -6881,29 +6841,6 @@ Object.assign(NF_TECHS,{
  cu:[['럼 한 잔','보병 체력 +15%',[['hp','inf',.15]]],['맘비 돌격','보병 피해 +15%',[['dm','inf',.15]]],['대잠 초계','해군 피해 +15%',[['dm','navy',.15]]],['시에라의 길','보병 이동 +15%',[['sp','inf',.15]]],['플로리다 해협','해군 이동 +15%',[['sp','navy',.15]]]],
 });
 nfBuild(NF3_ORDER);
-// 진영 특성 (정적 보정)
-(function(){
- const R5=v=>Math.round(v/5)*5;
- for(const k in UD){const d=UD[k],f=d.f;if(!NF3_ORDER.includes(f))continue;
-  if(f==='yu'&&d.bio&&!d.worker)d.cost=[R5(d.cost[0]*0.9),d.cost[1]];
-  if(f==='cz'&&d.mech)d.hp=Math.round(d.hp*1.1);
-  if(f==='be'&&d.bio&&!d.worker&&!d.layer)d.ar=(d.ar||0)+1;
-  if(f==='bu'){if(d.bio)d.sp=Math.round(d.sp*1.1);if(d.cloak&&d.dmg)d.dmg=+(d.dmg*1.15).toFixed(1);}
-  if(f==='idn'&&d.bio&&!d.worker)d.hp=Math.round(d.hp*1.1);
-  if(f==='vn'&&d.bio&&!d.worker){d.cost=[R5(d.cost[0]*0.9),d.cost[1]];d.regen=(d.regen||0)+0.5;}
-  if(f==='ir'){if(k==='ir_immortal'||k==='ir_proleter')d.hp=Math.round(d.hp*1.15);if(k==='ir_qashqai')d.sp=Math.round(d.sp*1.1);}
-  if(f==='eg'&&k==='eg_camel')d.hp=Math.round(d.hp*1.1);
-  if(f==='ma'){if(d.bio)d.slowImmune=1;if(k==='ma_spahi')d.dmg=+(d.dmg*1.1).toFixed(1);}
-  if(f==='sn'){if(d.layer==='n')d.hp=Math.round(d.hp*1.15);if(d.melee)d.hp=Math.round(d.hp*1.1);}
-  if(f==='ve'){if(d.mech)d.sp=Math.round(d.sp*1.1);if(d.cost[1])d.cost=[d.cost[0],R5(d.cost[1]*0.9)];}
-  if(f==='cu'){if(d.layer==='n')d.sight=(d.sight||0)+3;if(d.bio&&!d.worker&&!d.layer)d.sp=Math.round(d.sp*1.1);}
- }
- for(const k in BD){const d=BD[k],f=d.f;if(!NF3_ORDER.includes(f))continue;
-  if(f==='cz'&&ROLE[k]==='def')d.hp=Math.round(d.hp*1.2);
-  if(f==='be')d.hp=Math.round(d.hp*1.15);
-  if(f==='eg')d.cost=d.cost.map(c=>R5(c*0.9));
- }
-})();
 
 (function(){
 // ===================== 고유 모델 (F.V.1.0.0) — 모든 유닛이 서로 다른 모습 =====================
@@ -7909,39 +7846,8 @@ for(const f in NF_RULE)FTRAIT[f]=(FTRAIT[f]||'')+' · 고유: '+NF_RULE[f];
 (function(){
  const fo=t=>G&&P(t)?P(t).fac:null;
  // 정적: 캐나다 숲 통과, 태국 근접 범위, 스페인 회피
- for(const k in UD){const d=UD[k];if(d.f==='ca'&&d.bio&&!d.layer)d.trees=1;if(d.f==='th'&&d.melee)d.spl=Math.max(d.spl||0,22);if(d.f==='es'&&d.melee)d.dodge=0.2;}
- // 피해 보정: 에티오피아 (체력 절반 아래 +30%)
- const _dm=dmgMul;dmgMul=function(u){let m=_dm(u);try{if(fo(u.team)==='et'&&u.hp<u.maxhp*0.5)m*=1.3;}catch(e){}return m;};
- // 피해 이벤트: 노르웨이 감속, 뉴질랜드 하카, 필리핀 피격 시각, 불가리아 복수
- const _dg=damage;damage=function(t,amt,src){const was=t&&!t.dead;const r=_dg.apply(this,arguments);try{
-  if(t&&t.type==='unit')t._hitT=G.time;
-  if(src&&t&&t.type==='unit'&&enemy(src.team,t.team)){const sf=fo(src.team);
-   if(sf==='no'&&UD[t.kind].layer!=='a')t.slowT=Math.max(t.slowT||0,1.2);
-   if(sf==='nz'&&src.type==='unit'&&UD[src.kind].melee&&!(src._hakaT>G.time)){src._hakaT=G.time+12;src.buffT=4;part(src.x,src.y-10,0,-30,0.6,4,'#ffd24a');}}
-  if(was&&t.dead&&t.type==='unit'&&fo(t.team)==='bg'){unitsNear(t.x,t.y,200,v=>{if(v.team===t.team&&!v.dead){v.buffT=Math.max(v.buffT||0,5);}});}
- }catch(e){}return r;};
- // 생산 속도: 몽골 1.25, 스위스 1.2
- const _pm=techProdMul;techProdMul=function(b){let m=_pm(b);const f=fo(b.team);if(f==='mn')m*=1.25;else if(f==='ch')m*=1.2;return m;};
- // 주기 규칙
- let acc=0,acc30=0;
- const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over)return r;acc+=dt;acc30+=dt;
-  if(acc>=1){acc-=1;const pf={};for(const p of G.pl)if(p.alive)pf[p.id]=p.fac;const has=new Set(Object.values(pf));
-   if(has.has('nl')||has.has('ro')||has.has('mx')||has.has('gr')||has.has('ph')||has.has('tr')){
-    const tr=[],gr=[],mx=[];
-    for(const e of ents){if(e.dead)continue;const f=pf[e.team];if(!f)continue;
-     if(e.type==='bld'){
-      if(f==='nl'&&e.built&&e.hp<e.maxhp)e.hp=Math.min(e.maxhp,e.hp+e.maxhp*0.006);
-      if(f==='ro'&&e.built&&BD[e.kind].geyser)P(e.team).ether+=1;
-      if(f==='tr'&&e.built&&ROLE[e.kind]==='inf')tr.push(e);
-      if(f==='gr'&&e.built&&ROLE[e.kind]==='def')gr.push(e);
-      if(f==='mx'&&e.built&&ROLE[e.kind]==='air')mx.push(e);}
-     else if(e.type==='unit'){const d=UD[e.kind];
-      if(f==='ph'&&d.bio&&!d.worker&&e.hp<e.maxhp&&G.time-(e._hitT||-99)>5)e.hp=Math.min(e.maxhp,e.hp+e.maxhp*0.04);}}
-    for(const b of tr)unitsNear(b.x,b.y,240,v=>{if(v.team===b.team&&dist(v.x,v.y,b.x,b.y)<240)v.buffT=Math.max(v.buffT||0,1.3);});
-    for(const b of gr)unitsNear(b.x,b.y,220,v=>{if(v.team===b.team&&UD[v.kind].bio&&dist(v.x,v.y,b.x,b.y)<220)v.barT=Math.max(v.barT||0,1.3);});
-    for(const b of mx)unitsNear(b.x,b.y,320,v=>{if(v.team===b.team&&UD[v.kind].layer==='a'&&v.hp<v.maxhp)v.hp=Math.min(v.maxhp,v.hp+4);});}}
-  if(acc30>=30){acc30-=30;for(const p of G.pl){if(!p.alive||p.fac!=='se')continue;let n=0;for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='bld'&&e.built&&BD[e.kind].geyser)n++;p.coal+=30+n*5;if(p.human)toast(`⚓ 철광석 수출: 석탄 +${30+n*5}`);}}
- }catch(e){console.error(e);}return r;};
+ for(const k in UD){const d=UD[k];if(d.f==='ca'&&d.bio&&!d.layer)d.trees=1;}
+
 })();
 
 // ---- 건물 상징물: 같은 틀로 만든 24개 진영의 본진·방어 건물 위에 진영 상징 ----
@@ -11834,28 +11740,6 @@ for(const f in ADJ)FBAL2[f]=(FBAL2[f]||1)*ADJ[f];
 // 3) 32개 진영 지상 수송 차량 (병영 보병을 태우고 땅 위로 이동)
 // 4) 밤낮 · 날씨
 (function(){
-// ---------------- 1) 진영 조정 ----------------
-for(const k in UD){const d=UD[k];if(!d||!d.f)continue;
- if(d.f==='et'&&d.bio&&!d.worker)d.hp=Math.round(d.hp*1.25/1.15);// 생체 체력 +15% → +25%
- if(d.f==='pl'){
-  if(d.melee&&d.dmg)d.dmg=Math.round(d.dmg*1.35/1.25);// 근접 +25% → +35%
-  if(d.layer==='a'&&d.dmg)d.dmg=Math.round(d.dmg*1.2/1.1);// 공중 +10% → +20%
-  if(d.mech&&d.cost)d.cost=d.cost.map(c=>Math.round(c*0.85/0.9/5)*5);// 기계 할인 10% → 15%
-  if(d.bio&&!d.worker&&!d.layer)d.hp=Math.round(d.hp*1.1);}// 새로: 보병 체력 +10%
- if(d.f==='se'&&d.cost)d.cost=d.cost.map(c=>Math.round(c/0.9*0.95/5)*5);// 전 유닛 할인 10% → 5%
-}
-// 능력에 힘을 옮긴 만큼 일괄 배율은 되돌림
-FBAL2.et=(FBAL2.et||1)*1.12/1.24;FBAL2.pl=(FBAL2.pl||1)*1.1/1.22;FBAL2.se=(FBAL2.se||1)*0.94/0.88;
-// 아드와의 기억: 체력 60% 아래 → 피해 +40%, 체력 절반 아래 → 받는 피해 -15%
-{const fo=t=>G&&P(t)?P(t).fac:null;
- const _dm=dmgMul;dmgMul=function(u){let m=_dm(u);try{if(fo(u.team)==='et'&&u.hp<u.maxhp*0.6)m*=(u.hp<u.maxhp*0.5?1.4/1.3:1.4);}catch(e){}return m;};
- const _dg=damage;damage=function(t,amt,src){try{if(t&&t.type==='unit'&&amt>0&&t.hp<t.maxhp*0.5&&fo(t.team)==='et')arguments[1]=amt*0.85;}catch(e){}return _dg.apply(this,arguments);};}
-try{NF_RULE.et='아드와의 기억: 체력 60% 아래인 유닛 피해 +40% · 체력 절반 아래면 받는 피해 -15%';}catch(e){}
-FTRAIT.et=FTRAIT.et.replace('생체 유닛 체력 +15%','생체 유닛 체력 +25%').replace(/아드와의 기억:[^·]*$/,'').replace(/ · 고유: $/,'')+' · 고유: 아드와의 기억: 체력 60% 아래 피해 +40% · 절반 아래면 받는 피해 -15%';
-FTRAIT.et='고원의 용사: 생체 체력 +25%·은신 이동 +10% · 아드와의 기억: 위기 시 피해 +40%·받는 피해 -15%';// 모바일 한 줄 (자세한 규칙은 백과사전)
-FTRAIT.pl=FTRAIT.pl.replace('근접 유닛 피해 +25%','근접 유닛 피해 +35%').replace('공중 유닛 공격 +10%','공중 유닛 공격 +20%').replace('기계 유닛 비용 10% 저렴','기계 유닛 비용 15% 저렴')+' · 보병 체력 +10%';
-FTRAIT.se=FTRAIT.se.replace('모든 유닛 비용 10% 저렴','모든 유닛 비용 5% 저렴');
-
 // ---------------- 2) 캠페인 난이도 ----------------
 const HARD=new Set(['bzura','street42','moscow','malaya','omaha','warsaw','arnhem','stratsin','budapest','iwo','castello','zhijiang']);
 const hard=()=>!!(G&&G.camp&&G.camp.hist&&G.camp.def&&HARD.has(G.camp.def.id));
@@ -12469,7 +12353,7 @@ function matrixPage(){const D=DCLS;let h=`<h2>무기 상성표</h2><div class="s
  return h;}
 function sysPage(){return `<h2>시스템 안내</h2>
 <h4>자원과 인구</h4><div class="box"><b>석탄</b>은 일꾼이 광맥에서 캐고, <b>에테르</b>는 에테르 샘 위 정제소에서 모아요. 인구는 본진과 보급 건물이 늘려 주고, 최대 200이에요.</div>
-<h4>건설 방식</h4><div class="box"><b>자유</b> 어디에나 · <b>영토</b> 영토(크립) 위에만 (동남아·일부 진영) · <b>동력장</b> 보급 건물이 만든 동력장 안에만 (유럽 진영) · 일꾼이 <b>곁에서 짓는</b> 진영, 여러 일꾼이 <b>협동</b>하는 진영, 일꾼이 <b>건물로 변하는</b> 진영, 일꾼은 <b>소환만</b> 하는 진영이 있어요.</div>
+<h4>건설 방식</h4><div class="box"><b>자유</b> 어디에나 · <b>영토</b> 영토(크립) 위에만 (일본·중국·인도 등) · <b>동력장</b> 보급 건물이 만든 동력장 안에만 (독일·영국 등) · 일꾼이 <b>곁에서 짓는</b> 진영, 여러 일꾼이 <b>협동</b>하는 진영, 일꾼이 <b>건물로 변하는</b> 진영, 일꾼은 <b>소환만</b> 하는 진영이 있어요.</div>
 <h4>연구</h4><div class="box">연구소에서 지상·공중·수상 무기를 각각 3단계까지 올려요. 고급 연구소에서는 진영 고유 연구 5종을 할 수 있어요.</div>
 <h4>수송</h4><div class="box">모든 진영에 <b>공중 수송</b>(비행장, 8명), <b>해상 수송</b>(조선소, 12명), <b>지상 수송 차량</b>(차량 공장, 보병 4~8명)이 있어요. 땅 유닛을 고른 뒤 수송 유닛을 누르면 타고, 「하선」으로 원하는 곳에 내려요.</div>
 <h4>🔮 자동 시전</h4><div class="box">술사·치유·지원 유닛은 재사용 대기시간마다 스킬을 알아서 써요. 범위 치유, 결계(받는 피해 -30%), 강화(이속·공속), 범위 피해, 연쇄 번개, 표식(받는 피해 +25%), 포격 유도 등이 있어요. 유닛 설명에 스킬 이름과 효과가 적혀 있어요.</div>
@@ -12497,51 +12381,7 @@ try{const q=$c('quitBtn');if(q&&q.parentNode)add(q.parentNode,'','📖 백과사
 const F3=new Set(NF3_ORDER);
 const fo=t=>{try{return P(t).fac;}catch(e){return null;}};
 const R5=v=>Math.round(v/5)*5;
-const RUL={
- yu:['숨은 산채','건물이 위장됨 — 적 유닛이 6칸 안에 오거나 맞기 전엔 보이지도 공격받지도 않음'],
- yu2:['노획 공방','적 기계 유닛을 쓰러뜨릴 때마다 노획품 +1 (최대 5) — 노획 공방의 차량 생산이 노획품 1개로 즉시 완성'],
- yu3:['파르티잔 합류','파르티잔이 적 보병을 쓰러뜨리면 15% 확률로 파르티잔 1명이 합류'],
- cz:['고슴도치 방어선','일꾼이 1칸짜리 대전차 고슴도치(석탄 25)를 어디든 세움 — 닿은 적 차량 감속 + 지속 피해'],
- cz2:['슈코다 생산 라인','같은 건물에서 같은 유닛을 연달아 뽑으면 회당 비용·시간 -8% (최대 -32%)'],
- cz3:['38(t) 신뢰성','기계 유닛이 4초간 맞지 않으면 스스로 수리 (초당 1.5%)'],
- be:['요새 지하 연결','6칸 안 벨기에 건물끼리 받는 피해를 절반씩 나눠 받음'],
- be2:['콩고 공안군 증원','병영 1개당(최대 3) 70초마다 공안군 보병 1명이 맵 가장자리에서 무료로 도착'],
- be3:['아르덴 사냥꾼','아군 건물 8칸 안에서 보병 피해 +20% · 받는 피해 -15%'],
- bu:['수상 가옥','물가의 얕은 물 위에도 건물을 지을 수 있음'],
- bu2:['산악 부족 징집','대나무 곳간(보급 건물)에서도 보병을 훈련'],
- bu3:['카친 매복','3초간 멈춘 보병은 은신 · 은신/매복 상태의 첫 공격 피해 ×2 · 본진 위기 시 한 번 봉기 (의용대 6명)'],
- idn:['고똥 로용','협동 건설 + 근처의 보병도 건설을 도움 (1명당 +35%, 최대 3명)'],
- idn2:['대나무창 의용군','의용군은 한 번에 3명씩 출동'],
- idn3:['메르데카!','건물이 공격받으면 의용군 2명이 40초간 함께 싸움 (건물마다 40초에 한 번)'],
- vn:['땅굴 기지','땅굴 입구(보급 건물)끼리 연결 — 멀리 이동하는 보병은 가까운 입구로 들어가 목적지 근처 입구로 나옴 · 건물 받는 피해 -30%'],
- vn2:['땅굴 출격','막사에서 나온 보병이 집결지에서 가장 가까운 땅굴 입구로 나옴'],
- vn3:['치고 빠지기','공격한 유닛은 2초간 이동 +35%'],
- ir:['카라반사라이','보급 건물이 자원 반납 거점 역할 · 회랑: 이란 건물 8칸 안 모든 유닛 이동 +25%'],
- ir2:['불사대','불사대가 쓰러지면 25초 뒤 병영에서 무료로 다시 나타남'],
- ir3:['랜드리스 회랑','2분마다 연합국 원조 물자 (석탄 100 · 에테르 50)'],
- eg:['나일 관개','물 4칸 안 건물은 건설 속도 +60% · 생산 속도 +25%'],
- eg2:['신기루 공방','차량을 뽑을 때마다 30초 동안 싸우는 척하는 신기루 미끼 1대가 함께 나옴'],
- eg3:['사막 신기루','체력이 40% 아래로 떨어진 유닛은 한 번 미끼 2개를 만들고 2초간 사라짐'],
- ma:['카스바','건설 시간 절반 · 비용 -15% · 대신 흙벽 건물이 천천히 풍화 (최대 체력 70%까지)'],
- ma2:['구움 소집','기병·근접 유닛 훈련 시간 -35%'],
- ma3:['야습','밤에 피해 +30% · 이동 +20% (밤낮이 꺼져 있으면 항상 피해 +10%)'],
- sn:['다카르 항만','조선소를 2배 빨리 짓고 보급 +8 · 조선소 6칸 안 건물 받는 피해 -20%'],
- sn2:['증원 함대','조선소 1개당(최대 2) 90초마다 저격병 2명이 상륙 (조선소가 없으면 본진에서 150초마다 1명)'],
- sn3:['쿠프쿠프 돌격','근접 유닛이 체력 절반 이상이면 피해 +25% · 공격 중 이동 +20%'],
- ve:['유정탑','일꾼이 1칸짜리 유정탑(석탄 75)을 어디든 세움 — 하나당 초당 에테르 +0.5 (최대 6개)'],
- ve2:['파이프라인','정유소·유정탑 7칸 안 건물은 건설 +50% · 공방·비행장·조선소 생산 +35%'],
- ve3:['석유 부국','에테르 500 이상 비축 시 기계 유닛 피해 +10%'],
- cu:['해안 포대','물 3칸 안에 지은 방어 건물은 사거리 +30% · 잠수함 탐지·공격'],
- cu2:['무장 어선','조선소 유닛 생산 시간 -40% · 비용 -25%'],
- cu3:['헤밍웨이 순찰대','수상 유닛 시야 +3 · 필라르 어선이 잠수함을 탐지'],
-};
-for(const f of NF3_ORDER){NF_RULE[f]=`🏗 ${RUL[f][0]}: ${RUL[f][1]}\n🏭 ${RUL[f+'2'][0]}: ${RUL[f+'2'][1]}\n⚔ ${RUL[f+'3'][0]}: ${RUL[f+'3'][1]}`;}
-globalThis.F3RUL=RUL;
 Object.assign(ORN,{yu:'flag',cz:'tower',be:'bell',bu:'chedi',idn:'pagoda',vn:'pagoda',ir:'dome',eg:'pyramid',ma:'minaret',sn:'flag',ve:'flag',cu:'bell'});
-// ---- 건설 구역: 동남아(버마·인도네시아·베트남) 영토, 유럽(유고·체코·벨기에) 동력장
-{const CN={bu:'#c89a40',idn:'#c8402a',vn:'#d8c040'};for(const f in CN){CREEPF.add(f);CREEPCOL[f]=CN[f];const s=BD[FAC[f].sup];if(s&&!/영토/.test(s.desc))s.desc+=' · 주변에 영토를 펼침';}
- for(const f of ['yu','cz','be']){const F=FAC[f];POWF.add(f);const s=BD[F.sup];s.power=1;s.nopow=1;if(!/동력장/.test(s.desc))s.desc+=' · 주변에 건설 가능 (동력장)';for(const k of [F.hq,F.gas])BD[k].nopow=1;}}
-
 // ---- 기본 보병은 에테르를 쓰지 않음 (에티오피아·몽골)
 if(UD.et_arbegnoch)UD.et_arbegnoch.cost=[90,0];if(UD.mn_cavalry)UD.mn_cavalry.cost=[85,0];
 // =============== 고무 자원 ===============
@@ -12585,8 +12425,6 @@ globalThis.f3Trade=f3Trade;
  const m=TP(p);out.push({l:`시세 판매 ${Math.round(m.sell*100)}%`,s:`구매 ${Math.round(100/m.buy)}%`,dis:true,f:()=>{}});while(out.length%3)out.push(null);return out;}}}catch(err){console.error(err);}return _cl.apply(this,arguments);};}
 {const _ct=costTxt;costTxt=function(c){let s=_ct.apply(this,arguments);if(c&&c[2])s+=`·<span style="color:#f0a060">${c[2]}</span>`;return s;};}
 // 체코 고슴도치 · 베네수엘라 유정탑
-addB('cz','cz_hedge',{n:'체코 고슴도치',desc:'대전차 장애물 — 닿은 적 차량 감속 · 지속 피해 · 어디든 건설',w:1,h:1,hp:260,cost:[25,0],t:5,nopow:1,nozone:1},'hedge',3);
-addB('ve','ve_derrick',{n:'유정탑',desc:'에테르 샘 없이 어디든 — 초당 에테르 +0.5 (최대 6개) · 파이프라인',w:1,h:1,hp:300,cost:[75,0],t:15,nozone:1},'derrick',2);
 // 그림
 
 function f3Art(kind,fac,role,w,h){const W=w*20,H=h*20,p=new PX(W+4,H+BOH+2),X=2,Y=BOH,cx=X+W/2|0;
@@ -12603,8 +12441,7 @@ function f3Art(kind,fac,role,w,h){const W=w*20,H=h*20,p=new PX(W+4,H+BOH+2),X=2,
  sp.innerHTML='<i class="ic" style="background:#f0a060;border-radius:2px 6px 2px 6px;box-shadow:0 0 4px #f0a060"></i><span id="rRub">0</span>';eth.parentNode.after(sp);
  const xs=document.createElement('span');xs.className='res tchip';xs.id='rF3';xs.style.display='none';sp.after(xs);
  setInterval(()=>{try{if(!G||!G.pl){sp.style.display='none';xs.style.display='none';return;}const tm=P(0),f=tm.fac;sp.style.display='';document.getElementById('rRub').textContent=Math.floor(tm.rub||0);
-  let t='';if(f==='yu')t='🔧 노획 '+(tm.salv||0);else if(f==='ir')t='🛡 불사대 대기 '+((tm._irq||[]).length);else if(f==='ve')t='🛢 유정 '+(tm._drk||0)+'/6';else if(f==='bu'&&!tm._uprise)t='✊ 봉기 준비';
-  xs.textContent=t;xs.style.display=t?'':'none';}catch(e){}},500);})();
+  let t='';xs.textContent=t;xs.style.display=t?'':'none';}catch(e){}},500);})();
 
 // =============== 생산 비용 · 고무 확인 ===============
 const qd=b=>b._qd||(b._qd=[]);
@@ -12612,7 +12449,6 @@ const qd=b=>b._qd||(b._qd=[]);
  if(rub&&(tm.rub||0)<rub){if(!silent&&tm.human){toast(RUBF[tm.fac]?'고무가 부족해요 — '+RUBF[tm.fac]+'을(를) 짓거나 무역소에서 사세요':'고무가 부족해요 — '+(TRADEN[tm.fac]||'무역소')+'에서 석탄·에테르로 사세요');play('err');}return false;}
  const n0=b.queue.length,ok=_tt.apply(this,arguments);
  if(ok&&b.queue.length>n0){if(rub)tm.rub-=rub;let ent={c:0,e:0,t:1};
-  if(tm.fac==='cz'){const st=b._czLast===k?Math.min(4,(b._czN||0)+1):0;b._czLast=k;b._czN=st;const ds=0.08*st;if(ds){ent={c:R5(d.cost[0]*ds),e:R5(d.cost[1]*ds),t:1/(1-ds)};tm.coal+=ent.c;tm.ether+=ent.e;}}
   qd(b).push(ent);}
  return ok;};}
 {const _cq=cancelQueue;cancelQueue=function(b,i){const k=b.queue[i];const r=_cq.apply(this,arguments);try{if(k){const d=UD[k],tm=P(b.team);if(d&&d.cost[2])tm.rub=(tm.rub||0)+d.cost[2];const e=qd(b).splice(i,1)[0];if(e){tm.coal-=e.c;tm.ether-=e.e;}}}catch(e){}return r;};}
@@ -12629,7 +12465,7 @@ const fxPuff=(x,y,c)=>{for(let i=0;i<10;i++)part(x+rnd(-10,10),y+rnd(-10,10),rnd
 
 // =============== 유고: 위장 건물 ===============
 let FT_TEAM=null;
-function yuHidden(b,team){if(b.type!=='bld'||team==null||team<0||b.team===team||!b.built||fo(b.team)!=='yu'||!enemy(team,b.team))return false;
+function yuHidden(b,team){return false;if(b.type!=='bld'||team==null||team<0||b.team===team||!b.built||fo(b.team)!=='yu'||!enemy(team,b.team))return false;
  if((b._hitT||-99)>G.time-4)return false;const c=b._yv||(b._yv={});const e=c[team];if(e&&G.time-e[0]<0.4&&G.time>=e[0])return e[1];
  let vis=false;const R=6*T+b.w*T/2;unitsNear(b.x,b.y,R,v=>{if(!vis&&v.team>=0&&!enemy(team,v.team)&&dist(v.x,v.y,b.x,b.y)<R)vis=true;});
  c[team]=[G.time,!vis];return !vis;}
@@ -12643,7 +12479,7 @@ try{const _v0=vis0;vis0=function(e){if(e&&e.type==='bld'&&yuHidden(e,0))return f
 {const _du=drawUnit;drawUnit=function(u){try{if(u.team===0&&(u._ck||u._mirT>G.time)){const a=ctx.globalAlpha;ctx.globalAlpha=a*0.45;try{return _du.apply(this,arguments);}finally{ctx.globalAlpha=a;}}}catch(e){}return _du.apply(this,arguments);};}
 
 // =============== 버마: 물 위 건설 ===============
-function waterOk(kind,tx,ty,team){const d=BD[kind];if(!d||d.geyser||d.shore||fo(team)!=='bu')return false;let wat=0;
+function waterOk(kind,tx,ty,team){return false;const d=BD[kind];if(!d||d.geyser||d.shore||fo(team)!=='bu')return false;let wat=0;
  for(let y=ty;y<ty+d.h;y++)for(let x=tx;x<tx+d.w;x++){if(!inB(x,y))return false;const i=y*MW+x,t=terr[i];if(occ[i])return false;if(t===1){wat++;let nl=false;for(let yy=y-2;yy<=y+2&&!nl;yy++)for(let xx=x-2;xx<=x+2;xx++)if(inB(xx,yy)&&(terr[yy*MW+xx]===0||terr[yy*MW+xx]===6)){nl=true;break;}if(!nl)return false;}else if(t!==0&&t!==6)return false;}
  if(!wat)return false;let land=false,cr=!CREEPF.has('bu')||d.drop;const cm=cr?null:creepMap(team);
  for(let y=ty-1;y<=ty+d.h;y++)for(let x=tx-1;x<=tx+d.w;x++){if(!inB(x,y))continue;const i=y*MW+x;if((terr[i]===0||terr[i]===6)&&!occ[i])land=true;if(!cr&&cm[i])cr=true;}
@@ -12656,137 +12492,38 @@ function waterOk(kind,tx,ty,team){const d=BD[kind];if(!d||d.geyser||d.shore||fo(
 {const _cpm=computePlaceMask;computePlaceMask=function(kind){const m=_cpm.apply(this,arguments);try{const d=BD[kind],f=P(0).fac;
  if(d.nozone&&!d.geyser){for(let ty=0;ty<=MH-d.h;ty++)for(let tx=0;tx<=MW-d.w;tx++){let ok=true;for(let y=ty;y<ty+d.h&&ok;y++)for(let x=tx;x<tx+d.w;x++)if(!((terr[y*MW+x]===0||terr[y*MW+x]===6)&&occ[y*MW+x]===0)){ok=false;break;}if(ok)for(let y=ty;y<ty+d.h;y++)for(let x=tx;x<tx+d.w;x++)m[y*MW+x]=1;}}
  if(f==='bu'&&!d.geyser&&!d.shore){for(let ty=0;ty<=MH-d.h;ty++)for(let tx=0;tx<=MW-d.w;tx++){let w=false;for(let y=ty;y<ty+d.h&&!w;y++)for(let x=tx;x<tx+d.w;x++)if(terr[y*MW+x]===1){w=true;break;}if(!w)continue;if(waterOk(kind,tx,ty,0))for(let y=ty;y<ty+d.h;y++)for(let x=tx;x<tx+d.w;x++)m[y*MW+x]=1;}}}catch(e){console.error(e);}return m;};}
-// 버마 보급 건물에서 보병 훈련
-BD[FAC.bu.sup].train=BD[FAC.bu.build.find(k=>ROLE[k]==='inf')].train.filter(k=>!UD[k].cap).slice();
-BD[FAC.bu.sup].desc+=' · 보병 훈련 가능';
-
-// =============== 정적 보정: 건설·생산 시간 ===============
-for(const k in BD){const d=BD[k];
- if(d.f==='ma'&&!d.geyser){d.t=Math.max(4,Math.round(d.t*0.5));d.cost=d.cost.map(c=>R5(c*0.85));}
- if(d.f==='sn'&&ROLE[k]==='sea'){d.t=Math.round(d.t*0.5);d.sup=(d.sup||0)+8;d.desc+=' · 보급 +8 · 빠른 건설';}
-}
-for(const k in UD){const d=UD[k];
- if(d.f==='ma'&&(d.melee||k==='ma_spahi'))d.t=Math.round(d.t*0.65);
- if(d.f==='cu'&&d.layer==='n'){d.t=Math.round(d.t*0.6);d.cost=d.cost.map(c=>R5(c*0.75));}
-}
-// 쿠바 해안 포대 (물가의 방어 건물이 변신)
-{const dk=FAC.cu.build.find(k=>ROLE[k]==='def');if(dk){const c=JSON.parse(JSON.stringify(BD[dk]));c.n='엘 모로 해안 포대';c.desc='해안 포대 — 사거리 +30% · 잠수함 탐지·공격';c.det=1;if(c.atk){c.atk.rng=Math.round(c.atk.rng*1.3);c.atk.tg='gn';}BD.cu_defc=c;ROLE.cu_defc='def';BHK.cu_defc=BHK[dk];
- const _ob=onBuilt;onBuilt=function(b){const r=_ob.apply(this,arguments);try{if(b.kind===dk&&nearWater(b,3)){b.kind='cu_defc';if(b.team===0)toast('물가의 방어 건물이 해안 포대가 되었어요 (사거리 +30% · 잠수함 공격)');}}catch(e){}return r;};}}
-
 // =============== 건설·생산 속도 ===============
 const PIPE=f=>f==='ve';
 function nearPipe(b){if(b._np&&G.time-b._np[0]<2)return b._np[1];let ok=false;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===b.team&&e.built&&e!==b&&(BD[e.kind].geyser||e.kind==='ve_derrick')&&dist(e.x,e.y,b.x,b.y)<7*T){ok=true;break;}b._np=[G.time,ok];return ok;}
-function prodMul(b,k){const f=fo(b.team);let m=1;const e=b._qd&&b._qd[0];if(e&&e.t)m*=e.t;
+function prodMul(b,k){let m=1;return m;const f=fo(b.team);const e=b._qd&&b._qd[0];if(e&&e.t)m*=e.t;
  if(f==='eg'&&nearWater(b,4))m*=1.25;
  if(f==='ve'&&['veh','air','sea'].includes(ROLE[b.kind])&&nearPipe(b))m*=1.35;return m;}
-function bldMul(b){const f=fo(b.team);let m=1;if(f==='eg'&&nearWater(b,4))m*=1.6;if(f==='ve'&&nearPipe(b))m*=1.5;return m;}
+function bldMul(b){return 1;const f=fo(b.team);let m=1;if(f==='eg'&&nearWater(b,4))m*=1.6;if(f==='ve'&&nearPipe(b))m*=1.5;return m;}
 {const _ub=updBld;updBld=function(b,dt){const q0=b.queue&&b.queue[0],qn=b.queue?b.queue.length:0,qp0=b.qp,pg0=b.prog,b0=b.built;const r=_ub.apply(this,arguments);try{if(b.dead)return r;if(b._qd&&b.queue&&b.queue.length<qn)b._qd.splice(0,qn-b.queue.length);const f=fo(b.team);if(!F3.has(f))return r;
- if(b0&&q0&&b.queue[0]===q0&&b.qp>qp0){const m=prodMul(b,q0);if(m!==1)b.qp+=(b.qp-qp0)*(m-1);
-  if(f==='yu'&&ROLE[b.kind]==='veh'&&b.qp<0.97&&b.qp>0){const tm=P(b.team);if((tm.salv||0)>0){tm.salv--;b.qp=1;if(tm.human)toast('🔧 노획품으로 '+UD[q0].n+' 즉시 완성');fxPuff(b.x,b.y,'#ffd27a');}}}
+ if(b0&&q0&&b.queue[0]===q0&&b.qp>qp0){const m=prodMul(b,q0);if(m!==1)b.qp+=(b.qp-qp0)*(m-1);}
  if(!b0&&!b.built){let add=0;const d=BD[b.kind];
   if(b.prog>pg0){const m=bldMul(b);if(m!==1)add+=(b.prog-pg0)*(m-1);}
-  if(f==='idn'){let n=0;unitsNear(b.x,b.y,b.w*T/2+50,v=>{if(n<3&&v.team===b.team&&UD[v.kind].bio&&!UD[v.kind].worker&&!v._life&&v.state!=='attack')n++;});if(n)add+=dt/d.t*0.35*n;
-   if(n&&Math.random()<dt*4)part(b.x+rnd(-b.w*T/2,b.w*T/2),b.y+rnd(-b.h*T/2,b.h*T/2),rnd(-20,20),rnd(-30,0),0.4,1.6,'#ffcf6a');}
   if(add){b.prog+=add;b.hp=Math.min(b.maxhp,b.hp+b.maxhp*0.9*add);if(b.prog>=1){b.prog=1;b.built=true;onBuilt(b);}}}
  }catch(e){console.error(e);}return r;};}
 
-// =============== 생산 시 특수 출현 ===============
-{const _sf=spawnFrom;spawnFrom=function(b,kind){
- const f=fo(b.team),d=UD[kind];
- try{if(f==='vn'&&d.bio&&!d.worker&&b.rally&&!b.rally.res&&ROLE[b.kind]==='inf'){let E=null,bd=dist(b.x,b.y,b.rally.x,b.rally.y)-6*T;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===b.team&&e.built&&e.kind===FAC.vn.sup){const dd=dist(e.x,e.y,b.rally.x,b.rally.y);if(dd<bd){bd=dd;E=e;}}
-  if(E){fxPuff(E.x,E.y,'#8a7a52');return _sf.call(this,{id:b.id,tx:E.tx,ty:E.ty,w:E.w,h:E.h,x:E.x,y:E.y,rally:b.rally,team:b.team},kind);}}}catch(e){console.error(e);}
- const n0=ents.length,r=_sf.apply(this,arguments);
- try{const nu=ents.slice(n0).filter(e=>e.type==='unit'&&e.kind===kind&&e.team===b.team);const u=nu[0];if(!u)return r;
-  if(kind==='idn_bambu'){for(let i=0;i<2;i++){if(!supOk(b.team))break;const v=addUnit(kind,b.team,u.x+rnd(-12,12),u.y+rnd(6,14));if(b.rally&&!b.rally.res)orderMove(v,b.rally.x+rnd(-16,16),b.rally.y+rnd(-16,16),true);}}
-  if(f==='eg'&&d.mech&&!d.cap&&d.layer!=='a'&&d.layer!=='n'){const v=tempUnit(kind,b.team,u.x+14,u.y+8,30,true);if(v&&b.rally&&!b.rally.res)orderMove(v,b.rally.x+20,b.rally.y+10,true);}
- }catch(e){console.error(e);}return r;};}
-
-// =============== 피해 · 처치 ===============
-function beNear(u){if(u._ben&&G.time-u._ben[0]<0.5)return u._ben[1];let ok=false;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===u.team&&e.built&&dist(e.x,e.y,u.x,u.y)<8*T){ok=true;break;}u._ben=[G.time,ok];return ok;}
-function snNear(b){if(b._snn&&G.time-b._snn[0]<2)return b._snn[1];let ok=false;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===b.team&&e.built&&ROLE[e.kind]==='sea'&&dist(e.x,e.y,b.x,b.y)<6*T){ok=true;break;}b._snn=[G.time,ok];return ok;}
-{const _dm=dmgMul;dmgMul=function(u){let m=_dm(u);try{const f=fo(u.team);if(!F3.has(f))return m;const d=UD[u.kind];
- if(f==='be'&&d.bio&&!d.layer&&beNear(u))m*=1.2;
- if(f==='ma'){const w=G.wx;if(!w||!w.on||w.noNight||G.camp)m*=1.1;else m*=1+0.3*nightAmt();}
- if(f==='sn'&&d.melee&&u.hp>=u.maxhp*0.5)m*=1.25;
- if(f==='ve'&&d.mech&&P(u.team).ether>=500)m*=1.1;}catch(e){}return m;};}
-{const _dg=damage;damage=function(t,amt,src){if(!t||t.dead||t.type==='res')return _dg.apply(this,arguments);
- try{if(src&&src._decoy)return;
-  if(amt>0){t._hitT=G.time;const ft=fo(t.team),fs=src&&src.team!=null&&src.team>=0?fo(src.team):null;
-   if(fs==='bu'&&src.type==='unit'&&UD[src.kind].bio){if(src._ck||(UD[src.kind].cloak&&G.time-(src._atkT||-99)>=3)){amt*=2;G.rings&&G.rings.push({x:t.x,y:t.y,r:26,t:0,dur:0.3,col:'#8aff6a'});}src._ck=0;src._still=G.time;}
-   if(src&&src.type==='unit')src._atkT=G.time;
-   if(fs==='vn'&&src.type==='unit')src._hrT=G.time+2;
-   if(t.type==='unit'&&t._ck){t._ck=0;t._still=G.time;}
-   if(ft==='vn'&&t.type==='bld')amt*=0.7;
-   if(ft==='be'&&t.type==='unit'&&UD[t.kind].bio&&!UD[t.kind].layer&&beNear(t))amt*=0.85;
-   if(ft==='sn'&&t.type==='bld'&&snNear(t))amt*=0.8;
-   if(ft==='be'&&t.type==='bld'&&t.built&&!G._beSh){const os=[];for(const e of ents)if(e!==t&&e.type==='bld'&&!e.dead&&e.team===t.team&&e.built&&dist(e.x,e.y,t.x,t.y)<6*T){os.push(e);if(os.length>=4)break;}
-    if(os.length){const sh=amt*0.5/os.length;amt*=0.5;G._beSh=1;try{for(const e of os){_dg.call(this,e,sh,src);if(Math.random()<0.3)part(e.x,e.y-e.h*T/2,0,-20,0.5,2,'#e8c040');}}finally{G._beSh=0;}}}
-  }}catch(e){console.error(e);}
- const r=_dg.call(this,t,amt,src);
- try{if(!t.dead&&amt>0){const ft=fo(t.team);
-  if(ft==='eg'&&t.type==='unit'&&!t._decoy&&!t._mir&&!UD[t.kind].worker&&t.hp<t.maxhp*0.4){t._mir=1;t._mirT=G.time+2;for(let i=0;i<2;i++){const v=tempUnit(t.kind,t.team,t.x+rnd(-18,18),t.y+rnd(-18,18),12,true);if(v&&src&&src.type==='unit')orderAttack(v,src);}fxPuff(t.x,t.y,'#f0e0a0');}
-  if(ft==='idn'&&t.type==='bld'&&t.built&&src&&src.team>=0&&enemy(t.team,src.team)&&G.time-(t._mdT||-99)>=40){const tm=P(t.team);const n=ents.filter(e=>e.type==='unit'&&!e.dead&&e.team===t.team&&e._life&&e.kind==='idn_bambu').length;
-   if(n<10){t._mdT=G.time;const sp=ring(t,src.x,src.y);for(let i=0;i<2;i++){const v=tempUnit('idn_bambu',t.team,sp[0]+rnd(-8,8),sp[1]+rnd(-8,8),40);if(v){if(src.type==='unit'&&canHit(UD.idn_bambu.tg,src))orderAttack(v,src);else orderMove(v,src.x,src.y,true);}}
-    if(tm.human)toast('🇮🇩 메르데카! 의용군이 달려왔어요');}}
- }}catch(e){console.error(e);}
- return r;};}
-{const _kl=kill;kill=function(e,src){const was=!e.dead;const r=_kl.apply(this,arguments);try{if(!was||!e.dead||!G||!G.pl)return r;
- const fs=src&&src.team!=null&&src.team>=0?fo(src.team):null,fe=e.team>=0?fo(e.team):null;
- if(e.type==='unit'&&!e._life){const d=UD[e.kind];
-  if(fs==='yu'&&enemy(src.team,e.team)){const tm=P(src.team);if(d.mech&&!d.cap){tm.salv=Math.min(5,(tm.salv||0)+1);if(tm.human)toast('🔧 노획품 +1 ('+tm.salv+')');}
-   else if(d.bio&&!d.worker&&src.type==='unit'&&UD[src.kind].bio&&Math.random()<0.15&&supOk(src.team)){const v=addUnit('yu_partizan',src.team,e.x,e.y);if(v){fxPuff(e.x,e.y,'#c8302a');if(tm.human)toast('✊ 파르티잔이 합류했어요');}}}
-  if(e.kind==='ir_immortal'){const tm=P(e.team);(tm._irq=tm._irq||[]).push(G.time+25);}
- }}catch(err){console.error(err);}return r;};}
 {const _so=sightOf;sightOf=function(e){let r=_so(e);try{if(e.type==='unit'){const s=UD[e.kind].sight;if(s)r+=s;}}catch(err){}return r;};}
-{const _nd=nearestDrop;nearestDrop=function(u){const b=_nd.apply(this,arguments);try{if(fo(u.team)!=='ir')return b;let best=b,bd=b?dist(u.x,u.y,b.x,b.y):1e9;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===u.team&&e.built&&e.kind===FAC.ir.sup){const d=dist(u.x,u.y,e.x,e.y);if(d<bd){bd=d;best=e;}}return best;}catch(e){return b;}};}
-
-// =============== 베트남 땅굴 이동 ===============
-{const _om=orderMove;orderMove=function(u,x,y,am,keep){const r=_om.apply(this,arguments);try{if(u._tunGo)return r;u._tun=null;const d=UD[u.kind];
- if(fo(u.team)!=='vn'||!d.bio||d.worker||d.layer||u.dead)return r;const D=dist(u.x,u.y,x,y);if(D<14*T)return r;
- let A=null,B=null,ad=6*T,bd=1e9;for(const e of ents){if(e.type!=='bld'||e.dead||e.team!==u.team||!e.built||e.kind!==FAC.vn.sup)continue;const da=dist(e.x,e.y,u.x,u.y);if(da<ad){ad=da;A=e;}}
- if(!A)return r;for(const e of ents){if(e.type!=='bld'||e.dead||e.team!==u.team||!e.built||e.kind!==FAC.vn.sup||e===A)continue;const db=dist(e.x,e.y,x,y);if(db<bd){bd=db;B=e;}}
- if(!B||ad+bd+2*T>D*0.7)return r;u._tun={a:A.id,b:B.id,x,y,am:!!am};const o=AIB;AIB=null;u._tunGo=1;try{_om.call(this,u,A.x,A.y+A.h*T/2,false);}finally{u._tunGo=0;AIB=o;}}catch(e){console.error(e);}return r;};
- globalThis.vnTunTick=function(){for(const u of ents){if(u.type!=='unit'||!u._tun)continue;if(u.dead){u._tun=null;continue;}const A=byId.get(u._tun.a),B=byId.get(u._tun.b);if(!A||A.dead||!B||B.dead){u._tun=null;continue;}
-  if(u.state!=='move'&&u.state!=='amove'){u._tun=null;continue;}
-  if(edgeDist(A,u.x,u.y)<=u.r+20){const tn=u._tun;u._tun=null;fxPuff(u.x,u.y,'#6a5a3a');const sp=ring(B,tn.x,tn.y);u.x=sp[0]+rnd(-6,6);u.y=sp[1]+rnd(-6,6);u.path=null;fxPuff(u.x,u.y,'#6a5a3a');
-   const o=AIB;AIB=null;u._tunGo=1;try{orderMove(u,tn.x,tn.y,tn.am);}finally{u._tunGo=0;AIB=o;}}}};}
-
 // =============== 주기 처리 ===============
 function edgeSpawn(b){const cx=b.x/T,cy=b.y/T,cand=[[1,cy],[MW-2,cy],[cx,1],[cx,MH-2]].sort((a,c)=>Math.hypot(a[0]-cx,a[1]-cy)-Math.hypot(c[0]-cx,c[1]-cy));
  for(const c of cand){const n=nearestPass('g',Math.round(c[0]),Math.round(c[1]),Math.round(cx),Math.round(cy),14);if(n)return [(n[0]+.5)*T,(n[1]+.5)*T];}return null;}
 let A25=0,A1=0,A01=0;
-function tick025(){for(const u of ents){if(u.type!=='unit'||u.dead||u.team<0)continue;const f=fo(u.team);if(!F3.has(f)){continue;}const d=UD[u.kind];let m=1;
- if(f==='ir'&&!d.layer){let near=false;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===u.team&&e.built&&dist(e.x,e.y,u.x,u.y)<8*T){near=true;break;}if(near)m*=1.25;}
- if(f==='vn'&&u._hrT>G.time)m*=1.35;
- if(f==='ma'){const w=G.wx;if(w&&w.on&&!w.noNight&&!G.camp)m*=1+0.2*nightAmt();}
- if(f==='sn'&&d.melee&&u.state==='attack')m*=1.2;
- u.fxSp=m;
- if(f==='bu'&&d.bio&&!d.worker&&!d.layer&&!u._life){const mv=u._lx==null||Math.hypot(u.x-u._lx,u.y-u._ly)>1.5;u._lx=u.x;u._ly=u.y;if(mv||u.state==='attack')u._still=G.time;if(!u._ck&&G.time-(u._still||0)>=3&&G.time-(u._atkT||-99)>=3&&G.time-(u._hitT||-99)>=3)u._ck=1;if(mv&&u._ck&&!UD[u.kind].cloak)u._ck=0;}
- if(f==='cz'&&d.mech&&u.hp<u.maxhp&&G.time-(u._hitT||-99)>4)u.hp=Math.min(u.maxhp,u.hp+u.maxhp*0.015*0.25);
-}
- // 체코 고슴도치
- for(const b of ents){if(b.type!=='bld'||b.dead||b.kind!=='cz_hedge'||!b.built)continue;unitsNear(b.x,b.y,T*1.7,v=>{if(!enemy(b.team,v.team)||!UD[v.kind].mech||UD[v.kind].layer)return;if(dist(v.x,v.y,b.x,b.y)>T*1.7)return;v.slowT=Math.max(v.slowT||0,0.8);damage(v,2,b);});}
-}
+function tick025(){}
 function tick1(){for(const p of G.pl){if(!p.alive)continue;const f=p.fac;
  if(p._tp){const m=p._tp;m.sell=Math.min(1,m.sell+0.012);m.buy=Math.max(1,m.buy-0.012);}
  if(p.rub==null)p.rub=RUBF[f]?60:30;
  if(RUBF[f]){let n=0;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===p.id&&e.built&&e.kind===f+'_rub')n++;
   if(f==='cz'){for(let i=0;i<n;i++)if(p.coal>=30){p.coal-=1;p.rub+=0.7;}}else p.rub+=Math.min(n,3)*0.6+Math.max(0,n-3)*0.3+(f==='br'?Math.min(n,3)*0.15:0);
   p.rub=Math.min(p.rub,2000);}
- if(f==='ve'){let n=0;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===p.id&&e.built&&e.kind==='ve_derrick')n++;p._drk=n;p.ether+=Math.min(n,6)*0.5;}
- if(f==='ir'){if(p._irq&&p._irq.length){p._irq.sort((a,b)=>a-b);if(p._irq[0]<=G.time){const bs=ownB(p.id,e=>e.built&&ROLE[e.kind]==='inf'&&!e.moving);if(bs.length&&supOk(p.id,2)){p._irq.shift();const b=bs[0];spawnFrom(b,'ir_immortal');fxPuff(b.x,b.y,'#e8c040');if(p.human)toast('🛡 불사대가 다시 일어섰어요');}else p._irq[0]=G.time+3;}}
-  p._ll=(p._ll||0)+1;if(p._ll>=120){p._ll=0;p.coal+=100;p.ether+=50;if(p.human)toast('🚚 랜드리스 회랑: 원조 물자 도착 (석탄 100 · 에테르 50)');}}
- if(f==='be'){p._cg=(p._cg||0)+1;if(p._cg>=70){p._cg=0;const bs=ownB(p.id,e=>e.built&&ROLE[e.kind]==='inf').slice(0,3),hq=ownB(p.id,e=>e.built&&BD[e.kind].drop)[0];if(bs.length&&hq){const sp=edgeSpawn(hq);let k=0;if(sp)for(let i=0;i<bs.length;i++){if(!supOk(p.id))break;const u=addUnit('be_fp',p.id,sp[0]+rnd(-10,10),sp[1]+rnd(-10,10));if(u){k++;const rb=bs[i].rally;orderMove(u,rb&&!rb.res?rb.x:bs[i].x+rnd(-30,30),rb&&!rb.res?rb.y:bs[i].y+bs[i].h*T,true);}}if(k&&p.human)toast(`🌴 콩고 공안군 ${k}명이 도착했어요`);}}}
- if(f==='sn'){const ss=ownB(p.id,e=>e.built&&ROLE[e.kind]==='sea').slice(0,2);p._rf=(p._rf||0)+1;const per=ss.length?90:150;if(p._rf>=per){p._rf=0;let k=0;if(ss.length){for(const b of ss)for(let i=0;i<2;i++){if(!supOk(p.id))break;const u=addUnit('sn_tirailleur',p.id,...ring(b,b.x,b.y+200));if(u){k++;if(b.rally&&!b.rally.res)orderMove(u,b.rally.x+rnd(-12,12),b.rally.y,true);}}}
-   else{const hq=ownB(p.id,e=>e.built&&BD[e.kind].drop)[0];if(hq&&supOk(p.id)){spawnFrom(hq,'sn_tirailleur');k=1;}}if(k&&p.human)toast(`⚓ 증원 함대: 저격병 ${k}명 상륙`);}}
- if(f==='ma'){for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===p.id&&b.built&&G.time-(b._hitT||-99)>6&&b.hp>b.maxhp*0.7)b.hp-=b.maxhp*0.0008;}
- if(f==='bu'&&!p._uprise){const hq=ownB(p.id,e=>e.built&&BD[e.kind].drop).find(b=>b.hp<b.maxhp*0.5);if(hq){p._uprise=1;for(let i=0;i<6;i++){const sp=ring(hq,hq.x+rnd(-60,60),hq.y+rnd(-60,60));addUnit('bu_karen',p.id,sp[0]+rnd(-8,8),sp[1]+rnd(-8,8));}fxPuff(hq.x,hq.y,'#c8302a');if(p.human)toast('✊ 봉기! 의용대 6명이 일어섰어요');}}
 }
  // 임시 유닛 정리
  for(const u of ents)if(u.type==='unit'&&!u.dead&&u._life&&u._life<G.time){u.dead=true;u.silent=true;fxPuff(u.x,u.y,u._decoy?'#f0e0a0':'#c8a060');}
 }
 {const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over||!G.pl)return r;A25+=dt;A1+=dt;A01+=dt;
- if(A01>=0.1){A01=Math.min(A01-0.1,0.1);vnTunTick();}if(A25>=0.25){A25=Math.min(A25-0.25,0.25);tick025();}if(A1>=1){A1=Math.min(A1-1,1);tick1();}}catch(e){console.error(e);}return r;};}
+ if(A01>=0.1){A01=Math.min(A01-0.1,0.1);}if(A25>=0.25){A25=Math.min(A25-0.25,0.25);tick025();}if(A1>=1){A1=Math.min(A1-1,1);tick1();}}catch(e){console.error(e);}return r;};}
 
 // =============== AI: 특수 건물 ===============
 {const _ah=aiHuman;aiHuman=function(p,c){const r=_ah.apply(this,arguments);try{if(p.human||!p.alive||G.camp&&G.camp.hist)return r;p._f3T=(p._f3T||0)+1;if(p._f3T<20)return r;p._f3T=0;
@@ -12799,8 +12536,6 @@ function tick1(){for(const p of G.pl){if(!p.alive)continue;const f=p.fac;
  if(FAC[f].build.includes(f+'_trade')){const tk=f+'_trade';if(tt>(RUBF[f]?300:220)&&cnt(tk)<1)tryB(tk,hq.x+rnd(-100,100),hq.y+rnd(-100,100));
   if(ents.some(e=>e.type==='bld'&&!e.dead&&e.team===p.id&&e.built&&e.kind===tk)){const m=TP(p),need=p._rneed||(p._rneed=Math.max(0,...Object.values(UD).filter(d=>d.f===f&&d.cost&&d.cost[2]).map(d=>d.cost[2])));const lo=RUBF[f]?35:need*2;
    if(p.rub>350&&m.sell>0.8)f3Trade(p,p.ether<p.coal*0.4?1:0);else if(p.rub<lo&&p.coal>(RUBF[f]?450:300)&&m.buy<1.3)f3Trade(p,2);else if(p.rub<lo&&p.ether>350&&m.buy<1.3)f3Trade(p,3);}}
- if(f==='ve'){const want=tt>360?4:tt>150?2:0;if(cnt('ve_derrick')<want)tryB('ve_derrick',hq.x+rnd(-150,150),hq.y+rnd(-150,150));}
- if(f==='cz'&&(p.diff??G.diff)>=2&&tt>300){if(cnt('cz_hedge')<4){const cx=hq.x+(WW/2-hq.x)*0.18,cy=hq.y+(WH/2-hq.y)*0.18;tryB('cz_hedge',cx+rnd(-60,60),cy+rnd(-60,60));}}
 }catch(e){console.error(e);}return r;};}
 })();
 // 모바일 진영 선택판: 44개 진영(11열)에서 긴 이름이 잘리지 않게
@@ -12974,10 +12709,8 @@ try{const L=[...document.querySelectorAll('#title .left > .lbl')];const nm=['t-l
  const ms=document.getElementById('modeSeg');if(ms&&ms.parentNode&&ms.parentNode.id!=='title')ms.parentNode.classList.add('t-mode');}catch(e){}
 function tagLate(){try{const w=document.getElementById('wxOpt');if(w&&w.nextElementSibling&&w.nextElementSibling.tagName==='BUTTON'&&!w.nextElementSibling.id)w.nextElementSibling.id='shakeOpt';}catch(e){}}
 // 2) 진영 카드: 대표 유닛 그림 · 진영 편 표시
-function decorate(){try{for(const el of document.querySelectorAll('#facRow .fac')){if(el.querySelector('.uimg'))continue;const f=el.dataset.f,F=FAC[f];if(!F)continue;
-  const ks=[];for(const b of F.build)for(const k of (BD[b]&&BD[b].train)||[])if(UD[k]&&!UD[k].worker&&!UD[k].cap)ks.push(k);
-  const pickK=ks.find(k=>UD[k].adv&&!UD[k].layer)||ks.find(k=>UD[k].mech&&!UD[k].layer&&UD[k].cost[0]>=150)||ks[1]||ks[0];
-  if(pickK){const c=unitArt(pickK,0,false,0,'');if(c){const im=document.createElement('img');im.className='uimg';im.src=c.toDataURL();im.alt='';el.appendChild(im);}}
+function decorate(){try{for(const el of document.querySelectorAll('#facRow .fac')){if(el.querySelector('.fside'))continue;const f=el.dataset.f,F=FAC[f];if(!F)continue;
+  const nm=(globalThis.FXN&&FXN[f])||'';if(nm){const t=document.createElement('div');t.className='ftn';t.textContent='★\u00a0'+nm;el.appendChild(t);}
   const sd=document.createElement('span');const s=(typeof FSIDE!=='undefined'&&FSIDE[f])||'';sd.className='fside '+(s==='연합'?'al':s==='추축'?'ax':'ne');sd.textContent=s;el.appendChild(sd);}}catch(e){console.error(e);}}
 // 3) 진영 설명: PC에서는 고유 규칙도 함께
 {const _st=showTrait;showTrait=function(){const r=_st.apply(this,arguments);try{const el=document.getElementById('facTrait');if(!PC||!el)return r;const f=cfg.fac,rule=(typeof NF_RULE!=='undefined'&&NF_RULE[f])||'';
@@ -12993,17 +12726,17 @@ body.pc #title:not(.wizOn) .wrap>*,body.pc #title:not(.wizOn) .left>*,body.pc #t
 body.pc #title:not(.wizOn) h1{grid-column:1;grid-row:1;justify-self:start;font-size:clamp(26px,3.6vh,48px);display:flex;align-items:baseline;gap:14px}
 body.pc #title:not(.wizOn) .en{grid-column:2/4;grid-row:1;justify-self:end;align-self:center;font-size:clamp(9px,1.1vh,13px);letter-spacing:.45em}
 body.pc #title:not(.wizOn) #facRow{grid-column:1;grid-row:2/13;align-self:stretch;width:100%;height:100%;max-width:none;overflow:hidden;padding:0;box-sizing:border-box;
- display:grid;grid-auto-flow:column;grid-template-rows:repeat(4,minmax(0,1fr));grid-template-columns:repeat(11,minmax(0,1fr));gap:clamp(4px,.6vw,10px)}
+ display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,minmax(0,1fr));grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(4px,.6vw,10px)}
 body.pc #title:not(.wizOn) #facRow .fac{width:auto;min-width:0;height:auto;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:clamp(4px,.6vh,9px) clamp(5px,.5vw,9px);border-radius:9px;border:1.5px solid #5a4528;background:linear-gradient(rgba(40,31,20,.95),rgba(18,14,9,.95));cursor:pointer;transition:transform .08s,border-color .08s}
 body.pc #title:not(.wizOn) #facRow .fac:hover{border-color:#c8a050;transform:translateY(-2px)}
 body.pc #title:not(.wizOn) #facRow .fac.sel{border-color:#f0d080;box-shadow:0 0 0 2px #f0d080,0 0 22px rgba(240,208,128,.35);background:linear-gradient(rgba(74,58,30,.95),rgba(30,23,13,.95))}
 body.pc #title:not(.wizOn) #facRow .fac .bar{height:clamp(3px,.45vh,6px);margin-bottom:clamp(3px,.5vh,6px)}
 body.pc #title:not(.wizOn) #facRow .fac .fn{font-size:clamp(12px,1.75vh,21px)!important;letter-spacing:-.02em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.pc #title:not(.wizOn) #facRow .fac .fn.l5{font-size:clamp(11px,1.5vh,18px)!important;letter-spacing:-.06em!important}
-body.pc #title:not(.wizOn) #facRow .fac .fd{font-size:clamp(9px,1.18vh,13px);white-space:normal;line-height:1.25;max-height:2.6em;overflow:hidden}
-body.pc #title:not(.wizOn) #facRow .fac .uimg{position:absolute;right:3%;bottom:5%;height:54%;max-width:88%;object-fit:contain;image-rendering:pixelated;opacity:.92;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+body.pc #title:not(.wizOn) #facRow .fac .fd{font-size:clamp(9px,1.18vh,13px);white-space:nowrap;text-overflow:ellipsis;line-height:1.25;overflow:hidden}
+body.pc #title:not(.wizOn) #facRow .fac .ftn{margin-top:auto;margin-bottom:0;padding-left:clamp(30px,3vw,46px);text-align:right;font-size:clamp(10px,1.4vh,16px);font-weight:700;color:#f0d080;line-height:1.2;text-shadow:0 1px 2px #000;word-break:keep-all;overflow-wrap:anywhere}
 body.pc #title:not(.wizOn) #facRow .fac .fside{position:absolute;left:clamp(5px,.5vw,9px);bottom:clamp(4px,.6vh,8px);font-size:clamp(8px,1vh,11px);padding:1px 5px;border-radius:4px;font-weight:700}
-.fside{display:none}.uimg{display:none}body.pc #title:not(.wizOn) .fside,body.pc #title:not(.wizOn) .uimg{display:block}
+.fside{display:none}.ftn{display:none}.uimg{display:none!important}body.pc #title:not(.wizOn) .fside,body.pc #title:not(.wizOn) .ftn{display:block}
 .fside.al{background:#2a4a7a;color:#cfe0ff}.fside.ax{background:#6a2a22;color:#ffd0c8}.fside.ne{background:#4a4a40;color:#e8e0c8}
 body.pc #title:not(.wizOn) #facTrait{grid-column:1/4;grid-row:13;font-size:clamp(11px,1.45vh,16px)!important;line-height:1.45;min-height:3.2em;margin:0!important;padding:clamp(5px,.8vh,10px) 14px;border:1px solid #5a4528;border-radius:10px;background:rgba(20,16,10,.85);color:#e8d49a}
 body.pc #title:not(.wizOn) #facTrait b{color:#f0d080}body.pc #title:not(.wizOn) #facTrait .fs{font-size:.85em;color:#b5a585;margin-right:6px}
@@ -13116,6 +12849,190 @@ function campAssist(){const c=G.camp;if(!c)return;if(c._agi!==c.gi){c._agi=c.gi;
 function aiConvert(p){if(p.human||!p.alive||!globalThis.f3Trade)return;if(p.ether<1500||p.coal>200)return;const has=ents.some(e=>e.type==='bld'&&!e.dead&&e.team===p.id&&e.built&&ROLE[e.kind]==='trade');if(!has)return;
  for(let i=0;i<3&&p.ether>1200&&p.coal<400;i++){if(!f3Trade(p,3))break;f3Trade(p,0);}}
 let acc=0,acc2=0;{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over||!G.pl)return r;acc+=dt;acc2+=dt;if(acc>=2){acc=0;unstick();campAssist();}if(acc2>=10){acc2=0;for(const p of G.pl)aiConvert(p);}}catch(e){console.error(e);}return r;};}
+})();
+
+// ===================== F.V.1.4.0 진영 개성 개편 =====================
+// 44개 진영마다 겹치지 않는 고유 효과 하나를 크게. 신규 12개 진영의 특수 건설·생산 기능은 없앰.
+// 원조 8진영(미·소·독·이·프·영·일·중)의 수치는 본편 코드에서 직접 키웠고, 나머지는 여기서 처리.
+(function(){
+const fo=t=>{try{return G&&G.pl&&G.pl[t]?G.pl[t].fac:null;}catch(e){return null;}};
+const R5=v=>Math.max(0,Math.round(v/5)*5);
+// [효과 이름, 짧은 설명(모바일 한 줄), 자세한 규칙, 진영 카드 키워드]
+const FX={
+ us:['무기고 민주주의','기계 유닛 생산 40% 빠름 · 보급 건물 보급 +4','공장에서 나오는 모든 기계 유닛(전차·비행기·함선)의 생산 시간이 40% 짧아요. 보급 건물 하나가 보급을 4 더 줘요.','건물 이동 · 기계 양산'],
+ su:['인해전술','보병 비용 30% 저렴 · 건물 근처 보병 공격 +30%','모든 보병이 30% 싸요. 아군 건물 근처에서 싸우는 보병은 피해가 30% 늘어나요.','일꾼이 건물로 · 물량'],
+ de:['룬 방벽','기계 유닛 방어막 +80 · 방어막 빠른 재생','모든 기계 유닛이 방어막 80을 두르고, 방어막이 다른 진영보다 2배 빨리 다시 차요.','마법진 · 방어막'],
+ it:['전격 속도전','모든 유닛 이동 +25% · 무기 연구 비용 40% 저렴','모든 유닛이 25% 빨라요. 무기 연구 비용이 40% 싸요.','건물 이동 · 속도'],
+ fr:['마지노 요새','건물 체력 +60% · 방어 건물 사거리 +30%','모든 건물 체력이 60% 높고, 방어 건물 사거리가 30% 길어요.','협동 건설 · 요새'],
+ uk:['해양 제국','해상 유닛 체력 +40% · 사거리 +25%','모든 함선 체력이 40%, 사거리가 25% 늘어요. 시야도 2칸 넓어요.','동력장 · 해군'],
+ jp:['기습','5초 쉬던 유닛 첫 공격 피해 3배','5초 이상 공격하지 않던 유닛의 첫 공격이 3배 피해를 줘요.','영토 · 기습'],
+ cn:['인민의 힘','석탄 채집 +50% · 보급 건물 40% 저렴','일꾼이 석탄을 한 번에 50% 더 캐요. 보급 건물이 40% 싸요.','영토 · 석탄'],
+ au:['오지 사수','보병 사거리 +35% · 일꾼 체력 2배','원거리 보병 사거리가 35% 길어요. 일꾼 체력이 2배예요.','동력장 · 저격'],
+ za:['다이아몬드 광맥','채집할 때 25% 확률로 3배 대박','일꾼이 자원을 캘 때마다 25% 확률로 한 번에 3배를 캐요.','협동 건설 · 대박'],
+ br:['연쇄 공세','처치한 유닛 6초간 공속 +50%·피해 +25%','적을 쓰러뜨린 유닛은 6초 동안 공격 속도 +50%, 피해 +25%, 이동 +20%. 계속 처치하면 계속 이어져요.','건물 이동 · 연쇄'],
+ in:['라자의 위엄','생체 유닛 체력 +35%','보병·기병·코끼리 같은 모든 생체 유닛 체력이 35% 높아요.','영토 · 맷집'],
+ ko:['광무개혁','연구 시간 65% 단축','모든 무기 연구가 65% 빨리 끝나요.','건물 이동 · 연구'],
+ hu:['강철 후사르','지상 기계 유닛 피해 +35% · 이동 +20%','전차·장갑차·자주포 등 지상 기계 유닛의 피해가 35%, 이동이 20% 늘어요.','건물 이동 · 기갑'],
+ fi:['시수(Sisu)','모든 유닛이 치명상을 한 번 버팀 · 감속 면역','모든 유닛이 처음 쓰러질 만한 피해를 받으면 한 번은 체력 30%로 버텨요. 어떤 감속에도 느려지지 않아요.','협동 건설 · 불굴'],
+ pl:['날개 기병','근접 유닛 피해 +60%','근접 유닛의 피해가 60% 늘어요.','건물 이동 · 돌격'],
+ ca:['숲의 개척자','보병·일꾼 숲 통과 · 숲에서 받는 피해 -35%','보병과 일꾼이 숲을 지나다닐 수 있어요. 숲 안이나 숲 바로 옆의 아군은 받는 피해가 35% 줄어요.','건물 이동 · 숲'],
+ nz:['하카','근접 교전 시 6초간 피해 +60%·이동 +40%','근접 유닛이 싸움을 시작하면 6초 동안 피해 +60%, 이동 +40% (유닛마다 10초에 한 번).','건물 이동 · 하카'],
+ gr:['방패진','방어 건물 근처 아군 받는 피해 -45%','아군 방어 건물 근처(약 13칸)의 모든 아군 유닛은 받는 피해가 45% 줄어요.','동력장 · 방패'],
+ nl:['제방 수리','모든 건물이 초당 1.5% 자동 수리','다 지은 건물은 맞고 있어도 초당 최대 체력의 1.5%씩 스스로 고쳐져요.','협동 건설 · 수리'],
+ no:['혹한의 땅','모든 공격이 적을 2.5초간 느리게','노르웨이의 모든 공격(유닛·방어 건물)이 맞은 지상·해상 적을 2.5초 동안 느리게 만들어요 (이동 -35%·공속 -30%).','동력장 · 혹한'],
+ et:['아드와의 기억','체력 60% 아래면 피해 +70%·받는 피해 -30%','체력이 60% 아래로 떨어진 유닛은 피해 +70%, 받는 피해 -30%. 몰릴수록 강해져요.','건물 이동 · 역전'],
+ ph:['정글 회복','생체 유닛 상시 회복 · 안 맞으면 빠르게','생체 유닛이 초당 1.5%씩 회복하고, 5초 동안 맞지 않으면 초당 6%로 빠르게 회복해요.','영토 · 회복'],
+ mx:['201 비행대','공중 유닛 피해 +40% · 사거리 +20%','공중 유닛의 피해가 40%, 사거리가 20% 늘어요. 비행장 근처의 공군은 초당 12씩 회복해요.','건물 이동 · 공군'],
+ mn:['초원의 약탈','처치한 적 비용의 30%를 약탈','적 유닛이나 건물을 쓰러뜨릴 때마다 그 비용의 30%를 석탄·에테르로 가져와요.','건물 이동 · 약탈'],
+ ro:['플로이에슈티 유전','에테르 채집 +60% · 기계 에테르 비용 -30%','일꾼이 에테르를 한 번에 60% 더 캐요. 기계 유닛의 에테르 비용이 30% 싸요.','동력장 · 에테르'],
+ th:['코끼리 짓밟기','근접 공격이 넓은 범위 피해','모든 근접 공격이 맞은 적 주변(반경 40)에도 피해를 줘요.','영토 · 짓밟기'],
+ bg:['복수의 맹세','아군이 쓰러지면 주변 아군 8초간 피해 +40%','아군 유닛이 쓰러지면 주변(반경 220)의 아군이 8초 동안 피해 +40%.','동력장 · 복수'],
+ se:['철광석 수출','20초마다 석탄 +60 (정제소마다 +10)','20초마다 석탄 60을 받고, 다 지은 에테르 정제소 하나마다 10씩 더 받아요.','협동 건설 · 수출'],
+ ch:['정밀 사격','모든 공격 20% 확률 치명타 2.5배','유닛과 방어 건물의 모든 공격이 20% 확률로 치명타가 되어 2.5배 피해를 줘요.','동력장 · 치명타'],
+ es:['투우사','근접 유닛 회피 40% · 이동 +25%','근접 유닛이 공격의 40%를 피하고, 이동이 25% 빨라요.','동력장 · 회피'],
+ tr:['메흐테르 군악대','병영 주변 아군 피해 +35%·이동 +25%','다 지은 병영 근처(반경 260)의 모든 아군은 피해 +35%, 이동 +25%.','건물 이동 · 군악대'],
+ yu:['파르티잔 합류','처치할 때 25% 확률로 파르티잔 합류','적 유닛을 쓰러뜨릴 때마다 25% 확률로 그 자리에서 파르티잔 1명이 무료로 합류해요 (보급이 남아 있을 때).','일꾼이 건물로 · 파르티잔'],
+ cz:['슈코다 공창','기계 유닛이 파괴되면 비용 60% 환급','아군 기계 유닛이 파괴되면 그 비용의 60%를 석탄·에테르로 돌려받아요.','건물 이동 · 환급'],
+ be:['요새선 장갑','일꾼 외 모든 유닛 방어 +3','일꾼을 뺀 모든 유닛의 방어가 3 높아요. 약한 공격일수록 거의 안 통해요.','건물 이동 · 장갑'],
+ bu:['정글 매복','3초 멈춘 보병은 은신','3초 동안 움직이지도 공격하지도 않은 보병은 은신해요. 움직이거나 공격하거나 맞으면 드러나요.','일꾼이 건물로 · 은신'],
+ idn:['메르데카!','건물이 공격받으면 의용군 3명 출동','건물이 공격받으면 의용군 3명이 40초 동안 함께 싸워요 (건물마다 30초에 한 번, 최대 12명).','일꾼이 건물로 · 민병'],
+ vn:['치고 빠지기','공격한 유닛 3초간 이동 +50%','공격한 유닛은 3초 동안 이동이 50% 빨라져요.','일꾼이 건물로 · 게릴라'],
+ ir:['불사대','쓰러진 보병 35% 확률로 본진에서 부활','보병이 쓰러지면 35% 확률로 본진 옆에서 무료로 다시 나타나요.','건물 이동 · 부활'],
+ eg:['피라미드 건설자','건물 비용 30% 저렴 · 건설 속도 2배','모든 건물이 30% 싸고, 2배 빨리 지어져요.','건물 이동 · 건설'],
+ ma:['사막의 밤','밤에 피해 +40%·이동 +15%','밤이 깊을수록 모든 유닛의 피해가 최대 40%, 이동이 최대 15% 늘어요. 밤낮이 꺼진 판에서는 항상 피해 +20%.','건물 이동 · 야습'],
+ sn:['증원 함대','60초마다 저격병 2명 무료 합류','60초마다 본진에서 세네갈 저격병 2명이 무료로 나와요 (보급이 남아 있을 때).','건물 이동 · 증원'],
+ ve:['오일 머니','기계 유닛 석탄 비용 30% 저렴','모든 기계 유닛(전차·비행기·함선)의 석탄 비용이 30% 싸요.','건물 이동 · 오일 머니'],
+ cu:['혁명 의지','수적 열세면 피해 +50%·받는 피해 -25%','주변에 적이 아군보다 많으면 피해 +50%, 받는 피해 -25%.','건물 이동 · 열세 역전'],
+};
+globalThis.FX140=FX;globalThis.FXN={};
+for(const f in FX){FXN[f]=FX[f][0];FTRAIT[f]=FX[f][0]+': '+FX[f][1];NF_RULE[f]=FX[f][2];}
+// 건설 방식 안내 (일꾼 소모식으로 바뀐 진영)
+for(const f of ['yu','bu','idn','vn'])NF_RULE[f]+='\n🏗 일꾼이 건물로 바뀌며 지어져요 (소련식).';
+
+// ---------------- 정적 보정 (유닛·건물 데이터) ----------------
+for(const k in UD){const d=UD[k],f=d.f;if(!f||!d.cost)continue;
+ if(f==='au'){if(d.worker)d.hp=Math.round(d.hp*2);else if(d.bio&&d.rng>30)d.rng=Math.round(d.rng*1.35);}
+ if(f==='in'&&d.bio&&!d.worker)d.hp=Math.round(d.hp*1.35);
+ if(f==='hu'&&d.mech&&!d.layer){if(d.dmg)d.dmg=+(d.dmg*1.35).toFixed(1);d.sp=Math.round(d.sp*1.2);}
+ if(f==='fi')d.slowImmune=1;
+ if(f==='pl'&&d.melee&&d.dmg)d.dmg=+(d.dmg*1.6).toFixed(1);
+ if(f==='mx'&&d.layer==='a'&&d.dmg){d.dmg=+(d.dmg*1.4).toFixed(1);d.rng=Math.round(d.rng*1.2);}
+ if(f==='ro'&&d.mech&&d.cost[1])d.cost[1]=R5(d.cost[1]*0.7);
+ if(f==='th'&&d.melee)d.spl=Math.max(d.spl||0,40);
+ if(f==='es'&&d.melee){d.dodge=Math.max(d.dodge||0,0.4);d.sp=Math.round(d.sp*1.25);}
+ if(f==='be'&&!d.worker)d.ar=(d.ar||0)+3;
+ if(f==='ve'&&d.mech)d.cost[0]=R5(d.cost[0]*0.7);
+}
+for(const k in BD){const d=BD[k],f=d.f;if(!f||!d.cost)continue;
+ if(f==='eg'){d.cost=d.cost.map(c=>R5(c*0.7));d.t=Math.max(3,Math.round(d.t*0.5));}
+}
+
+// ---------------- 채집 (중국 석탄 · 루마니아 에테르 · 남아공 대박) ----------------
+globalThis.fxCarry=function(u,type){let n=8;try{const f=fo(u.team);
+ if(f==='cn'&&type==='coal')n=12;
+ if(f==='ro'&&type==='ether')n=13;
+ if(f==='za'&&Math.random()<0.25){n*=3;part(u.x,u.y-10,0,-40,0.7,3,'#bff4ff');part(u.x+4,u.y-12,0,-35,0.7,2.5,'#ffffff');}
+}catch(e){}return n;};
+
+// ---------------- 상태 판정 도우미 ----------------
+const isForest=(x,y)=>{const tx=Math.floor(x/T),ty=Math.floor(y/T);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const X=tx+dx,Y=ty+dy;if(X>=0&&Y>=0&&X<MW&&Y<MH&&terr[Y*MW+X]===4)return true;}return false;};
+const night=()=>{try{const w=G.wx;if(!w||!w.on||w.noNight||G.camp)return -1;return nightAmt();}catch(e){return -1;}};
+
+// ---------------- 주는 피해 ----------------
+{const _dm=dmgMul;dmgMul=function(u){let m=_dm(u);try{const f=fo(u.team);if(!f)return m;const t=G.time;
+ if(f==='et'&&u.hp<u.maxhp*0.6)m*=1.7;
+ if(f==='br'&&u._brT>t)m*=1.25;
+ if(f==='nz'&&u._hkT>t)m*=1.6;
+ if(f==='bg'&&u._bgT>t)m*=1.4;
+ if(f==='tr'&&u._trT>t)m*=1.35;
+ if(f==='cu'&&u._cuT>t)m*=1.5;
+ if(f==='ma'){const n=night();m*=n<0?1.2:1+0.4*n;}
+}catch(e){}return m;};}
+
+// ---------------- 받는 피해 · 피격 효과 ----------------
+{const _dg=damage;damage=function(t,amt,src){try{if(t&&!t.dead&&t.type!=='res'&&amt>0&&G&&G.pl){
+  const ft=t.team>=0?fo(t.team):null,fs=src&&src.team!=null&&src.team>=0?fo(src.team):null,now=G.time;
+  const hostile=src&&src.team!=null&&src.team>=0&&enemy(src.team,t.team);
+  if(t.type==='unit'){t._hitT=now;if(t._ck){t._ck=0;t._still=now;}}
+  // 공격하는 쪽
+  if(hostile&&fs){
+   if(fs==='ch'&&Math.random()<0.2){amt*=2.5;part(t.x,t.y-(t.r||10),0,-40,0.5,3.5,'#ffe060');}
+   if(src.type==='unit'){src._atkT=now;if(src._ck){src._ck=0;src._still=now;}
+    if(fs==='vn')src._vnT=now+3;
+    if(fs==='nz'&&UD[src.kind].melee&&!(src._hkCd>now)){src._hkCd=now+10;src._hkT=now+6;part(src.x,src.y-12,0,-34,0.7,4,'#ffd24a');}}
+   if(fs==='no'&&t.type==='unit'&&UD[t.kind].layer!=='a')t.slowT=Math.max(t.slowT||0,2.5);}
+  // 맞는 쪽
+  if(ft&&t.type==='unit'){
+   if(ft==='et'&&t.hp<t.maxhp*0.6)amt*=0.7;
+   if(ft==='gr'&&t._grT>now)amt*=0.55;
+   if(ft==='cu'&&t._cuT>now)amt*=0.75;
+   if(ft==='ca'&&t._caT>now)amt*=0.65;
+   if(ft==='fi'&&!t._fiS&&amt>=t.hp+(t.sh||0)){t._fiS=1;t.hp=Math.max(1,Math.round(t.maxhp*0.3));if(t.sh)t.sh=0;part(t.x,t.y-12,0,-36,0.8,4,'#e8f4ff');G.rings&&G.rings.push({x:t.x,y:t.y,r:22,t:0,dur:0.5,col:'#e8f4ff'});return;}}
+  if(ft==='idn'&&t.type==='bld'&&t.built&&hostile&&!(t._mdT>now))merdeka(t,src);
+ }}catch(e){console.error(e);}return _dg.call(this,t,amt,src);};}
+
+// ---------------- 처치 ----------------
+const costOf=e=>{const d=e.type==='unit'?UD[e.kind]:BD[e.kind];return d&&d.cost?d.cost:[0,0];};
+const supOk=(team,n)=>{try{const s=supplyOf(team);return s.used+(n||1)<=s.cap;}catch(e){return false;}};
+{const _kl=kill;kill=function(e,src){const was=e&&!e.dead;const r=_kl.apply(this,arguments);try{if(!was||!e.dead||!G||!G.pl||e._life)return r;
+ const fe=e.team>=0?fo(e.team):null,fs=src&&src.team!=null&&src.team>=0?fo(src.team):null,now=G.time;
+ const hostile=src&&src.team>=0&&e.team>=0&&enemy(src.team,e.team);
+ if(hostile&&fs){
+  if(fs==='br'&&src.type==='unit'&&!src.dead){src._brT=now+6;part(src.x,src.y-12,0,-30,0.5,3,'#7aff6a');}
+  if(fs==='mn'){const c=costOf(e),tm=P(src.team);const gc=Math.round(c[0]*0.3),ge=Math.round((c[1]||0)*0.3);if(gc||ge){tm.coal+=gc;tm.ether+=ge;if(tm.human&&gc+ge>=15&&typeof fly==='function')fly(e.x,e.y,'+'+gc+(ge?' / '+ge:''),'#ffd27a');}}
+  if(fs==='yu'&&e.type==='unit'&&!UD[e.kind].worker&&Math.random()<0.25&&supOk(src.team)){const v=addUnit('yu_partizan',src.team,e.x,e.y);if(v){for(let i=0;i<8;i++)part(e.x+rnd(-8,8),e.y+rnd(-8,8),rnd(-20,20),rnd(-30,0),0.6,2.5,'#c8302a');if(P(src.team).human)toast('✊ 파르티잔이 합류했어요');}}}
+ if(fe&&e.type==='unit'){const d=UD[e.kind];
+  if(fe==='bg')unitsNear(e.x,e.y,220,v=>{if(v.team===e.team&&!v.dead)v._bgT=now+8;});
+  if(fe==='cz'&&d.mech){const c=costOf(e),tm=P(e.team);tm.coal+=Math.round(c[0]*0.6);tm.ether+=Math.round((c[1]||0)*0.6);}
+  if(fe==='ir'&&d.bio&&!d.worker&&!d.layer&&!d.hero&&!/^h_/.test(e.kind)&&Math.random()<0.35){const hq=ents.find(b=>b.type==='bld'&&!b.dead&&b.team===e.team&&b.built&&BD[b.kind].drop);
+   if(hq){const v=addUnit(e.kind,e.team,hq.x+rnd(-hq.w*T/2,hq.w*T/2),hq.y+hq.h*T/2+14);if(v){v.y=Math.min(v.y,WH-8);for(let i=0;i<10;i++)part(v.x+rnd(-8,8),v.y+rnd(-8,8),0,rnd(-40,-10),0.7,3,'#ffd86a');if(hq.rally&&!hq.rally.res)orderMove(v,hq.rally.x,hq.rally.y,true);}}}}
+}catch(err){console.error(err);}return r;};}
+
+// ---------------- 인도네시아 메르데카 ----------------
+function merdeka(b,src){const tm=P(b.team);const n=ents.filter(e=>e.type==='unit'&&!e.dead&&e.team===b.team&&e._life&&e.kind==='idn_bambu').length;if(n>=12)return;b._mdT=G.time+30;
+ for(let i=0;i<3;i++){const a=Math.random()*6.28,rr=b.w*T/2+16;const u=addUnit('idn_bambu',b.team,b.x+Math.cos(a)*rr,b.y+Math.sin(a)*rr);if(!u)continue;u._life=G.time+40;
+  if(src&&!src.dead&&src.type==='unit'&&canHit(UD.idn_bambu.tg,src))orderAttack(u,src);else if(src)orderMove(u,src.x,src.y,true);}
+ if(tm.human)toast('🇮🇩 메르데카! 의용군이 달려왔어요');}
+
+// ---------------- 주기 처리 ----------------
+let A25=0,A1=0,A20=0,A60=0;
+function tick025(){const now=G.time,pf=[];for(const p of G.pl)pf[p.id]=p.alive?p.fac:null;
+ const trB=[],grB=[],mxB=[];
+ for(const e of ents){if(e.dead||e.type!=='bld'||!e.built)continue;const f=pf[e.team];
+  if(f==='tr'&&ROLE[e.kind]==='inf')trB.push(e);else if(f==='gr'&&ROLE[e.kind]==='def')grB.push(e);else if(f==='mx'&&ROLE[e.kind]==='air')mxB.push(e);}
+ for(const b of trB)unitsNear(b.x,b.y,260,v=>{if(v.team===b.team)v._trT=now+0.6;});
+ for(const b of grB)unitsNear(b.x,b.y,260,v=>{if(v.team===b.team)v._grT=now+0.6;});
+ for(const b of mxB)unitsNear(b.x,b.y,320,v=>{if(v.team===b.team&&UD[v.kind].layer==='a'&&v.hp<v.maxhp)v.hp=Math.min(v.maxhp,v.hp+3);});
+ for(const u of ents){if(u.type!=='unit'||u.dead||u.team<0)continue;const f=pf[u.team];if(!f)continue;const d=UD[u.kind];let sp=1,as=1;
+  if(f==='br'&&u._brT>now){sp*=1.2;as*=1.5;}
+  if(f==='nz'&&u._hkT>now)sp*=1.4;
+  if(f==='vn'&&u._vnT>now)sp*=1.5;
+  if(f==='tr'&&u._trT>now)sp*=1.25;
+  if(f==='ma'){const n=night();if(n>0)sp*=1+0.15*n;}
+  if(u.fxSp!==sp)u.fxSp=sp;if(u.asMul!==as)u.asMul=as;
+  if(f==='ph'&&d.bio&&!d.worker&&u.hp<u.maxhp)u.hp=Math.min(u.maxhp,u.hp+u.maxhp*(now-(u._hitT||-99)>5?0.06:0.015)*0.25);
+  if(f==='ca'&&!d.layer&&isForest(u.x,u.y))u._caT=now+0.6;
+  if(f==='bu'&&d.bio&&!d.worker&&!d.layer&&!u._life){const mv=u._lx==null||Math.hypot(u.x-u._lx,u.y-u._ly)>1.5;u._lx=u.x;u._ly=u.y;
+   if(mv||u.state==='attack')u._still=now;if(!u._ck&&now-(u._still||0)>=3&&now-(u._atkT||-99)>=3&&now-(u._hitT||-99)>=3)u._ck=1;}
+  if(f==='cu'&&!d.worker&&!(u._cuC>now)){u._cuC=now+0.75;let a=0,e=0;unitsNear(u.x,u.y,260,v=>{if(v.dead||UD[v.kind].worker)return;if(v.team===u.team)a++;else if(v.team>=0&&enemy(u.team,v.team))e++;});if(e>a)u._cuT=now+0.9;}
+ }}
+function tick1(){for(const e of ents){if(e.dead||e.type!=='bld'||!e.built||e.hp>=e.maxhp)continue;if(fo(e.team)==='nl')e.hp=Math.min(e.maxhp,e.hp+e.maxhp*0.015);}}
+function tick20(){for(const p of G.pl){if(!p.alive||p.fac!=='se')continue;let n=0;for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='bld'&&e.built&&BD[e.kind].geyser)n++;const g=60+n*10;p.coal+=g;if(p.human)toast(`⚓ 철광석 수출: 석탄 +${g}`);}}
+function tick60(){for(const p of G.pl){if(!p.alive||p.fac!=='sn')continue;const hq=ents.find(b=>b.type==='bld'&&!b.dead&&b.team===p.id&&b.built&&BD[b.kind].drop);if(!hq)continue;let k=0;
+  for(let i=0;i<2;i++){if(!supOk(p.id))break;const u=addUnit('sn_tirailleur',p.id,hq.x+rnd(-20,20),hq.y+hq.h*T/2+12);if(u){k++;if(hq.rally&&!hq.rally.res)orderMove(u,hq.rally.x+rnd(-10,10),hq.rally.y+rnd(-10,10),true);}}
+  if(k&&p.human)toast(`⚓ 증원 함대: 저격병 ${k}명 합류`);}}
+{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over||!G.pl)return r;A25+=dt;A1+=dt;A20+=dt;A60+=dt;
+ if(A25>=0.25){A25=Math.min(A25-0.25,0.25);tick025();}
+ if(A1>=1){A1=Math.min(A1-1,1);tick1();}
+ if(A20>=20){A20-=20;tick20();}
+ if(A60>=60){A60-=60;tick60();}}catch(e){console.error(e);}return r;};}
+// 새 판이 시작되면 주기 초기화
+{const _sg=typeof newGame==='function'?newGame:null;if(_sg){newGame=function(){A25=A1=A20=A60=0;return _sg.apply(this,arguments);};}}
+
+// ---------------- 진영 카드 문구 ----------------
+function cards(){try{for(const el of document.querySelectorAll('#facRow .fac')){const f=el.dataset.f;if(!FX[f])continue;const fd=el.querySelector('.fd');if(fd)fd.textContent=FX[f][3];}}catch(e){}}
+cards();setTimeout(cards,300);setTimeout(cards,1500);
+try{if(typeof showTrait==='function')showTrait();}catch(e){}
 })();
 
 </script>
