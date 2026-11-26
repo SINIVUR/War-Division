@@ -13032,6 +13032,48 @@ setTimeout(run,0);setTimeout(run,700);
 document.querySelectorAll('#facRow .fac').forEach(el=>el.addEventListener('click',()=>setTimeout(()=>{try{showTrait();}catch(e){}},0)));
 })();
 
+// ===================== 모바일 HUD 맞춤 (F.V.1.3.0) =====================
+// 위쪽 바: 칸이 넘치면 글자가 두 줄로 접히지 않게, 단계적으로 줄여서 한 줄에 맞춤
+// 왼쪽 아래 정보창: 생산 대기열 줄이 잘리지 않게 / 명령 버튼: 긴 이름이 잘리지 않게 글자 크기 자동 조절
+(function(){
+const css=`
+#top>*{flex-shrink:0;white-space:nowrap}
+#top .res,#top .tchip{white-space:nowrap;line-height:1.15}
+#top .sp{flex:1 1 0;min-width:0}
+body:not(.pc) #top.t1 .logo{display:none}
+body:not(.pc) #top.t2{gap:4px!important}
+body:not(.pc) #top.t2 .res{padding:1px 4px!important;gap:3px!important}
+body:not(.pc) #top.t3{font-size:11px!important}
+body:not(.pc) #top.t3 .tchip{font-size:10px!important}
+body:not(.pc) #top.t3 .ic{width:9px!important;height:9px!important}
+body:not(.pc) #top.t4 #rApm,body:not(.pc) #top.t4 #rF3{display:none!important}
+body:not(.pc) #top.t5 #rInfo{display:none!important}
+body:not(.pc) #info{max-height:none!important;overflow:visible!important}
+body:not(.pc) #info .q{display:flex;flex-wrap:nowrap!important;overflow:hidden;margin-top:3px!important;padding-bottom:1px}
+body:not(.pc) #info .chip{line-height:1.25;font-size:9.5px;padding:1px 3px;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+body:not(.pc) #info .grid{flex-wrap:nowrap!important;overflow:hidden}
+body:not(.pc) #info .chip.qi{padding:0 2px;display:flex;align-items:center;justify-content:center;width:22px;height:20px;box-sizing:border-box}
+body:not(.pc) #info .chip.qi img{height:17px;max-width:20px;image-rendering:pixelated;object-fit:contain}
+body:not(.pc) #info .chip.qi:first-child{border-color:#f0d080}
+#cmd .btn.hasic>span:not(.s){display:block!important;-webkit-line-clamp:unset!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;text-align:left!important}
+`;const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+const top=document.getElementById('top');
+function fitTop(){if(!top)return;const L=['t2','t3','t1','t4','t5'];top.classList.remove(...L);if(PC)return;
+ for(const c of L){if(top.scrollWidth<=top.clientWidth+1)break;top.classList.add(c);}}
+function fitCmd(){try{for(const sp of document.querySelectorAll('#cmd .btn>span:not(.s)')){sp.style.fontSize='';sp.style.letterSpacing='';const btn=sp.parentNode;const ic=btn.querySelector('img.bic');
+  const avail=btn.clientWidth-(ic&&!PC?ic.offsetWidth+7:6);if(avail<=0)continue;let f=parseFloat(getComputedStyle(sp).fontSize)||10;
+  if(sp.scrollWidth<=avail)continue;sp.style.letterSpacing='-0.04em';while(sp.scrollWidth>avail&&f>7){f-=0.5;sp.style.fontSize=f+'px';}}}catch(e){}}
+const ICON={};const icon=k=>{if(!ICON[k]){try{ICON[k]=unitArt(k,0,false,0,'').toDataURL();}catch(e){ICON[k]='';}}return ICON[k];};
+function fitInfo(){if(PC)return;try{const b=byId.get(G.sel&&G.sel[0]);if(!b||b.type!=='bld'||!b.queue)return;for(const ch of document.querySelectorAll('#info .q .chip[data-q]')){if(ch.classList.contains('qi'))continue;const k=b.queue[+ch.dataset.q];const src=k&&icon(k);if(!src)continue;
+ const bar=ch.querySelector('b');ch.textContent='';const im=document.createElement('img');im.src=src;im.alt=UD[k].n;ch.title=UD[k].n;ch.appendChild(im);if(bar)ch.appendChild(bar);ch.classList.add('qi');}}catch(e){}}
+let q=0;const soon=()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;fitTop();fitCmd();fitInfo();});};
+try{new MutationObserver(soon).observe(top,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style']});}catch(e){}
+try{const inf=document.getElementById('info');if(inf)new MutationObserver(soon).observe(inf,{childList:true,subtree:true});}catch(e){}
+try{const cmd=document.getElementById('cmd');if(cmd)new MutationObserver(soon).observe(cmd,{childList:true,subtree:true,characterData:true});}catch(e){}
+addEventListener('resize',()=>setTimeout(soon,100));setInterval(soon,1500);
+{const _sp=setPC;setPC=function(){const r=_sp.apply(this,arguments);setTimeout(soon,80);return r;};}
+})();
+
 </script>
 </body>
 </html>
