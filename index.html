@@ -2380,6 +2380,7 @@ function findSpot(team,kind,cx,cy){
   if(d.shore&&!P(team).human&&!wideWater(tx+(w>>1),ty+(h>>1),5))return false;
   for(let y=ty-2;y<ty+h+2;y++)for(let x=tx-2;x<tx+w+2;x++)if(inB(x,y)&&rampT[y*MW+x])return false;
   if(zoneWhy(team,kind,tx,ty))return false;
+  if(!d.drop&&!d.geyser&&typeof aiZoneOk==='function'&&!aiZoneOk(team,tx+w/2,ty+h/2))return false;
   const bs=P(team).badSpot;if(bs&&bs.has(tx+','+ty))return false;
   if(!P(team).human&&!d.atk&&!d.wall){const mx=tx+w/2,my=ty+h/2;for(const l of mlines)if(segD(mx,my,l)<Math.max(w,h)/2+0.8)return false;for(const m of chokes)if(Math.hypot(mx-m[0],my-m[1])<3.2+Math.max(w,h)/2)return false;}
   // 다른 일꾼이 이미 가고 있는 자리 / 본진에서 걸어갈 수 없는 자리는 건너뜀
@@ -5212,7 +5213,7 @@ function renderHud(){try{renderRoster();renderProd();}catch(_){}
    if(e.type==='unit'){const lv=(P(e.team).up||{})[upLy(e)]||0;if(lv)html=html.replace('</div>',` <span style="color:#ffe08a;font-size:10px">▲${lv}</span></div>`);html+=unitStatHtml(e);}
    else if(e.type==='bld'&&BD[e.kind].advLab&&e.team===0){html+=techHtml(e);}
    else if(e.type==='bld'&&BD[e.kind].atk&&e.built){const a=BD[e.kind].atk;html+=`<div class="ustat"><span title="방어 건물 무기">⚔ ${a.dmg} · 사거리 ${Math.round(a.rng/T*10)/10}</span>${tgHtml(a.tg)}</div>`;}
-   if(e.type==='bld'&&e.team===0&&e.queue.length){html+='<div class="q">'+e.queue.map((k,i)=>`<span class="chip" data-q="${i}">${short(UD[k].n)}${UD[k].pair?' ×2':''}${i===0?`<b style="width:${e.qp*100}%"></b>`:''}</span>`).join('')+'</div>';}
+   if(e.type==='bld'&&e.team===0&&e.queue.length){html+='<div class="q">'+e.queue.map((k,i)=>`<span class="chip${(!PC&&typeof qIcon==='function'&&qIcon(k))?' qi':''}" data-q="${i}" title="${UD[k].n}">${(!PC&&typeof qIcon==='function'&&qIcon(k))?`<img src="${qIcon(k)}" alt="">`:short(UD[k].n)+(UD[k].pair?' ×2':'')}${i===0?'<b class="qbar"></b>':''}</span>`).join('')+'</div>';}
   }
  }else if(s.length>1&&PC){
   html=s.every(e=>e.type==='bld'&&e.team===0)?multiBldHtml(s):`<div class="nm">${s.length}기 선택</div><div class="wire">`+s.map(e=>{const f=clamp(e.hp/e.maxhp,0,1);return `<span class="wf" data-id="${e.id}" style="border-color:${f>.6?'#5fd35f':f>.3?'#e0c040':'#e04a3a'}"><img src="${iconURL(e.kind,0)}"><b style="width:${f*100}%;background:${f>.6?'#5fd35f':f>.3?'#e0c040':'#e04a3a'}"></b></span>`;}).join('')+'</div>';
@@ -5224,6 +5225,7 @@ function renderHud(){try{renderRoster();renderProd();}catch(_){}
  if(s.length)html+='<button id="desel">✕</button>';
  info.classList.toggle('multi',s.length>1&&s.every(e=>e.type==='bld'));
  if(info._h!==html){info.innerHTML=html;info._h=html;}
+ {const qb=info.querySelector('.q .qbar'),e0=s.length===1?s[0]:null;if(qb&&e0&&e0.queue)qb.style.width=(e0.qp*100)+'%';}
  try{hudExtras();}catch(_){}
  const list=cmdList();const key=JSON.stringify(list.map(b=>b&&[b.l,b.s,b.dis]));
  if(key!==hudKey||hudDirty){hudKey=key;hudDirty=false;
@@ -12532,7 +12534,7 @@ function tick1(){for(const p of G.pl){if(!p.alive)continue;const f=p.fac;
  const wk=ents.filter(u=>u.type==='unit'&&!u.dead&&u.team===p.id&&UD[u.kind].worker&&u.state==='gather'&&!u.carry);
  const tryB=(k,x,y)=>{const d=BD[k];if(p.coal<d.cost[0]+40||p.ether<d.cost[1]||!wk.length||!reqMet(p.id,k))return false;const sp=findSpot(p.id,k,x,y);if(!sp)return false;const w=wk.sort((a,b)=>dist(a.x,a.y,x,y)-dist(b.x,b.y,x,y))[0];p.coal-=d.cost[0];p.ether-=d.cost[1];orderSite(w,k,sp[0],sp[1]);return true;};
  const tt=G.time;
- if(RUBF[f]){const k=f+'_rub',want=tt>420?3:tt>240?2:tt>80?1:0;if(cnt(k)<want)tryB(k,hq.x+rnd(-120,120),hq.y+rnd(-120,120));}
+ if(RUBF[f]){const k=f+'_rub',want=tt>540?3:tt>360?2:tt>200?1:0;if(cnt(k)<want)tryB(k,hq.x+rnd(-120,120),hq.y+rnd(-120,120));}
  if(FAC[f].build.includes(f+'_trade')){const tk=f+'_trade';if(tt>(RUBF[f]?300:220)&&cnt(tk)<1)tryB(tk,hq.x+rnd(-100,100),hq.y+rnd(-100,100));
   if(ents.some(e=>e.type==='bld'&&!e.dead&&e.team===p.id&&e.built&&e.kind===tk)){const m=TP(p),need=p._rneed||(p._rneed=Math.max(0,...Object.values(UD).filter(d=>d.f===f&&d.cost&&d.cost[2]).map(d=>d.cost[2])));const lo=RUBF[f]?35:need*2;
    if(p.rub>350&&m.sell>0.8)f3Trade(p,p.ether<p.coal*0.4?1:0);else if(p.rub<lo&&p.coal>(RUBF[f]?450:300)&&m.buy<1.3)f3Trade(p,2);else if(p.rub<lo&&p.ether>350&&m.buy<1.3)f3Trade(p,3);}}
@@ -12796,8 +12798,8 @@ function fitTop(){if(!top)return;const L=['t2','t3','t1','t4','t5'];top.classLis
 function fitCmd(){try{for(const sp of document.querySelectorAll('#cmd .btn>span:not(.s)')){sp.style.fontSize='';sp.style.letterSpacing='';const btn=sp.parentNode;const ic=btn.querySelector('img.bic');
   const avail=btn.clientWidth-(ic&&!PC?ic.offsetWidth+7:6);if(avail<=0)continue;let f=parseFloat(getComputedStyle(sp).fontSize)||10;
   if(sp.scrollWidth<=avail)continue;sp.style.letterSpacing='-0.04em';while(sp.scrollWidth>avail&&f>7){f-=0.5;sp.style.fontSize=f+'px';}}}catch(e){}}
-const ICON={};const icon=k=>{if(!ICON[k]){try{ICON[k]=unitArt(k,0,false,0,'').toDataURL();}catch(e){ICON[k]='';}}return ICON[k];};
-function fitInfo(){if(PC)return;try{const b=byId.get(G.sel&&G.sel[0]);if(!b||b.type!=='bld'||!b.queue)return;for(const ch of document.querySelectorAll('#info .q .chip[data-q]')){if(ch.classList.contains('qi'))continue;const k=b.queue[+ch.dataset.q];const src=k&&icon(k);if(!src)continue;
+const ICON={};const icon=k=>{if(!ICON[k]){try{ICON[k]=unitArt(k,0,false,0,'').toDataURL();}catch(e){ICON[k]='';}}return ICON[k];};globalThis.qIcon=icon;
+function fitInfo(){return;if(PC)return;try{const b=byId.get(G.sel&&G.sel[0]);if(!b||b.type!=='bld'||!b.queue)return;for(const ch of document.querySelectorAll('#info .q .chip[data-q]')){if(ch.classList.contains('qi'))continue;const k=b.queue[+ch.dataset.q];const src=k&&icon(k);if(!src)continue;
  const bar=ch.querySelector('b');ch.textContent='';const im=document.createElement('img');im.src=src;im.alt=UD[k].n;ch.title=UD[k].n;ch.appendChild(im);if(bar)ch.appendChild(bar);ch.classList.add('qi');}}catch(e){}}
 let q=0;const soon=()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;fitTop();fitCmd();fitInfo();});};
 try{new MutationObserver(soon).observe(top,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style']});}catch(e){}
@@ -13033,6 +13035,44 @@ function tick60(){for(const p of G.pl){if(!p.alive||p.fac!=='sn')continue;const 
 function cards(){try{for(const el of document.querySelectorAll('#facRow .fac')){const f=el.dataset.f;if(!FX[f])continue;const fd=el.querySelector('.fd');if(fd)fd.textContent=FX[f][3];}}catch(e){}}
 cards();setTimeout(cards,300);setTimeout(cards,1500);
 try{if(typeof showTrait==='function')showTrait();}catch(e){}
+})();
+
+// ===================== F.V.1.4.0 밸런스 검증 1,892판 반영 + AI 건물 배치 =====================
+(function(){
+const R5=v=>Math.max(0,Math.round(v/5)*5);
+// 1) 진영 전투력 배율 (Elo 기준: 1500에서 멀수록 크게 보정)
+const M={"et": 0.857, "su": 0.87, "it": 0.903, "be": 0.914, "us": 0.931, "ch": 0.939, "uk": 0.941, "ir": 0.943, "jp": 0.945, "fi": 0.952, "de": 0.956, "cn": 0.956, "fr": 0.96, "mx": 0.964, "ko": 0.97, "cu": 0.975, "in": 0.981, "se": 0.981, "tr": 0.983, "nl": 0.987, "ro": 0.987, "bg": 0.987, "br": 0.994, "ca": 0.994, "ph": 0.996, "ve": 1.006, "no": 1.008, "mn": 1.008, "pl": 1.012, "th": 1.012, "es": 1.014, "za": 1.018, "gr": 1.018, "hu": 1.02, "ma": 1.026, "nz": 1.036, "yu": 1.061, "cz": 1.079, "sn": 1.079, "au": 1.081, "eg": 1.124, "vn": 1.19, "bu": 1.209, "idn": 1.266};
+M.vn*=1.1;M.idn*=1.08;   // 집중 검증(24판)에서도 여전히 약함
+for(const f in M)FBAL2[f]=+((FBAL2[f]||1)*M[f]).toFixed(3);
+globalThis.FBAL2=FBAL2;
+// 2) 구조 보정
+// 일꾼 소모식으로 바뀐 신규 진영: 일꾼을 소련처럼 빨리·싸게 (건물마다 일꾼이 사라지므로)
+for(const f of ['yu','bu','idn','vn']){const w=UD[FAC[f].worker];if(w){w.t=8;w.cost=[40,0];}const hq=BD[FAC[f].hq];if(hq)hq.cost=[R5(hq.cost[0]*0.8),hq.cost[1]];}
+// 고무 진영: 모든 기계 유닛에 붙던 고무 비용을 절반으로 (고급 유닛 제외)
+for(const k in UD){const d=UD[k];if(!d.cost||!d.cost[2]||d.adv||!RUBF[d.f])continue;d.cost[2]=Math.max(5,R5(d.cost[2]*0.5));}
+// 3) 특성 미세 조정
+{const T=globalThis.FX140;
+ // 에티오피아: 위기 보너스 완화는 dmgMul/damage 쪽에서 비율로 되돌림
+}
+{const _dm=dmgMul;dmgMul=function(u){let m=_dm(u);try{const f=G.pl[u.team]&&G.pl[u.team].fac;if(f==='et'&&u.hp<u.maxhp*0.6)m*=1.45/1.7;}catch(e){}return m;};}
+{const _dg=damage;damage=function(t,amt,src){try{if(t&&t.type==='unit'&&t.team>=0&&G.pl[t.team]&&G.pl[t.team].fac==='et'&&t.hp<t.maxhp*0.6)amt*=0.8/0.7;}catch(e){}return _dg.call(this,t,amt,src);};}
+if(globalThis.FX140){FX140.et[1]='체력 60% 아래면 피해 +45%·받는 피해 -20%';FX140.et[2]='체력이 60% 아래로 떨어진 유닛은 피해 +45%, 받는 피해 -20%. 몰릴수록 강해져요.';FTRAIT.et=FX140.et[0]+': '+FX140.et[1];NF_RULE.et=FX140.et[2];}
+// 4) 효율이 지나치게 높은 유닛
+const nerf=(k,dm,hp)=>{const d=UD[k];if(!d)return;if(d.dmg)d.dmg=+(d.dmg*dm).toFixed(1);if(hp)d.hp=Math.round(d.hp*hp);};
+nerf('mx_p47',0.85,0.95);nerf('et_guard',0.88,0.95);nerf('ch_ferry',0.85,0.92);nerf('walker',0.9,0.95);nerf('in_elephant',0.9,0.95);nerf('ko_geobuk',0.92,0.95);
+
+// 5) AI 건물 배치: 본진 고지대 + 앞마당(+ 이미 차린 다른 기지 바로 옆) 안에서만
+function zoneOk(team,x,y){try{const p=G.pl[team];if(!p||p.human||G.camp||G._zoneOff)return true;const S=G.sp&&G.sp[p.spawn];if(!S||S.cx==null)return true;
+ const R=(S.g&&S.g.R)||10;if(Math.hypot(x-S.cx,y-S.cy)<=R-0.6)return true;
+ if(S.natP&&Math.hypot(x-S.natP[0],y-S.natP[1])<=10.3)return true;
+ for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===team&&BD[b.kind].drop&&Math.hypot(x-b.x/T,y-b.y/T)<=8)return true;
+ return false;}catch(e){return true;}}
+globalThis.aiZoneOk=zoneOk;
+{const _fs=findSpot;findSpot=function(team,kind,cx,cy){const r=_fs.apply(this,arguments);if(r)return r;try{const p=G.pl[team],d=BD[kind];if(!p||p.human||G.camp||G._zoneOff||!d||d.geyser||d.drop)return r;const S=G.sp&&G.sp[p.spawn];if(!S||S.cx==null)return r;
+  // 같은 구역 안의 다른 기준점(본진 중심·앞마당 중심·다른 기지)에서 다시 찾고, 그래도 없을 때만 구역 밖 허용
+  const A=[[S.cx*T,S.cy*T]];if(S.natP)A.push([S.natP[0]*T,S.natP[1]*T]);for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===team&&BD[b.kind].drop)A.push([b.x,b.y]);
+  for(const [ax,ay] of A){const q=_fs(team,kind,ax,ay);if(q)return q;}
+  G._zoneOff=1;try{return _fs(team,kind,cx,cy);}finally{G._zoneOff=0;}}catch(e){G._zoneOff=0;return r;}};}
 })();
 
 </script>
