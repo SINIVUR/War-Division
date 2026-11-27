@@ -12991,7 +12991,7 @@ for(const k in BD){const d=BD[k],f=d.f;if(!f||!d.cost)continue;
 globalThis.fxCarry=function(u,type){let n=8;try{const f=fo(u.team);
  if(f==='cn'&&type==='coal')n=12;
  if(f==='ro'&&type==='ether')n=13;
- if(f==='za'&&Math.random()<0.25){n*=3;part(u.x,u.y-10,0,-40,0.7,3,'#bff4ff');part(u.x+4,u.y-12,0,-35,0.7,2.5,'#ffffff');}
+ if(f==='za'&&Math.random()<0.25){n*=3;typeof fxPop==='function'&&fxPop(u,'대박 ×3','#bff4ff');part(u.x,u.y-10,0,-40,0.7,3,'#bff4ff');part(u.x+4,u.y-12,0,-35,0.7,2.5,'#ffffff');}
 }catch(e){}return n;};
 
 // ---------------- 상태 판정 도우미 ----------------
@@ -13016,11 +13016,11 @@ const night=()=>{try{const w=G.wx;if(!w||!w.on||w.noNight||G.camp)return -1;retu
   if(t.type==='unit'){t._hitT=now;if(t._ck){t._ck=0;t._still=now;}}
   // 공격하는 쪽
   if(hostile&&fs){
-   if(fs==='ch'&&Math.random()<0.2){amt*=2.5;part(t.x,t.y-(t.r||10),0,-40,0.5,3.5,'#ffe060');}
+   if(fs==='ch'&&Math.random()<0.2){amt*=2.5;part(t.x,t.y-(t.r||10),0,-40,0.5,3.5,'#ffe060');typeof fxPop==='function'&&fxPop(t,'치명타!','#ffe060');}
    if(src.type==='unit'){src._atkT=now;if(src._ck){src._ck=0;src._still=now;}
     if(fs==='vn')src._vnT=now+3;
-    if(fs==='nz'&&UD[src.kind].melee&&!(src._hkCd>now)){src._hkCd=now+10;src._hkT=now+6;part(src.x,src.y-12,0,-34,0.7,4,'#ffd24a');}}
-   if(fs==='jp'&&src.type==='unit'&&UD[src.kind].suicide&&!src._kmz){src._kmz=1;const tm=P(src.team);tm.ether+=100;if(tm.human)toast('🌸 신풍 자폭 성공: 에테르 +100');}
+    if(fs==='nz'&&UD[src.kind].melee&&!(src._hkCd>now)){src._hkCd=now+10;src._hkT=now+6;part(src.x,src.y-12,0,-34,0.7,4,'#ffd24a');typeof fxPop==='function'&&fxPop(src,'하카!','#ffd24a');}}
+   if(fs==='jp'&&src.type==='unit'&&UD[src.kind].suicide&&!src._kmz){src._kmz=1;typeof fxPop==='function'&&fxPop(t,'신풍 +100','#ffb0d0');const tm=P(src.team);tm.ether+=100;if(tm.human)toast('🌸 신풍 자폭 성공: 에테르 +100');}
    if(fs==='no'&&t.type==='unit'&&UD[t.kind].layer!=='a')t.slowT=Math.max(t.slowT||0,2.5);}
   // 맞는 쪽
   if(ft&&t.type==='unit'){
@@ -13028,7 +13028,7 @@ const night=()=>{try{const w=G.wx;if(!w||!w.on||w.noNight||G.camp)return -1;retu
    if(ft==='gr'&&t._grT>now)amt*=0.55;
    if(ft==='cu'&&t._cuT>now)amt*=0.75;
    if(ft==='ca'&&t._caT>now)amt*=0.65;
-   if(ft==='fi'&&!t._fiS&&amt>=t.hp+(t.sh||0)){t._fiS=1;t.hp=Math.max(1,Math.round(t.maxhp*0.3));if(t.sh)t.sh=0;part(t.x,t.y-12,0,-36,0.8,4,'#e8f4ff');G.rings&&G.rings.push({x:t.x,y:t.y,r:22,t:0,dur:0.5,col:'#e8f4ff'});return;}}
+   if(ft==='fi'&&!t._fiS&&amt>=t.hp+(t.sh||0)){t._fiS=1;typeof fxPop==='function'&&fxPop(t,'시수!','#e8f4ff');t.hp=Math.max(1,Math.round(t.maxhp*0.3));if(t.sh)t.sh=0;part(t.x,t.y-12,0,-36,0.8,4,'#e8f4ff');G.rings&&G.rings.push({x:t.x,y:t.y,r:22,t:0,dur:0.5,col:'#e8f4ff'});return;}}
   if(ft==='idn'&&t.type==='bld'&&t.built&&hostile&&!(t._mdT>now))merdeka(t,src);
  }}catch(e){console.error(e);}return _dg.call(this,t,amt,src);};}
 
@@ -13039,21 +13039,21 @@ const supOk=(team,n)=>{try{const s=supplyOf(team);return s.used+(n||1)<=s.cap;}c
  const fe=e.team>=0?fo(e.team):null,fs=src&&src.team!=null&&src.team>=0?fo(src.team):null,now=G.time;
  const hostile=src&&src.team>=0&&e.team>=0&&enemy(src.team,e.team);
  if(hostile&&fs){
-  if(fs==='br'&&src.type==='unit'&&!src.dead){src._brT=now+6;part(src.x,src.y-12,0,-30,0.5,3,'#7aff6a');}
-  if(fs==='mn'){const c=costOf(e),tm=P(src.team);const gc=Math.round(c[0]*0.3),ge=Math.round((c[1]||0)*0.3);if(gc||ge){tm.coal+=gc;tm.ether+=ge;if(tm.human&&gc+ge>=15&&typeof fly==='function')fly(e.x,e.y,'+'+gc+(ge?' / '+ge:''),'#ffd27a');}}
-  if(fs==='yu'&&e.type==='unit'&&!UD[e.kind].worker&&Math.random()<0.25&&supOk(src.team)){const v=addUnit('yu_partizan',src.team,e.x,e.y);if(v){for(let i=0;i<8;i++)part(e.x+rnd(-8,8),e.y+rnd(-8,8),rnd(-20,20),rnd(-30,0),0.6,2.5,'#c8302a');if(P(src.team).human)toast('✊ 파르티잔이 합류했어요');}}}
+  if(fs==='br'&&src.type==='unit'&&!src.dead){src._brT=now+6;part(src.x,src.y-12,0,-30,0.5,3,'#7aff6a');typeof fxPop==='function'&&fxPop(src,'연쇄!','#7aff6a');}
+  if(fs==='mn'){const c=costOf(e),tm=P(src.team);const gc=Math.round(c[0]*0.3),ge=Math.round((c[1]||0)*0.3);if(gc||ge){tm.coal+=gc;tm.ether+=ge;typeof fxPop==='function'&&fxPop(e,'약탈 +'+(gc+ge),'#ffd27a');if(tm.human&&gc+ge>=15&&typeof fly==='function')fly(e.x,e.y,'+'+gc+(ge?' / '+ge:''),'#ffd27a');}}
+  if(fs==='yu'&&e.type==='unit'&&!UD[e.kind].worker&&Math.random()<0.25&&supOk(src.team)){const v=addUnit('yu_partizan',src.team,e.x,e.y);if(v){typeof fxPop==='function'&&fxPop(v,'파르티잔 합류','#ff7a6a');for(let i=0;i<8;i++)part(e.x+rnd(-8,8),e.y+rnd(-8,8),rnd(-20,20),rnd(-30,0),0.6,2.5,'#c8302a');if(P(src.team).human)toast('✊ 파르티잔이 합류했어요');}}}
  if(fe&&e.type==='unit'){const d=UD[e.kind];
-  if(fe==='bg')unitsNear(e.x,e.y,220,v=>{if(v.team===e.team&&!v.dead)v._bgT=now+8;});
-  if(fe==='cz'&&d.mech){const c=costOf(e),tm=P(e.team);tm.coal+=Math.round(c[0]*0.6);tm.ether+=Math.round((c[1]||0)*0.6);}
+  if(fe==='bg'){unitsNear(e.x,e.y,220,v=>{if(v.team===e.team&&!v.dead)v._bgT=now+8;});typeof fxPop==='function'&&fxPop(e,'복수의 맹세','#ff9a5a');}
+  if(fe==='cz'&&d.mech){const c=costOf(e),tm=P(e.team);tm.coal+=Math.round(c[0]*0.6);tm.ether+=Math.round((c[1]||0)*0.6);typeof fxPop==='function'&&fxPop(e,'환급 +'+Math.round((c[0]+(c[1]||0))*0.6),'#9ad8ff');}
   if(fe==='ir'&&d.bio&&!d.worker&&!d.layer&&!d.hero&&!/^h_/.test(e.kind)&&Math.random()<0.35){const hq=ents.find(b=>b.type==='bld'&&!b.dead&&b.team===e.team&&b.built&&BD[b.kind].drop);
-   if(hq){const v=addUnit(e.kind,e.team,hq.x+rnd(-hq.w*T/2,hq.w*T/2),hq.y+hq.h*T/2+14);if(v){v.y=Math.min(v.y,WH-8);for(let i=0;i<10;i++)part(v.x+rnd(-8,8),v.y+rnd(-8,8),0,rnd(-40,-10),0.7,3,'#ffd86a');if(hq.rally&&!hq.rally.res)orderMove(v,hq.rally.x,hq.rally.y,true);}}}}
+   if(hq){const v=addUnit(e.kind,e.team,hq.x+rnd(-hq.w*T/2,hq.w*T/2),hq.y+hq.h*T/2+14);if(v){v.y=Math.min(v.y,WH-8);typeof fxPop==='function'&&fxPop(v,'불사대 부활','#ffd86a');for(let i=0;i<10;i++)part(v.x+rnd(-8,8),v.y+rnd(-8,8),0,rnd(-40,-10),0.7,3,'#ffd86a');if(hq.rally&&!hq.rally.res)orderMove(v,hq.rally.x,hq.rally.y,true);}}}}
 }catch(err){console.error(err);}return r;};}
 
 // ---------------- 인도네시아 메르데카 ----------------
 function merdeka(b,src){const tm=P(b.team);const n=ents.filter(e=>e.type==='unit'&&!e.dead&&e.team===b.team&&e._life&&e.kind==='idn_bambu').length;if(n>=16)return;b._mdT=G.time+30;
  for(let i=0;i<4;i++){const a=Math.random()*6.28,rr=b.w*T/2+16;const u=addUnit('idn_bambu',b.team,b.x+Math.cos(a)*rr,b.y+Math.sin(a)*rr);if(!u)continue;u._life=G.time+40;
   if(src&&!src.dead&&src.type==='unit'&&canHit(UD.idn_bambu.tg,src))orderAttack(u,src);else if(src)orderMove(u,src.x,src.y,true);}
- if(tm.human)toast('🇮🇩 메르데카! 의용군이 달려왔어요');}
+ typeof fxPop==='function'&&fxPop(b,'메르데카!','#ff6a6a');if(tm.human)toast('🇮🇩 메르데카! 의용군이 달려왔어요');}
 
 // ---------------- 주기 처리 ----------------
 let A25=0,A1=0,A20=0,A60=0;
@@ -13080,7 +13080,7 @@ function tick1(){for(const e of ents){if(e.dead||e.type!=='bld'||!e.built||e.hp>
 function tick20(){for(const p of G.pl){if(!p.alive||p.fac!=='se')continue;let n=0;for(const e of ents)if(!e.dead&&e.team===p.id&&e.type==='bld'&&e.built&&BD[e.kind].geyser)n++;const g=60+n*10;p.coal+=g;if(p.human)toast(`⚓ 철광석 수출: 석탄 +${g}`);}}
 function tick60(){for(const p of G.pl){if(!p.alive||p.fac!=='sn')continue;const hq=ents.find(b=>b.type==='bld'&&!b.dead&&b.team===p.id&&b.built&&BD[b.kind].drop);if(!hq)continue;let k=0;
   for(let i=0;i<2;i++){if(!supOk(p.id))break;const u=addUnit('sn_tirailleur',p.id,hq.x+rnd(-20,20),hq.y+hq.h*T/2+12);if(u){k++;if(hq.rally&&!hq.rally.res)orderMove(u,hq.rally.x+rnd(-10,10),hq.rally.y+rnd(-10,10),true);}}
-  if(k&&p.human)toast(`⚓ 증원 함대: 저격병 ${k}명 합류`);}}
+  if(k){typeof fxPop==='function'&&fxPop(hq,'증원 함대 +'+k,'#9ad8ff');if(p.human)toast(`⚓ 증원 함대: 저격병 ${k}명 합류`);}}}
 {const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over||!G.pl)return r;A25+=dt;A1+=dt;A20+=dt;A60+=dt;
  if(A25>=0.25){A25=Math.min(A25-0.25,0.25);tick025();}
  if(A1>=1){A1=Math.min(A1-1,1);tick1();}
@@ -13131,6 +13131,150 @@ globalThis.aiZoneOk=zoneOk;
   const A=[[S.cx*T,S.cy*T]];if(S.natP)A.push([S.natP[0]*T,S.natP[1]*T]);for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===team&&BD[b.kind].drop)A.push([b.x,b.y]);
   for(const [ax,ay] of A){const q=_fs(team,kind,ax,ay);if(q)return q;}
   G._zoneOff=1;try{return _fs(team,kind,cx,cy);}finally{G._zoneOff=0;}}catch(e){G._zoneOff=0;return r;}};}
+})();
+
+// ===================== F.V.1.4.0 편의 기능 =====================
+// 공통: 경고 위치 여러 곳 순환 · 보급 막힘 미리 알림 · 생산 대기열 한꺼번에 취소 · 진영 효과 발동 글자
+// PC: 단축키 표(?) · 부대 번호 표시 · 마우스 올리면 정보 · Alt+클릭 핑
+// 모바일: 화면 안 병력 선택 버튼 · 길게 눌러 정보 · 진동
+(function(){
+const $id=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const css=document.createElement('style');css.textContent=`
+#top .blocked.near,#top .near{animation:supNear .7s ease-in-out infinite alternate}
+@keyframes supNear{from{box-shadow:0 0 0 0 rgba(255,200,60,0)}to{box-shadow:0 0 0 3px rgba(255,200,60,.85);background:rgba(120,90,20,.6)}}
+#qtip{position:fixed;z-index:60;pointer-events:none;display:none;max-width:300px;padding:8px 11px;border-radius:8px;border:1px solid #7a5f34;background:rgba(22,17,10,.94);color:#e8dcc0;font-size:12px;line-height:1.45;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+#qtip b{color:#f0d080;font-size:13px}#qtip .t{color:#ff9a8a}#qtip .a{color:#9ad8ff}#qtip .n{color:#d8d0b8}#qtip .d{color:#b8a888;margin-top:3px}#qtip .fx{color:#f0d080;margin-top:3px}
+#qtip.mob{pointer-events:auto;font-size:13px;max-width:min(78vw,340px)}
+#keyTbl{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
+#keyTbl.on{display:flex}
+#keyTbl .box{width:min(92vw,860px);max-height:88vh;overflow:auto;padding:20px 26px;border:1.5px solid #7a5f34;border-radius:14px;background:linear-gradient(#2e2416,#16110a);color:#e8dcc0}
+#keyTbl h3{margin:0 0 12px;color:#f0d080}#keyTbl .cols{display:grid;grid-template-columns:1fr 1fr;gap:4px 28px}
+#keyTbl .r{display:flex;gap:10px;align-items:baseline;padding:3px 0;border-bottom:1px solid rgba(122,95,52,.3);font-size:13px}
+#keyTbl kbd{min-width:64px;display:inline-block;text-align:center;padding:2px 6px;border-radius:5px;border:1px solid #7a5f34;background:#3a2d1a;color:#ffe8b0;font:12px monospace}
+#keyTbl .ft{margin-top:12px;color:#b8a888;font-size:12px}
+`;document.head.appendChild(css);
+
+// ---------------- 공통 12: 진영 효과 발동 글자 ----------------
+const POPS=[];
+globalThis.fxPop=function(e,txt,col){try{if(!G||!e)return;if(e.team!=null&&e.team>=0&&e.team!==0&&typeof vis0==='function'&&!vis0(e))return;
+ const k=(e.id||0)+txt,now=G.time;if(e._popK===k&&now-(e._popT||0)<1.5)return;e._popK=k;e._popT=now;
+ if(POPS.length>40)POPS.shift();POPS.push({x:e.x,y:e.y-(e.r||12)-6,t:now,txt,col:col||'#ffe8a0'});}catch(_){}};
+// 일본 기습: 5초 이상 쉬다 처음 맞힌 공격
+{const _dg=damage;damage=function(t,amt,src){try{if(src&&src.type==='unit'&&src.team>=0&&t&&t.team!==src.team&&G.pl[src.team]&&G.pl[src.team].fac==='jp'&&t.type!=='res'){if(G.time-(src._jpT==null?-99:src._jpT)>5)fxPop(src,'기습!','#ff8a8a');src._jpT=G.time;}
+ // 에티오피아: 체력 60% 아래로 처음 떨어질 때
+ if(t&&t.type==='unit'&&t.team>=0&&!t._etP&&G.pl[t.team]&&G.pl[t.team].fac==='et'&&t.hp-amt<t.maxhp*0.6&&t.hp>=t.maxhp*0.6){t._etP=1;fxPop(t,'아드와!','#ffb060');}}catch(_){}
+ // 공통 3: 경고 위치 기록 (여러 곳)
+ try{if(t&&t.team===0&&src&&src.team!=null&&src.team>=0&&enemy(src.team,0))addAlert(t.x,t.y);}catch(_){}
+ return _dg.apply(this,arguments);};}
+
+// ---------------- 공통 3: 경고 위치 여러 곳 순환 ----------------
+const AL=[];let alI=0;
+function addAlert(x,y){const now=G.time;for(const a of AL)if(Math.hypot(a.x-x,a.y-y)<520&&now-a.t<20){a.t=now;a.x=x;a.y=y;return;}AL.unshift({x,y,t:now});if(AL.length>5)AL.pop();alI=0;}
+function nextAlert(){const now=G.time,L=AL.filter(a=>now-a.t<30);if(!L.length)return false;const a=L[alI%L.length];alI++;centerOn(a.x,a.y);G.warnPos=[a.x,a.y,a.t];if(L.length>1)toast(`⚠ 공격받는 곳 ${((alI-1)%L.length)+1}/${L.length}`);return true;}
+addEventListener('keydown',e=>{if(!G||G.over||G.paused)return;if(e.key===' '&&!e.ctrlKey&&!e.altKey){if(nextAlert()){e.preventDefault();e.stopImmediatePropagation();}}},true);
+{const qw=$id('qWarn');if(qw)qw.addEventListener('pointerdown',e=>{if(!G)return;if(nextAlert()){e.preventDefault();e.stopImmediatePropagation();}},true);}
+
+// ---------------- 공통 4: 보급 막힘 미리 알림 ----------------
+let nearT=0;
+{const _he=hudExtras;hudExtras=function(){const r=_he.apply(this,arguments);try{const sp=supplyOf(0),el=$id('rSup').parentNode;const blocked=el.classList.contains('blocked');
+ const cap=sp.cap,used=sp.used,MAXS=200;const building=ents.some(e=>!e.dead&&e.team===0&&e.type==='bld'&&!e.built&&BD[e.kind].sup&&!BD[e.kind].train);
+ const near=!blocked&&cap<MAXS&&used>=cap-Math.max(2,Math.round(cap*0.12))&&!building&&G.time>30;
+ el.classList.toggle('near',near);
+ if(near&&G.time>nearT){nearT=G.time+40;toast(`보급이 곧 막혀요 (${used}/${cap}) — ${BD[FAC[P(0).fac].sup].n}을(를) 미리 지으세요`);try{play('err');}catch(_){}}}catch(_){}return r;};}
+
+// ---------------- 공통 7: 생산 대기열 한꺼번에 취소 ----------------
+function cancelAll(b){if(!b||b.team!==0||!b.queue||!b.queue.length)return;const n=b.queue.length;for(let i=b.queue.length-1;i>=0;i--)cancelQueue(b,i);toast(`생산 ${n}개 모두 취소 — 비용을 돌려받았어요`);hudDirty=true;try{renderHud();}catch(_){}}
+{let lp=null;
+ document.addEventListener('pointerdown',e=>{const c=e.target&&e.target.closest&&e.target.closest('#info [data-q]');if(!c||!G)return;const b=selEnts()[0];if(!b||b.type!=='bld'||b.team!==0)return;
+  if(e.button===2){e.preventDefault();e.stopImmediatePropagation();cancelAll(b);return;}
+  if(e.pointerType!=='mouse'){e.preventDefault();e.stopImmediatePropagation();const i=+c.dataset.q;lp={i,b,done:false,tm:setTimeout(()=>{lp.done=true;try{buzz(30);}catch(_){}cancelAll(b);},500)};}},true);
+ document.addEventListener('pointerup',e=>{if(!lp)return;clearTimeout(lp.tm);if(!lp.done){cancelQueue(lp.b,lp.i);hudDirty=true;try{renderHud();}catch(_){}}lp=null;},true);
+ document.addEventListener('pointercancel',()=>{if(lp){clearTimeout(lp.tm);lp=null;}},true);
+ document.addEventListener('contextmenu',e=>{if(e.target&&e.target.closest&&e.target.closest('#info [data-q]'))e.preventDefault();},true);}
+
+// ---------------- 화면 위 그리기: 효과 글자 · 부대 번호 · 핑 ----------------
+const PINGS=[];
+{const _r=render;render=function(){_r.apply(this,arguments);try{if(!G)return;const z=cam.z,now=G.time;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.textAlign='center';ctx.textBaseline='middle';
+ const vw=VW,vh=VH;
+ // 효과 글자 (1.2초 동안 위로 떠오름)
+ for(let i=POPS.length-1;i>=0;i--){const p=POPS[i],a=(now-p.t)/1.2;if(a>=1||a<0){POPS.splice(i,1);continue;}const sx=(p.x-cam.x)*z,sy=(p.y-cam.y)*z-a*26;if(sx<-60||sy<-20||sx>vw+60||sy>vh+20)continue;
+  ctx.globalAlpha=a<0.75?1:(1-a)/0.25;ctx.font=`bold ${Math.round(12+Math.min(4,z*2))}px sans-serif`;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText(p.txt,sx,sy);ctx.fillStyle=p.col;ctx.fillText(p.txt,sx,sy);}
+ ctx.globalAlpha=1;
+ // PC 5: 부대 번호
+ if(PC&&G.groups){ctx.font='bold 10px sans-serif';const tag=new Map();for(let g=0;g<G.groups.length;g++){const L=G.groups[g];if(!L||!L.length)continue;for(const id of L){if(!tag.has(id))tag.set(id,g);}}
+  for(const [id,g] of tag){const u=byId.get(id);if(!u||u.dead||u.type!=='unit')continue;const sx=(u.x-cam.x)*z+(u.r||8)*z*0.7,sy=(u.y-cam.y)*z+(u.r||8)*z*0.7;if(sx<0||sy<0||sx>vw||sy>vh)continue;
+   ctx.fillStyle='rgba(20,15,8,.85)';ctx.fillRect(sx-5,sy-6,10,12);ctx.fillStyle='#ffe08a';ctx.fillText(String(g),sx,sy+0.5);}}
+ // 핑
+ for(let i=PINGS.length-1;i>=0;i--){const p=PINGS[i],a=(performance.now()-p.t)/2500;if(a>=1){PINGS.splice(i,1);continue;}const sx=(p.x-cam.x)*z,sy=(p.y-cam.y)*z;
+  for(let k=0;k<2;k++){const q=(a*2+k*0.5)%1;ctx.globalAlpha=(1-q)*(1-a*0.5);ctx.strokeStyle='#ffe060';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(sx,sy,8+q*40,0,7);ctx.stroke();}
+  ctx.globalAlpha=1;ctx.fillStyle='#ffe060';ctx.beginPath();ctx.arc(sx,sy,4,0,7);ctx.fill();}
+ ctx.globalAlpha=1;}catch(_){ctx.globalAlpha=1;}};}
+{const _rm=renderMini;renderMini=function(){_rm.apply(this,arguments);try{if(!PINGS.length||!G)return;const sx=mini.width/WW,sy=mini.height/WH;for(const p of PINGS){const a=(performance.now()-p.t)/2500;if(a>=1)continue;mctx.globalAlpha=1-a;mctx.strokeStyle='#ffe060';mctx.lineWidth=2;mctx.beginPath();mctx.arc(p.x*sx,p.y*sy,4+((a*3)%1)*12,0,7);mctx.stroke();}mctx.globalAlpha=1;}catch(_){}};}
+
+// ---------------- PC 8: Alt+클릭 핑 (팀전 아군 AI는 그곳으로 공격) ----------------
+let lastX=0,lastY=0;addEventListener('pointermove',e=>{lastX=e.clientX;lastY=e.clientY;},true);
+function curPos(){try{if(typeof LOCK!=='undefined'&&LOCK.active)return [LOCK.x,LOCK.y];}catch(_){}return [lastX,lastY];}
+function ping(x,y){PINGS.push({x,y,t:performance.now()});try{play('select');}catch(_){}let n=0;
+ for(const p of G.pl){if(!p.alive||p.id===0||p.human||enemy(0,p.id))continue;for(const u of ents){if(u.dead||u.type!=='unit'||u.team!==p.id)continue;const d=UD[u.kind];if(d.worker||!d.dmg||u.state==='attack')continue;orderMove(u,x+rnd(-60,60),y+rnd(-60,60),true);u.cohT=G.time+40;n++;}}
+ toast(n?`📍 핑 — 아군 AI 병력 ${n}기가 그곳으로 공격해요`:'📍 핑');}
+document.addEventListener('pointerdown',e=>{if(!PC||!G||G.over||!e.altKey||e.button!==0)return;const [x,y]=curPos();const el=document.elementFromPoint(x,y);if(!el)return;
+ if(el.closest&&el.closest('#mini')){const r=mini.getBoundingClientRect();ping((x-r.left)/r.width*WW,(y-r.top)/r.height*WH);}
+ else if(el===cvs){const w=s2w(x,y);ping(w[0],w[1]);}else return;
+ e.preventDefault();e.stopImmediatePropagation();},true);
+
+// ---------------- 정보 말풍선 (PC 7: 마우스 올리기 · 모바일 3: 길게 누르기) ----------------
+const tip=document.createElement('div');tip.id='qtip';document.body.appendChild(tip);
+function info(e){const isU=e.type==='unit',d=isU?UD[e.kind]:BD[e.kind];if(!d)return'';const tm=e.team>=0&&G.pl[e.team]?G.pl[e.team]:null;
+ const side=e.team===0?'<span class="a">아군</span>':(e.team<0?'<span class="n">중립</span>':(enemy(0,e.team)?'<span class="t">적</span>':'<span class="a">동맹</span>'));
+ const fac=tm&&FAC[tm.fac]?FAC[tm.fac].n:'';
+ let s=`<b>${esc(d.n)}</b> · ${side}${fac?' '+esc(fac):''}<br>체력 ${Math.ceil(e.hp)}/${Math.round(e.maxhp)}${e.maxsh?` · 방어막 ${Math.ceil(e.sh)}/${Math.round(e.maxsh)}`:''}${d.ar?` · 방어 ${d.ar}`:''}`;
+ if(e.type==='res')return`<b>${esc(d.n||'자원')}</b><br>남은 양 ${Math.round(e.amount||0)}`;
+ if(d.dmg)s+=`<br>피해 ${d.dmg}${d.cd?` · 공격 간격 ${d.cd}초`:''}${d.rng?` · 사거리 ${Math.round(d.rng)}`:''}${d.spl?' · 범위':''}`;
+ else if(d.atk)s+=`<br>피해 ${d.atk.dmg} · 사거리 ${Math.round(d.atk.rng)}`;
+ if(isU&&d.sp)s+=` · 이동 ${Math.round(d.sp)}`;
+ if(d.cost)s+=`<br>비용 석탄 ${d.cost[0]}${d.cost[1]?` · 에테르 ${d.cost[1]}`:''}${d.cost[2]?` · 고무 ${d.cost[2]}`:''}${isU&&d.sup?` · 보급 ${d.sup}`:''}`;
+ if(isU&&e.kills)s+=`<br>처치 ${e.kills}`;
+ if(d.desc)s+=`<div class="d">${esc(d.desc)}</div>`;
+ if(tm&&globalThis.FX140&&FX140[tm.fac])s+=`<div class="fx">★ ${esc(FX140[tm.fac][0])}: ${esc(FX140[tm.fac][1])}</div>`;
+ return s;}
+function showTip(e,x,y,mob){tip.innerHTML=info(e);tip.classList.toggle('mob',!!mob);tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;let tx=x+16,ty=y+18;if(tx+w>innerWidth-6)tx=x-w-12;if(ty+h>innerHeight-6)ty=y-h-12;tip.style.left=Math.max(6,tx)+'px';tip.style.top=Math.max(6,ty)+'px';tip._e=e;}
+function hideTip(){tip.style.display='none';tip._e=null;}
+// PC: 마우스를 0.35초 올려 두면
+if(PC){let hov=null,hovT=0;setInterval(()=>{try{if(!G||G.over||G.paused||G.box||G.placing){hideTip();return;}const [x,y]=curPos();const el=document.elementFromPoint(x,y);if(el!==cvs){hideTip();hov=null;return;}
+  const w=s2w(x,y),h=pick(w[0],w[1]);if(!h||(h.team!==0&&typeof vis0==='function'&&!vis0(h))){hideTip();hov=null;return;}
+  if(h!==hov){hov=h;hovT=performance.now();hideTip();return;}if(performance.now()-hovT>350)showTip(h,x,y,false);}catch(_){}},120);}
+// 모바일: 길게 누르기 (아군은 기존처럼 같은 종류 선택도 함께)
+if(!PC){let lt=null,sx=0,sy=0;
+ cvs.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;hideTip();clearTimeout(lt);sx=e.clientX;sy=e.clientY;lt=setTimeout(()=>{try{if(!G||G.placing||G.pending)return;const w=s2w(sx,sy),h=pick(w[0],w[1]);if(!h||(h.team!==0&&typeof vis0==='function'&&!vis0(h)))return;showTip(h,sx,sy,true);buzz(15);}catch(_){}},520);});
+ cvs.addEventListener('pointermove',e=>{if(lt&&Math.hypot(e.clientX-sx,e.clientY-sy)>12){clearTimeout(lt);lt=null;}});
+ for(const ev of ['pointerup','pointercancel'])cvs.addEventListener(ev,()=>{clearTimeout(lt);lt=null;});
+ document.addEventListener('pointerdown',e=>{if(tip.style.display==='block'&&!(e.target&&e.target.closest&&e.target.closest('#qtip')))hideTip();},true);
+ tip.addEventListener('pointerdown',e=>{e.stopPropagation();hideTip();});
+ setInterval(()=>{if(tip._e&&tip.style.display==='block'&&!tip._e.dead){const e=tip._e;const keep=tip.style.left,kt=tip.style.top;tip.innerHTML=info(e);tip.style.left=keep;tip.style.top=kt;}else if(tip._e&&tip._e.dead)hideTip();},400);}
+
+// ---------------- PC 1: 단축키 표 (? 키) ----------------
+const KT=document.createElement('div');KT.id='keyTbl';
+const KEYS=[['좌클릭','선택 · 드래그로 범위 선택'],['우클릭','이동 · 공격 · 채집'],['Shift+클릭','선택 추가 · 명령 예약'],['Ctrl+클릭 / 더블클릭','화면 안 같은 종류 선택'],
+ ['A','공격 이동'],['M','이동'],['S','정지'],['H','사수(제자리)'],['P','정찰'],['B','건설 메뉴'],['명령 버튼의 글자','그 명령 (버튼 오른쪽 아래에 표시)'],
+ ['Ctrl+1~9','부대 지정'],['Shift+1~9','부대에 추가'],['1~9','부대 선택 (두 번: 그곳으로)'],['F1','쉬는 일꾼 차례로 선택'],['Space','공격받는 곳으로 (여러 곳이면 차례로)'],
+ ['Backspace','본진 차례로'],['Shift+F2~F4','화면 위치 저장'],['F2~F4','저장한 화면 위치로'],['Alt+클릭','핑 (미니맵·지도) — 팀전 아군 AI가 그곳으로 공격'],
+ ['생산 칸 우클릭','생산 대기열 모두 취소'],['ESC','취소 · 메뉴'],['F10','일시정지 메뉴'],['?','이 단축키 표']];
+KT.innerHTML=`<div class="box"><h3>⌨ 단축키</h3><div class="cols">${KEYS.map(k=>`<div class="r"><kbd>${esc(k[0])}</kbd><span>${esc(k[1])}</span></div>`).join('')}</div><div class="ft">마우스를 유닛·건물 위에 잠시 올려 두면 자세한 정보가 떠요. 아무 곳이나 누르거나 ? / ESC로 닫아요.</div></div>`;
+document.body.appendChild(KT);KT.addEventListener('pointerdown',()=>KT.classList.remove('on'));
+addEventListener('keydown',e=>{if(!PC)return;if(e.key==='?'||(e.key==='/'&&e.shiftKey)){e.preventDefault();e.stopImmediatePropagation();KT.classList.toggle('on');return;}if(e.key==='Escape'&&KT.classList.contains('on')){e.preventDefault();e.stopImmediatePropagation();KT.classList.remove('on');}},true);
+
+// ---------------- 모바일 2: 화면 안 병력 선택 버튼 ----------------
+if(!PC){const _bg=buildGroups;buildGroups=function(){const r=_bg.apply(this,arguments);try{const g=$id('groups');if(!g||g.querySelector('[data-b="👁화면"]'))return r;
+ const el=document.createElement('div');el.className='btn';el.textContent='👁화면';el.dataset.b='👁화면';
+ el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();});
+ el.addEventListener('pointerup',e=>{e.preventDefault();const vx1=cam.x+VW/cam.z,vy1=cam.y+VH/cam.z;const a=ents.filter(u=>!u.dead&&u.type==='unit'&&u.team===0&&!UD[u.kind].worker&&u.x>=cam.x&&u.x<=vx1&&u.y>=cam.y&&u.y<=vy1);if(!a.length){toast('화면 안에 병력이 없어요');return;}setSel(a);buzz(8);hudDirty=true;});
+ const all=[...g.children].find(x=>/전병력/.test(x.textContent));if(all&&all.nextSibling)g.insertBefore(el,all.nextSibling);else g.appendChild(el);}catch(_){}return r;};
+ try{if(G&&$id('groups')&&$id('groups').children.length)buildGroups();}catch(_){}}
+
+// ---------------- 모바일 4: 진동 ----------------
+if(!PC){let vt=0;const _pl=play;play=function(n){try{const now=performance.now();
+ if(n==='alert'){buzz([90,60,90]);}else if(n==='err'){if(now-vt>400){vt=now;buzz(35);}}else if(n==='done'){buzz([20,40,20]);}else if((n==='ready'||n==='ship'||n==='plane')&&now-vt>900){vt=now;buzz(12);}}catch(_){}return _pl.apply(this,arguments);};}
 })();
 
 </script>
