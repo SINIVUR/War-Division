@@ -12686,7 +12686,7 @@ function tick(p){const m=M(p),ai=p.ai;ai.lateT=G.time+1e6;ai.pushT=G.time+1e6;
  if(m.ph==='gather'){const us=[...m.ids].map(id=>byId.get(id)).filter(u=>u&&!u.dead&&lay(u)!=='n');if(!us.length){m.ph='idle';return;}
   let near=0;for(const u of us)if(dist(u.x,u.y,m.pt[0],m.pt[1])<300)near++;
   // 집결지에서 적과 붙으면 바로 진격 / 85% 모이면 진격 / 30초 넘으면 진격
-  const hot=us.some(u=>u.state==='attack');if(near/us.length>=0.85||G.time-m.t0>30||(hot&&G.time-m.t0>6))march(p);
+  const hot=us.some(u=>u.state==='attack');if(!hot&&typeof aiHoldMarch==='function'&&aiHoldMarch(p,m))return;if(near/us.length>=0.85||G.time-m.t0>30||(hot&&G.time-m.t0>6))march(p);
   else for(const u of us)if(u.state==='idle'&&dist(u.x,u.y,m.pt[0],m.pt[1])>300)orderMove(u,m.pt[0]+rnd(-60,60),m.pt[1]+rnd(-60,60),true);
   return;}
  if(m.ph==='march'){const us=[...m.ids].map(id=>byId.get(id)).filter(u=>u&&!u.dead&&u.wave);if(!us.length||G.time-m.tm>240)m.ph='idle';return;}
@@ -12948,7 +12948,7 @@ const FX={
  tr:['메흐테르 군악대','병영 생산 유닛 피해 +20%·이동 +10%','병영에서 생산하는 모든 유닛이 어디서든 피해 +20%, 이동 +10%.','건물 이동 · 군악대'],
  yu:['파르티잔 합류','처치할 때 25% 확률로 파르티잔 합류','적 유닛을 쓰러뜨릴 때마다 25% 확률로 그 자리에서 파르티잔 1명이 무료로 합류해요 (보급이 남아 있을 때).','일꾼이 건물로 · 파르티잔'],
  cz:['슈코다 공창','기계 유닛이 파괴되면 비용 60% 환급','아군 기계 유닛이 파괴되면 그 비용의 60%를 석탄·에테르로 돌려받아요.','건물 이동 · 환급'],
- be:['요새선 장갑','일꾼 외 모든 유닛 방어 +3','일꾼을 뺀 모든 유닛의 방어가 3 높아요. 약한 공격일수록 거의 안 통해요.','건물 이동 · 장갑'],
+ be:['요새선 장갑','일꾼 외 모든 유닛 방어 +2','일꾼을 뺀 모든 유닛의 방어가 2 높아요. 약한 공격일수록 잘 안 통해요.','건물 이동 · 장갑'],
  bu:['정글 매복','3초 멈춘 보병은 은신','3초 동안 움직이지도 공격하지도 않은 보병은 은신해요. 움직이거나 공격하거나 맞으면 드러나요.','일꾼이 건물로 · 은신'],
  idn:['메르데카!','건물이 공격받으면 의용군 4명 출동','건물이 공격받으면 의용군 4명이 40초 동안 함께 싸워요 (건물마다 30초에 한 번, 최대 16명).','일꾼이 건물로 · 민병'],
  vn:['치고 빠지기','공격한 유닛 3초간 이동 +50%','공격한 유닛은 3초 동안 이동이 50% 빨라져요.','일꾼이 건물로 · 게릴라'],
@@ -12978,7 +12978,7 @@ for(const k in UD){const d=UD[k],f=d.f;if(!f||!d.cost)continue;
  if(f==='ro'&&d.mech&&d.cost[1])d.cost[1]=R5(d.cost[1]*0.7);
  if(f==='th'&&d.melee)d.spl=Math.max(d.spl||0,40);
  if(f==='es'&&d.melee){d.dodge=Math.max(d.dodge||0,0.4);d.sp=Math.round(d.sp*1.25);}
- if(f==='be'&&!d.worker)d.ar=(d.ar||0)+3;
+ if(f==='be'&&!d.worker)d.ar=(d.ar||0)+2;
  if(f==='ve'&&d.mech)d.cost[0]=R5(d.cost[0]*0.7);
 }
 for(const k in BD){const d=BD[k],f=d.f;if(!f||!d.cost)continue;
@@ -13280,6 +13280,85 @@ if(!PC){const _bg=buildGroups;buildGroups=function(){const r=_bg.apply(this,argu
 // ---------------- 모바일 4: 진동 ----------------
 if(!PC){let vt=0;const _pl=play;play=function(n){try{const now=performance.now();
  if(n==='alert'){buzz([90,60,90]);}else if(n==='err'){if(now-vt>400){vt=now;buzz(35);}}else if(n==='done'){buzz([20,40,20]);}else if((n==='ready'||n==='ship'||n==='plane')&&now-vt>900){vt=now;buzz(12);}}catch(_){}return _pl.apply(this,arguments);};}
+})();
+
+// ===================== F.V.1.4.0 AI가 진영 효과를 직접 활용 =====================
+// 각 진영 AI가 자기 효과에 맞는 운영·컨트롤을 함 (역사 캠페인은 기존 난이도 유지를 위해 제외)
+(function(){
+const fo=t=>G.pl[t]&&G.pl[t].fac;
+const isAI=t=>{const p=G.pl[t];return p&&!p.human&&p.alive;};
+let MIC=0;const AITS=globalThis.AITS={};const st=k=>{AITS[k]=(AITS[k]||0)+1;};
+// AI 큰 명령(웨이브·집결)이 개별 컨트롤을 곧바로 덮어쓰지 않게
+{const _om=orderMove;orderMove=function(u,x,y,am,keep){if(!MIC&&u&&u._mic>G.time&&isAI(u.team))return;return _om.apply(this,arguments);};}
+{const _oa=orderAttack;orderAttack=function(u,t){if(!MIC&&u&&u._mic>G.time&&isAI(u.team))return;return _oa.apply(this,arguments);};}
+const mv=(u,x,y,am,dur)=>{const o=AIB;AIB=null;MIC=1;try{u._mic=0;orderMove(u,Math.max(8,Math.min(WW-8,x)),Math.max(8,Math.min(WH-8,y)),am);u._mic=G.time+(dur||0);}finally{MIC=0;AIB=o;}};
+const atk=(u,t,dur)=>{const o=AIB;AIB=null;MIC=1;try{u._mic=0;orderAttack(u,t);u._mic=G.time+(dur||0);}finally{MIC=0;AIB=o;}};
+const enemiesNear=(u,r)=>{const o=[];unitsNear(u.x,u.y,r,v=>{if(!v.dead&&v.type==='unit'&&v.team>=0&&enemy(u.team,v.team)&&(v.team===0||!v._ck))o.push(v);});return o;};
+const nearest=(u,L)=>{let b=null,bd=1e18;for(const v of L){const d=(v.x-u.x)**2+(v.y-u.y)**2;if(d<bd){bd=d;b=v;}}return b;};
+const home=t=>{let b=null;for(const e of ents)if(e.type==='bld'&&!e.dead&&e.team===t&&BD[e.kind].drop){b=e;break;}return b;};
+const away=(u,from,d)=>{const dx=u.x-from.x,dy=u.y-from.y,L=Math.hypot(dx,dy)||1;return [u.x+dx/L*d,u.y+dy/L*d];};
+const toward=(u,to,d)=>{const dx=to.x-u.x,dy=to.y-u.y,L=Math.hypot(dx,dy)||1;return [u.x+dx/L*Math.min(d,L),u.y+dy/L*Math.min(d,L)];};
+const fighting=u=>u.state==='attack'||G.time-(u._hitT||-99)<2;
+const isForest=(x,y)=>{const X=Math.floor(x/T),Y=Math.floor(y/T);return X>=0&&Y>=0&&X<MW&&Y<MH&&terr[Y*MW+X]===4;};
+function night(){try{const w=G.wx;if(!w||!w.on||w.noNight)return -1;return nightAmt();}catch(e){return -1;}}
+
+// ---- 1) 유닛 컨트롤 ----
+function micro(u,f,d){const now=G.time;if(u._mic>now)return;
+ // 후퇴 후 회복: 필리핀(생체) · 독일·호주(방어막) · 멕시코(공군은 비행장으로)
+ if(u._rt){const done=f==='ph'?u.hp>=u.maxhp*0.85:f==='mx'?u.hp>=u.maxhp*0.9:(u.maxsh?u.sh>=u.maxsh*0.7:true);
+  if(done||now>u._rt.end){const b=u._rt.back;u._rt=null;mv(u,b[0],b[1],true,0);}return;}
+ if(f==='ph'&&d.bio&&!d.layer&&fighting(u)&&u.hp<u.maxhp*0.42&&!(u._rtCd>now)){const h=home(u.team);if(h){const p=toward(u,h,240);u._rt={end:now+11,back:[u.x,u.y]};u._rtCd=now+20;st('ph후퇴');mv(u,p[0],p[1],false,1.5);}return;}
+ if((f==='de'||f==='au')&&u.maxsh&&fighting(u)&&u.sh<u.maxsh*0.1&&u.hp<u.maxhp*0.6&&!(u._rtCd>now)){const e=nearest(u,enemiesNear(u,320));if(e){const p=away(u,e,150);u._rt={end:now+7,back:[u.x,u.y]};u._rtCd=now+18;st(f+'방어막후퇴');mv(u,p[0],p[1],false,1.5);}return;}
+ if(f==='mx'&&d.layer==='a'&&u.hp<u.maxhp*0.4&&!(u._rtCd>now)){let af=null,bd=1e18;for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===u.team&&ROLE[b.kind]==='air'&&b.built){const dd=(b.x-u.x)**2+(b.y-u.y)**2;if(dd<bd){bd=dd;af=b;}}
+  if(af){u._rt={end:now+16,back:[u.x,u.y]};u._rtCd=now+25;st('mx비행장');mv(u,af.x,af.y,false,1.5);}return;}
+ // 일본: 계속 싸운 유닛은 잠깐 빠졌다가 5초 쉬고 다시 기습 (첫 공격 3배)
+ if(f==='jp'&&!d.worker&&!d.suicide){if(u.state==='attack'){if(!u._jpF)u._jpF=now;}else u._jpF=0;
+  if(u._jpF&&now-u._jpF>4&&u.hp<u.maxhp*0.97&&!(u._jpCd>now)){const e=nearest(u,enemiesNear(u,300));if(e){const p=away(u,e,120);u._jpF=0;u._jpCd=now+15;u._rt=null;st('jp기습순환');mv(u,p[0],p[1],false,5.3);u._jpBack=[e.x,e.y,now+5.3];}}
+  if(u._jpBack&&now>=u._jpBack[2]){const b=u._jpBack;u._jpBack=null;mv(u,b[0],b[1],true,0);}return;}
+ // 버마: 적이 다가오면 멈춰서 은신한 뒤 덮침
+ if(f==='bu'&&d.bio&&!d.worker&&!d.layer&&!u._ck&&u.state==='move'&&!(u._buCd>now)&&now-(u._atkT||-99)>6){const L=enemiesNear(u,360).filter(v=>!UD[v.kind].worker);if(L.length){u._buCd=now+16;st('bu매복');const e=nearest(u,L);mv(u,u.x,u.y,false,3.3);u._buGo=[e.x,e.y,now+3.3];}return;}
+ if(f==='bu'&&u._buGo&&now>=u._buGo[2]){const b=u._buGo;u._buGo=null;mv(u,b[0],b[1],true,0);return;}
+ // 뉴질랜드: 하카 근접 부대가 적 원거리 유닛에게 돌진
+ if(f==='nz'&&d.melee&&!(u._nzCd>now)){const L=enemiesNear(u,260).filter(v=>{const q=UD[v.kind];return !q.worker&&!q.melee&&q.layer!=='a';});if(L.length){u._nzCd=now+6;st('nz돌진');atk(u,nearest(u,L),2);}return;}
+ // 브라질·몽골·유고: 처치가 곧 이득 → 빈사 상태의 적부터 끝냄
+ if((f==='br'||f==='mn'||f==='yu')&&d.dmg&&u.state==='attack'&&!(u._ffCd>now)){u._ffCd=now+1.4;const r=(d.rng||20)+24;let best=null,bh=1e9;for(const v of enemiesNear(u,r)){if(UD[v.kind].layer==='a'&&!canHit(d.tg,v))continue;if(!canHit(d.tg,v))continue;const h=v.hp+(v.sh||0);if(h<bh){bh=h;best=v;}}
+  const cur=u.target!=null?byId.get(u.target):null;if(best&&best!==cur&&(!cur||bh<(cur.hp+(cur.sh||0))*0.7)){st(f+'마무리');atk(u,best,1);}return;}
+ // 베트남: 원거리 유닛이 근접·단거리 적과 거리를 벌리며 싸움 (공격 후 이동 +50%)
+ if(f==='vn'&&(d.rng||0)>60&&!d.layer&&u.state==='attack'&&!(u._vnCd>now)){const e=nearest(u,enemiesNear(u,d.rng*0.55));if(e){const q=UD[e.kind];if(q.melee||(q.rng||0)<d.rng*0.7){u._vnCd=now+2.6;st('vn카이팅');const p=away(u,e,70);mv(u,p[0],p[1],false,0.8);}}return;}
+ // 캐나다: 싸울 때 바로 옆 숲으로 들어가 피해 -35%
+ if(f==='ca'&&d.bio&&!d.layer&&fighting(u)&&!(u._caCd>now)&&!isForest(u.x,u.y)){u._caCd=now+10;const X=Math.floor(u.x/T),Y=Math.floor(u.y/T);let best=null,bd=99;
+  for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const x=X+dx,y=Y+dy;if(x<0||y<0||x>=MW||y>=MH||terr[y*MW+x]!==4)continue;const dd=dx*dx+dy*dy;if(dd<bd){bd=dd;best=[(x+.5)*T,(y+.5)*T];}}
+  if(best){st('ca숲');mv(u,best[0],best[1],false,1.6);}return;}
+}
+
+// ---- 2) 운영 ----
+const prod=k=>['inf','veh','air','sea'].includes(ROLE[k]);
+function macro(p){const now=G.time,f=p.fac,ai=p.ai||(p.ai={});if((ai._trT||0)>now)return;ai._trT=now+3;
+ const blds=ents.filter(e=>e.type==='bld'&&!e.dead&&e.team===p.id);
+ // 대한제국: 연구 시간이 짧으니 여러 분야를 동시에, 아끼지 않고 연구
+ if(f==='ko'){for(const b of blds)if(BD[b.kind].up&&b.built&&!b.rs){for(const ly of ['g','a','n']){const lv=p.up[ly]+1;if(lv>3||!canResearch(p.id,ly))continue;const c=upCost(lv,p.id);if(p.coal>=c[0]&&p.ether>=c[1]){const o=AIB;AIB=null;try{if(startResearch(b,ly,true))st('ko연구');}finally{AIB=o;}break;}}}}
+ // 경제형(중국·스웨덴·남아공·이집트·몽골·체코·루마니아): 남는 자원을 바로 병력으로
+ if(['cn','se','za','eg','mn','cz','ro'].includes(f)&&p.coal>420){const sp=supplyOf(p.id);if(sp.used<sp.cap-2){let n=0;for(const b of blds){if(!b.built||!prod(b.kind)||(b.queue&&b.queue.length>1))continue;const L=(BD[b.kind].train||[]).filter(k=>{const d=UD[k];return d&&d.dmg&&!d.worker&&d.cost[0]<=p.coal-120&&d.cost[1]<=p.ether&&(!d.cost[2]||(p.rub||0)>=d.cost[2])&&reqMet(p.id,k);});
+   if(!L.length)continue;const k=L[Math.floor(Math.random()*L.length)];const o=AIB;AIB=null;try{if(tryTrain(b,k,true)){n++;st(f+'잉여생산');}}finally{AIB=o;}if(n>=3||p.coal<300)break;}}}
+ // 그리스·프랑스: 방어 건물을 앞마당·병력 집결지 쪽에 더 (그리스는 그 근처에서 싸우면 피해 -45%)
+ if((f==='gr'||f==='fr')&&now>240&&(ai._defT||0)<now){ai._defT=now+(f==='gr'?25:40);const dk=FAC[f].build.find(k=>ROLE[k]==='def');const n=blds.filter(b=>ROLE[b.kind]==='def').length,cap=f==='gr'?Math.min(9,3+Math.floor(now/150)):Math.min(6,2+Math.floor(now/240));
+  if(dk&&n<cap&&reqMet(p.id,dk)&&p.coal>=BD[dk].cost[0]+120&&p.ether>=BD[dk].cost[1]){const S=G.sp&&G.sp[p.spawn];let ax,ay;
+   const m=ai.M;if(m&&m.pt&&m.ph==='gather'){ax=m.pt[0];ay=m.pt[1];}else if(S&&S.natP){ax=S.natP[0]*T;ay=S.natP[1]*T;if(S.mouth){ax=(ax+S.mouth[0]*T)/2;ay=(ay+S.mouth[1]*T)/2;}}else{const h=home(p.id);if(h){ax=h.x;ay=h.y;}}
+   if(ax!=null){const sp=findSpot(p.id,dk,ax,ay);const wk=ents.filter(w=>!w.dead&&w.team===p.id&&w.type==='unit'&&UD[w.kind].worker&&w.state!=='site'&&!w.carry);
+    if(sp&&wk.length){const w=nearest({x:ax,y:ay},wk);p.coal-=BD[dk].cost[0];p.ether-=BD[dk].cost[1];const o=AIB;AIB=null;try{orderSite(w,dk,sp[0],sp[1]);st(f+'방어건물');}finally{AIB=o;}}}}}
+}
+// 모로코: 밤낮이 켜진 판에서는 낮에는 모아만 두고 밤이 오면 진격 (최대 2분 대기)
+globalThis.aiHoldMarch=function(p,m){try{if(p.fac!=='ma')return false;const n=night();if(n<0)return false;if(n>=0.35)return false;if(G.time-m.t0>120)return false;m.t0x=m.t0x||m.t0;AITS['ma밤대기']=(AITS['ma밤대기']||0)+1;return true;}catch(e){return false;}};
+
+// ---- 3) 주기 실행 ----
+let acc=0;
+{const _up=update;update=function(dt){const r=_up.apply(this,arguments);try{if(!G||G.over||!G.pl||(G.camp&&G.camp.hist))return r;acc+=dt;if(acc<0.25)return r;acc=0;
+ const act={};let any=false;for(const p of G.pl)if(!p.human&&p.alive){act[p.id]=p.fac;any=true;}if(!any)return r;
+ for(const u of ents){if(u.dead||u.type!=='unit'||act[u.team]==null)continue;const d=UD[u.kind];if(d.worker||!d.dmg||u._life||u.morph||u.sg)continue;
+  if(((u.id||0)+Math.floor(G.time*4))%2)continue; // 유닛마다 0.5초 간격
+  micro(u,act[u.team],d);}
+ for(const p of G.pl)if(!p.human&&p.alive)macro(p);
+}catch(e){console.error(e);}return r;};}
 })();
 
 </script>
