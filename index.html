@@ -13131,6 +13131,11 @@ globalThis.aiZoneOk=zoneOk;
   const A=[[S.cx*T,S.cy*T]];if(S.natP)A.push([S.natP[0]*T,S.natP[1]*T]);for(const b of ents)if(b.type==='bld'&&!b.dead&&b.team===team&&BD[b.kind].drop)A.push([b.x,b.y]);
   for(const [ax,ay] of A){const q=_fs(team,kind,ax,ay);if(q)return q;}
   G._zoneOff=1;try{return _fs(team,kind,cx,cy);}finally{G._zoneOff=0;}}catch(e){G._zoneOff=0;return r;}};}
+
+// ---- 2차: 표준 밸런스 528판 반영 (25분 경기, Elo 격차 415) ----
+// 표본이 진영당 24판이라 보정 폭은 1차의 절반 정도로. 이 측정 뒤에 버프한 진영(영국·세네갈·튀르키예·호주·인도네시아·폴란드)은 그만큼 덜어 냄
+{const M2={"be": 0.931, "uk": 0.904, "vn": 0.951, "ko": 0.952, "su": 0.956, "us": 0.967, "fi": 0.967, "it": 0.97, "fr": 0.972, "ir": 0.979, "bg": 0.983, "sn": 0.945, "tr": 0.96, "mn": 0.99, "es": 0.994, "de": 0.995, "ro": 0.997, "mx": 0.998, "th": 0.999, "yu": 0.999, "br": 1.0, "bu": 1.001, "ch": 1.001, "nl": 1.002, "cu": 1.007, "et": 1.009, "cz": 1.011, "in": 1.013, "se": 1.013, "jp": 1.014, "ca": 1.016, "cn": 1.018, "nz": 1.019, "ph": 1.021, "ve": 1.023, "hu": 1.025, "gr": 1.03, "ma": 1.033, "idn": 1.03, "pl": 1.03, "no": 1.038, "za": 1.04, "eg": 1.046, "au": 1.03};for(const f in M2)FBAL2[f]=+((FBAL2[f]||1)*M2[f]).toFixed(3);
+ const nf=(k,dm)=>{const d=UD[k];if(d&&d.dmg)d.dmg=+(d.dmg*dm).toFixed(1);};nf('mx_p47',0.9);nf('in_vimana',0.9);nf('be_eben',0.9);}
 })();
 
 // ===================== F.V.1.4.0 편의 기능 =====================
