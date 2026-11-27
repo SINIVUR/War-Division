@@ -3675,7 +3675,7 @@ function drawUnit(u){
  if(u.flash>0&&!(u.maxsh&&u.sh>0)){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.55;ctx.drawImage(img,dx,dy,Math.round(w),Math.round(h));ctx.globalCompositeOperation='source-over';ctx.globalAlpha=cl?0.4:1;}
  if(u.carry&&d.worker){const hl=u.kind==='in_kuli';/* 인도 쿨리는 머리에 바구니를 이고 있어서 표시가 묻힘 → 머리 위로 올리고 테두리 */const cx=Math.round(hl?u.x:u.x+(flip?-R:R)*0.6),cy=Math.round(dy+pad+(hl?-5:2));if(hl){ctx.fillStyle='#1a1410';ctx.fillRect(cx-5,cy-7,10,8);}if(u.carryT==='ether'){ctx.fillStyle='#7ff6ff';ctx.fillRect(cx-3,cy-6,6,6);ctx.fillStyle='#e0ffff';ctx.fillRect(cx-1,cy-5,2,2);}else{ctx.fillStyle='#e8b830';ctx.fillRect(cx-4,cy-6,8,6);ctx.fillStyle='#fff0a0';ctx.fillRect(cx-3,cy-5,3,2);ctx.fillStyle='#1a1410';ctx.fillRect(cx-4,cy,8,1);}}
  const cy0=cat==='air'?dy+h/2:u.y;
- if(u.maxsh&&u.sh>0&&(u.flash>0||u.shT<0.4)){ctx.fillStyle='rgba(143,244,255,.75)';pxRing(u.x,cy0,R+4);}
+ if(u.maxsh&&u.sh>0&&(u.flash>0||u.shT<0.4)){ctx.fillStyle=(u.team>=0&&G.pl[u.team]&&G.pl[u.team].fac==='au')?'rgba(255,214,70,.8)':'rgba(143,244,255,.75)';pxRing(u.x,cy0,R+4);}
  if(u.slowT>0){ctx.fillStyle='rgba(220,250,255,.85)';pxRing(u.x,cy0,R+2);for(let i=0;i<3;i++)ctx.fillRect(Math.round(u.x-R+i*R),Math.round(cy0-R-2),3,3);}
  if(u.morph>0){ctx.fillStyle='#7ff6ff';for(let i=0;i<8;i++){const an=t*4+i*0.785;ctx.fillRect(Math.round(u.x+Math.cos(an)*(R+6)),Math.round(cy0+Math.sin(an)*(R+6)*0.7),3,3);}}
  ctx.restore();
@@ -4696,7 +4696,7 @@ function hpBar(e){
  const U=e.type==='unit',w=Math.round(U?Math.max(30,e.r*3.2):e.w*T*0.78),x=Math.round(e.x-w/2);
  const en=U&&e.pcMax?e.pc/e.pcMax:-1,rows=[];
  const f=clamp(e.hp/e.maxhp,0,1);rows.push([f,f>.6?'#4fe04f':f>.3?'#f0c838':'#f04434',6]);
- if(e.maxsh)rows.push([clamp(e.sh/e.maxsh,0,1),'#5cd0ff',4]);
+ if(e.maxsh)rows.push([clamp(e.sh/e.maxsh,0,1),(e.team>=0&&G.pl[e.team]&&G.pl[e.team].fac==='au')?'#ffd24a':'#5cd0ff',4]);
  if(en>=0)rows.push([clamp(en,0,1),'#c06cff',4]);
  if(!U&&e.built&&e.queue.length&&e.team===0)rows.push([e.qp,'#ffe070',4]);
  if(!U&&!e.built)rows.push([e.prog,'#e0c070',3]);
@@ -12728,15 +12728,17 @@ body.pc #title:not(.wizOn) .wrap>*,body.pc #title:not(.wizOn) .left>*,body.pc #t
 body.pc #title:not(.wizOn) h1{grid-column:1;grid-row:1;justify-self:start;font-size:clamp(26px,3.6vh,48px);display:flex;align-items:baseline;gap:14px}
 body.pc #title:not(.wizOn) .en{grid-column:2/4;grid-row:1;justify-self:end;align-self:center;font-size:clamp(9px,1.1vh,13px);letter-spacing:.45em}
 body.pc #title:not(.wizOn) #facRow{grid-column:1;grid-row:2/13;align-self:stretch;width:100%;height:100%;max-width:none;overflow:hidden;padding:0;box-sizing:border-box;
- display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,minmax(0,1fr));grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(4px,.6vw,10px)}
+ display:grid;grid-auto-flow:row;grid-template-rows:repeat(4,auto);grid-template-columns:repeat(11,minmax(0,1fr));align-content:center;gap:clamp(4px,.6vw,10px)}
 body.pc #title:not(.wizOn) #facRow .fac{width:auto;min-width:0;height:auto;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:clamp(4px,.6vh,9px) clamp(5px,.5vw,9px);border-radius:9px;border:1.5px solid #5a4528;background:linear-gradient(rgba(40,31,20,.95),rgba(18,14,9,.95));cursor:pointer;transition:transform .08s,border-color .08s}
 body.pc #title:not(.wizOn) #facRow .fac:hover{border-color:#c8a050;transform:translateY(-2px)}
 body.pc #title:not(.wizOn) #facRow .fac.sel{border-color:#f0d080;box-shadow:0 0 0 2px #f0d080,0 0 22px rgba(240,208,128,.35);background:linear-gradient(rgba(74,58,30,.95),rgba(30,23,13,.95))}
 body.pc #title:not(.wizOn) #facRow .fac .bar{height:clamp(3px,.45vh,6px);margin-bottom:clamp(3px,.5vh,6px)}
 body.pc #title:not(.wizOn) #facRow .fac .fn{font-size:clamp(12px,1.75vh,21px)!important;letter-spacing:-.02em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.pc #title:not(.wizOn) #facRow .fac .fn.l5{font-size:clamp(11px,1.5vh,18px)!important;letter-spacing:-.06em!important}
-body.pc #title:not(.wizOn) #facRow .fac .fd{font-size:clamp(9px,1.18vh,13px);white-space:nowrap;text-overflow:ellipsis;line-height:1.25;overflow:hidden}
-body.pc #title:not(.wizOn) #facRow .fac .ftn{margin-top:auto;margin-bottom:0;padding-left:clamp(30px,3vw,46px);text-align:right;font-size:clamp(10px,1.4vh,16px);font-weight:700;color:#f0d080;line-height:1.2;text-shadow:0 1px 2px #000;word-break:keep-all;overflow-wrap:anywhere}
+body.pc #title:not(.wizOn) #facRow .fac .fd{font-size:clamp(9px,1.18vh,13px);white-space:normal;word-break:keep-all;line-height:1.25;max-height:2.55em;overflow:hidden}
+body.pc #title:not(.wizOn) #facRow .fac .ftn{margin-top:auto;margin-bottom:clamp(15px,1.9vh,22px);padding-left:0;text-align:left;font-size:clamp(9px,1.22vh,14px);font-weight:700;color:#f0d080;line-height:1.2;text-shadow:0 1px 2px #000;word-break:keep-all;overflow-wrap:anywhere}
+body.pc #title:not(.wizOn) #facRow .fac{aspect-ratio:1.3/1;justify-content:flex-start}
+body.pc #title:not(.wizOn) #facRow .fac .fd,body.pc #title:not(.wizOn) #facRow .fac .ftn{display:none!important}
 body.pc #title:not(.wizOn) #facRow .fac .fside{position:absolute;left:clamp(5px,.5vw,9px);bottom:clamp(4px,.6vh,8px);font-size:clamp(8px,1vh,11px);padding:1px 5px;border-radius:4px;font-weight:700}
 .fside{display:none}.ftn{display:none}.uimg{display:none!important}body.pc #title:not(.wizOn) .fside,body.pc #title:not(.wizOn) .ftn{display:block}
 .fside.al{background:#2a4a7a;color:#cfe0ff}.fside.ax{background:#6a2a22;color:#ffd0c8}.fside.ne{background:#4a4a40;color:#e8e0c8}
@@ -12765,6 +12767,57 @@ const run=()=>{tagLate();decorate();try{showTrait();}catch(e){}try{fitAll();}cat
 setTimeout(run,0);setTimeout(run,700);
 {const _sp=setPC;setPC=function(){const r=_sp.apply(this,arguments);setTimeout(run,60);return r;};}
 document.querySelectorAll('#facRow .fac').forEach(el=>el.addEventListener('click',()=>setTimeout(()=>{try{showTrait();}catch(e){}},0)));
+})();
+// ===================== F.V.1.4.0: 난이도·맵 선택을 별도 창으로 (PC) =====================
+(function(){
+if(!document.body.classList.contains('pc')&&!(typeof PC!=='undefined'&&PC))return;
+const st=document.createElement('style');st.textContent=`
+body.pc #title:not(.wizOn)>.wrap{grid-template-columns:minmax(0,1fr) clamp(280px,21vw,400px)!important}
+body.pc #title:not(.wizOn) .wrap::before{grid-column:2/3!important}
+body.pc #title:not(.wizOn) .wrap::after{display:none!important}
+body.pc #title:not(.wizOn) .en{grid-column:2!important}
+body.pc #title:not(.wizOn) .t-ldiff{display:none!important}
+body.pc #title:not(.wizOn) #pcDiffBtn{grid-column:2;grid-row:7}body.pc #title:not(.wizOn) #pcMapBtn{grid-column:2;grid-row:8}
+body.pc #title:not(.wizOn) #wxOpt{grid-row:9!important}body.pc #title:not(.wizOn) #shakeOpt{grid-row:10!important}
+body.pc #title:not(.wizOn) #facTrait,body.pc #title:not(.wizOn) #homeBtns{grid-column:1/3!important}
+.pcSel{display:none}
+body.pc #title:not(.wizOn) .pcSel{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;box-sizing:border-box;margin-top:clamp(6px,1vh,12px)!important;padding:clamp(8px,1.1vh,13px) 14px;border:1.5px solid #7a5f34;border-radius:10px;background:linear-gradient(#3a2d1a,#241b10);color:#f0d080;cursor:pointer;text-align:left;font:inherit}
+body.pc #title:not(.wizOn) .pcSel:hover{border-color:#e8c56a;background:linear-gradient(#4a3920,#2c2112)}
+.pcSel .k{font-size:clamp(10px,1.2vh,13px);color:#c8a860;font-weight:700;letter-spacing:.05em}
+.pcSel .v{font-size:clamp(15px,2vh,22px);font-weight:800;color:#fff0c0}
+.pcSel .s{font-size:clamp(10px,1.15vh,12px);color:#b8a888;line-height:1.35}
+.pcSel .v::after{content:' ▸';color:#e8c56a;font-size:.8em}
+.pcWin{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.62)}
+.pcWin.on{display:flex}
+.pcWin .box{width:min(92vw,var(--w,640px));max-height:90vh;overflow:auto;box-sizing:border-box;padding:22px 26px;border:1.5px solid #7a5f34;border-radius:14px;background:linear-gradient(#2e2416,#16110a);color:#e8dcc0;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.pcWin h3{margin:0 0 14px;color:#f0d080;font-size:22px}
+.pcWin .seg{display:grid!important;gap:8px;margin:0 0 12px!important;justify-content:stretch!important}
+.pcWin #diffSeg{grid-template-columns:repeat(3,1fr)}
+.pcWin #mapSeg{grid-template-columns:repeat(2,1fr)!important}
+.pcWin .seg button{font-size:15px;padding:10px 8px}
+.pcWin #diffInfo{max-width:none!important;font-size:13px!important;line-height:1.55!important;min-height:4.5em}
+.pcWin .mapBody{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.pcWin #preview{width:300px!important;height:300px!important;image-rendering:pixelated;border-radius:6px}
+.pcWin #mapDesc{font-size:13px;line-height:1.6;margin-top:6px;width:auto!important;max-width:none!important;text-align:left!important}
+.pcWin .ok{display:block;margin:16px 0 0 auto;font-size:16px;padding:10px 34px;border-radius:9px;border:1.5px solid #e8c56a;background:linear-gradient(#8a6a2a,#5a4218);color:#fff6d8;font-weight:800;cursor:pointer}
+`;document.head.appendChild(st);
+const g=id=>document.getElementById(id);
+function mkWin(id,title,w){const d=document.createElement('div');d.className='pcWin';d.id=id;d.innerHTML=`<div class="box" style="--w:${w}px"><h3>${title}</h3><div class="body"></div><button class="ok">확인</button></div>`;document.body.appendChild(d);
+ d.addEventListener('click',e=>{if(e.target===d||e.target.classList.contains('ok'))close(d);});return d;}
+function close(d){d.classList.remove('on');sync();}
+const dw=mkWin('pcDiffWin','난이도',720),mw=mkWin('pcMapWin','맵',900);
+// 원래 요소를 창 안으로 옮김 (PC에서만 — 모바일 위저드는 그대로)
+try{dw.querySelector('.body').append(g('diffSeg'),g('diffInfo'));
+ const mb=document.createElement('div');mb.className='mapBody';const l=document.createElement('div');l.append(g('mapSeg'),g('mapDesc'));mb.append(l,g('preview'));mw.querySelector('.body').append(mb);}catch(e){console.error(e);}
+function btn(id,k,win){const b=document.createElement('button');b.id=id;b.className='pcSel';b.innerHTML=`<span class="k">${k}</span><span class="v"></span><span class="s"></span>`;b.onclick=()=>{win.classList.add('on');};return b;}
+const bd=btn('pcDiffBtn','난이도',dw),bm=btn('pcMapBtn','맵',mw);
+try{const left=document.querySelector('#title .left');const ref=g('homeBtns');left.insertBefore(bd,ref);left.insertBefore(bm,ref);}catch(e){console.error(e);}
+function sync(){try{const d=document.querySelector('#diffSeg button.on'),m=document.querySelector('#mapSeg button.on');
+ bd.querySelector('.v').textContent=d?d.textContent:'';const di=g('diffInfo');let t='';if(di){const c=di.firstElementChild||di.firstChild;t=((c&&c.textContent)||di.textContent||'').replace(/^▶\s*/,'').split(/\n/)[0];const k=t.indexOf(':');if(k>=0)t=t.slice(k+1).trim();}bd.querySelector('.s').textContent=t.slice(0,60);
+ bm.querySelector('.v').textContent=m?m.textContent.trim():'';const md=g('mapDesc');bm.querySelector('.s').textContent=md?(md.textContent||'').slice(0,60)+((md.textContent||'').length>60?'…':''):'';}catch(e){}}
+for(const s of ['diffSeg','mapSeg'])g(s)&&g(s).addEventListener('click',()=>setTimeout(sync,0));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')for(const d of [dw,mw])if(d.classList.contains('on')){close(d);e.stopPropagation();}},true);
+sync();setTimeout(sync,300);setTimeout(sync,1500);
 })();
 
 // ===================== 모바일 HUD 맞춤 (F.V.1.3.0) =====================
@@ -12866,20 +12919,20 @@ const FX={
  de:['룬 방벽','기계 유닛 방어막 +80 · 방어막 빠른 재생','모든 기계 유닛이 방어막 80을 두르고, 방어막이 다른 진영보다 2배 빨리 다시 차요.','마법진 · 방어막'],
  it:['전격 속도전','모든 유닛 이동 +25% · 무기 연구 비용 40% 저렴','모든 유닛이 25% 빨라요. 무기 연구 비용이 40% 싸요.','건물 이동 · 속도'],
  fr:['마지노 요새','건물 체력 +60% · 방어 건물 사거리 +30%','모든 건물 체력이 60% 높고, 방어 건물 사거리가 30% 길어요.','협동 건설 · 요새'],
- uk:['해양 제국','해상 유닛 체력 +40% · 사거리 +25%','모든 함선 체력이 40%, 사거리가 25% 늘어요. 시야도 2칸 넓어요.','동력장 · 해군'],
- jp:['기습','5초 쉬던 유닛 첫 공격 피해 3배','5초 이상 공격하지 않던 유닛의 첫 공격이 3배 피해를 줘요.','영토 · 기습'],
+ uk:['해양 제국','함선 체력 +40%·사거리 +25% · 항공기 사거리 +15%','모든 함선 체력이 40%, 사거리가 25% 늘어요. 모든 항공기 사거리도 15% 늘고, 시야도 2칸 넓어요.','동력장 · 해군'],
+ jp:['기습','쉬던 유닛 첫 공격 3배 · 신풍 자폭 성공 시 에테르 +100','5초 이상 공격하지 않던 유닛의 첫 공격이 3배 피해를 줘요. 신풍 특공기가 적에게 자폭을 성공하면 에테르 100을 얻어요.','영토 · 기습'],
  cn:['인민의 힘','석탄 채집 +50% · 보급 건물 40% 저렴','일꾼이 석탄을 한 번에 50% 더 캐요. 보급 건물이 40% 싸요.','영토 · 석탄'],
- au:['오지 사수','보병 사거리 +35% · 일꾼 체력 2배','원거리 보병 사거리가 35% 길어요. 일꾼 체력이 2배예요.','동력장 · 저격'],
+ au:['오지 사수','보병 사거리 +35% · 일꾼 체력 2배 · 노란 방어막','원거리 보병 사거리가 35% 길어요. 일꾼 체력이 2배예요. 모든 유닛이 체력의 30%만큼 노란 사막 방어막을 둘러요 (5초 안 맞으면 다시 참).','동력장 · 저격'],
  za:['다이아몬드 광맥','채집할 때 25% 확률로 3배 대박','일꾼이 자원을 캘 때마다 25% 확률로 한 번에 3배를 캐요.','협동 건설 · 대박'],
  br:['연쇄 공세','처치한 유닛 6초간 공속 +50%·피해 +25%','적을 쓰러뜨린 유닛은 6초 동안 공격 속도 +50%, 피해 +25%, 이동 +20%. 계속 처치하면 계속 이어져요.','건물 이동 · 연쇄'],
  in:['라자의 위엄','생체 유닛 체력 +35%','보병·기병·코끼리 같은 모든 생체 유닛 체력이 35% 높아요.','영토 · 맷집'],
  ko:['광무개혁','연구 시간 65% 단축','모든 무기 연구가 65% 빨리 끝나요.','건물 이동 · 연구'],
  hu:['강철 후사르','지상 기계 유닛 피해 +35% · 이동 +20%','전차·장갑차·자주포 등 지상 기계 유닛의 피해가 35%, 이동이 20% 늘어요.','건물 이동 · 기갑'],
  fi:['시수(Sisu)','모든 유닛이 치명상을 한 번 버팀 · 감속 면역','모든 유닛이 처음 쓰러질 만한 피해를 받으면 한 번은 체력 30%로 버텨요. 어떤 감속에도 느려지지 않아요.','협동 건설 · 불굴'],
- pl:['날개 기병','근접 유닛 피해 +60%','근접 유닛의 피해가 60% 늘어요.','건물 이동 · 돌격'],
+ pl:['날개 기병','근접 유닛 피해 +60% · 보병 체력 +10%','근접 유닛의 피해가 60% 늘고, 모든 보병 체력이 10% 높아요.','건물 이동 · 돌격'],
  ca:['숲의 개척자','보병·일꾼 숲 통과 · 숲에서 받는 피해 -35%','보병과 일꾼이 숲을 지나다닐 수 있어요. 숲 안이나 숲 바로 옆의 아군은 받는 피해가 35% 줄어요.','건물 이동 · 숲'],
  nz:['하카','근접 교전 시 6초간 피해 +60%·이동 +40%','근접 유닛이 싸움을 시작하면 6초 동안 피해 +60%, 이동 +40% (유닛마다 10초에 한 번).','건물 이동 · 하카'],
- gr:['방패진','방어 건물 근처 아군 받는 피해 -45%','아군 방어 건물 근처(약 13칸)의 모든 아군 유닛은 받는 피해가 45% 줄어요.','동력장 · 방패'],
+ gr:['방패진','방어 건물 근처 받는 피해 -45% · 방어 건물 건설 +50%','아군 방어 건물 근처(약 13칸)의 모든 아군 유닛은 받는 피해가 45% 줄어요. 방어 건물이 1.5배 빨리 지어져요.','동력장 · 방패'],
  nl:['제방 수리','모든 건물이 초당 1.5% 자동 수리','다 지은 건물은 맞고 있어도 초당 최대 체력의 1.5%씩 스스로 고쳐져요.','협동 건설 · 수리'],
  no:['혹한의 땅','모든 공격이 적을 2.5초간 느리게','노르웨이의 모든 공격(유닛·방어 건물)이 맞은 지상·해상 적을 2.5초 동안 느리게 만들어요 (이동 -35%·공속 -30%).','동력장 · 혹한'],
  et:['아드와의 기억','체력 60% 아래면 피해 +70%·받는 피해 -30%','체력이 60% 아래로 떨어진 유닛은 피해 +70%, 받는 피해 -30%. 몰릴수록 강해져요.','건물 이동 · 역전'],
@@ -12892,17 +12945,17 @@ const FX={
  se:['철광석 수출','20초마다 석탄 +60 (정제소마다 +10)','20초마다 석탄 60을 받고, 다 지은 에테르 정제소 하나마다 10씩 더 받아요.','협동 건설 · 수출'],
  ch:['정밀 사격','모든 공격 20% 확률 치명타 2.5배','유닛과 방어 건물의 모든 공격이 20% 확률로 치명타가 되어 2.5배 피해를 줘요.','동력장 · 치명타'],
  es:['투우사','근접 유닛 회피 40% · 이동 +25%','근접 유닛이 공격의 40%를 피하고, 이동이 25% 빨라요.','동력장 · 회피'],
- tr:['메흐테르 군악대','병영 주변 아군 피해 +35%·이동 +25%','다 지은 병영 근처(반경 260)의 모든 아군은 피해 +35%, 이동 +25%.','건물 이동 · 군악대'],
+ tr:['메흐테르 군악대','병영 생산 유닛 피해 +20%·이동 +10%','병영에서 생산하는 모든 유닛이 어디서든 피해 +20%, 이동 +10%.','건물 이동 · 군악대'],
  yu:['파르티잔 합류','처치할 때 25% 확률로 파르티잔 합류','적 유닛을 쓰러뜨릴 때마다 25% 확률로 그 자리에서 파르티잔 1명이 무료로 합류해요 (보급이 남아 있을 때).','일꾼이 건물로 · 파르티잔'],
  cz:['슈코다 공창','기계 유닛이 파괴되면 비용 60% 환급','아군 기계 유닛이 파괴되면 그 비용의 60%를 석탄·에테르로 돌려받아요.','건물 이동 · 환급'],
  be:['요새선 장갑','일꾼 외 모든 유닛 방어 +3','일꾼을 뺀 모든 유닛의 방어가 3 높아요. 약한 공격일수록 거의 안 통해요.','건물 이동 · 장갑'],
  bu:['정글 매복','3초 멈춘 보병은 은신','3초 동안 움직이지도 공격하지도 않은 보병은 은신해요. 움직이거나 공격하거나 맞으면 드러나요.','일꾼이 건물로 · 은신'],
- idn:['메르데카!','건물이 공격받으면 의용군 3명 출동','건물이 공격받으면 의용군 3명이 40초 동안 함께 싸워요 (건물마다 30초에 한 번, 최대 12명).','일꾼이 건물로 · 민병'],
+ idn:['메르데카!','건물이 공격받으면 의용군 4명 출동','건물이 공격받으면 의용군 4명이 40초 동안 함께 싸워요 (건물마다 30초에 한 번, 최대 16명).','일꾼이 건물로 · 민병'],
  vn:['치고 빠지기','공격한 유닛 3초간 이동 +50%','공격한 유닛은 3초 동안 이동이 50% 빨라져요.','일꾼이 건물로 · 게릴라'],
  ir:['불사대','쓰러진 보병 35% 확률로 본진에서 부활','보병이 쓰러지면 35% 확률로 본진 옆에서 무료로 다시 나타나요.','건물 이동 · 부활'],
  eg:['피라미드 건설자','건물 비용 30% 저렴 · 건설 속도 2배','모든 건물이 30% 싸고, 2배 빨리 지어져요.','건물 이동 · 건설'],
  ma:['사막의 밤','밤에 피해 +40%·이동 +15%','밤이 깊을수록 모든 유닛의 피해가 최대 40%, 이동이 최대 15% 늘어요. 밤낮이 꺼진 판에서는 항상 피해 +20%.','건물 이동 · 야습'],
- sn:['증원 함대','60초마다 저격병 2명 무료 합류','60초마다 본진에서 세네갈 저격병 2명이 무료로 나와요 (보급이 남아 있을 때).','건물 이동 · 증원'],
+ sn:['증원 함대','40초마다 저격병 2명 무료 합류','40초마다 본진에서 세네갈 저격병 2명이 무료로 나와요 (보급이 남아 있을 때).','건물 이동 · 증원'],
  ve:['오일 머니','기계 유닛 석탄 비용 30% 저렴','모든 기계 유닛(전차·비행기·함선)의 석탄 비용이 30% 싸요.','건물 이동 · 오일 머니'],
  cu:['혁명 의지','수적 열세면 피해 +50%·받는 피해 -25%','주변에 적이 아군보다 많으면 피해 +50%, 받는 피해 -25%.','건물 이동 · 열세 역전'],
 };
@@ -12918,6 +12971,9 @@ for(const k in UD){const d=UD[k],f=d.f;if(!f||!d.cost)continue;
  if(f==='hu'&&d.mech&&!d.layer){if(d.dmg)d.dmg=+(d.dmg*1.35).toFixed(1);d.sp=Math.round(d.sp*1.2);}
  if(f==='fi')d.slowImmune=1;
  if(f==='pl'&&d.melee&&d.dmg)d.dmg=+(d.dmg*1.6).toFixed(1);
+ if(f==='pl'&&d.bio&&!d.worker&&!d.layer)d.hp=Math.round(d.hp*1.1);
+ if(f==='uk'&&d.layer==='a'&&d.rng)d.rng=Math.round(d.rng*1.15);
+ if(f==='au'&&!d.worker)d.sh=(d.sh||0)+Math.round(d.hp*0.3);
  if(f==='mx'&&d.layer==='a'&&d.dmg){d.dmg=+(d.dmg*1.4).toFixed(1);d.rng=Math.round(d.rng*1.2);}
  if(f==='ro'&&d.mech&&d.cost[1])d.cost[1]=R5(d.cost[1]*0.7);
  if(f==='th'&&d.melee)d.spl=Math.max(d.spl||0,40);
@@ -12927,6 +12983,8 @@ for(const k in UD){const d=UD[k],f=d.f;if(!f||!d.cost)continue;
 }
 for(const k in BD){const d=BD[k],f=d.f;if(!f||!d.cost)continue;
  if(f==='eg'){d.cost=d.cost.map(c=>R5(c*0.7));d.t=Math.max(3,Math.round(d.t*0.5));}
+ if(f==='gr'&&ROLE[k]==='def')d.t=Math.max(3,Math.round(d.t/1.5));
+ if(f==='tr'&&ROLE[k]==='inf')for(const u of (d.train||[]))if(UD[u])UD[u].trBand=1;
 }
 
 // ---------------- 채집 (중국 석탄 · 루마니아 에테르 · 남아공 대박) ----------------
@@ -12946,7 +13004,7 @@ const night=()=>{try{const w=G.wx;if(!w||!w.on||w.noNight||G.camp)return -1;retu
  if(f==='br'&&u._brT>t)m*=1.25;
  if(f==='nz'&&u._hkT>t)m*=1.6;
  if(f==='bg'&&u._bgT>t)m*=1.4;
- if(f==='tr'&&u._trT>t)m*=1.35;
+ if(f==='tr'&&UD[u.kind].trBand)m*=1.2;
  if(f==='cu'&&u._cuT>t)m*=1.5;
  if(f==='ma'){const n=night();m*=n<0?1.2:1+0.4*n;}
 }catch(e){}return m;};}
@@ -12962,6 +13020,7 @@ const night=()=>{try{const w=G.wx;if(!w||!w.on||w.noNight||G.camp)return -1;retu
    if(src.type==='unit'){src._atkT=now;if(src._ck){src._ck=0;src._still=now;}
     if(fs==='vn')src._vnT=now+3;
     if(fs==='nz'&&UD[src.kind].melee&&!(src._hkCd>now)){src._hkCd=now+10;src._hkT=now+6;part(src.x,src.y-12,0,-34,0.7,4,'#ffd24a');}}
+   if(fs==='jp'&&src.type==='unit'&&UD[src.kind].suicide&&!src._kmz){src._kmz=1;const tm=P(src.team);tm.ether+=100;if(tm.human)toast('🌸 신풍 자폭 성공: 에테르 +100');}
    if(fs==='no'&&t.type==='unit'&&UD[t.kind].layer!=='a')t.slowT=Math.max(t.slowT||0,2.5);}
   // 맞는 쪽
   if(ft&&t.type==='unit'){
@@ -12991,8 +13050,8 @@ const supOk=(team,n)=>{try{const s=supplyOf(team);return s.used+(n||1)<=s.cap;}c
 }catch(err){console.error(err);}return r;};}
 
 // ---------------- 인도네시아 메르데카 ----------------
-function merdeka(b,src){const tm=P(b.team);const n=ents.filter(e=>e.type==='unit'&&!e.dead&&e.team===b.team&&e._life&&e.kind==='idn_bambu').length;if(n>=12)return;b._mdT=G.time+30;
- for(let i=0;i<3;i++){const a=Math.random()*6.28,rr=b.w*T/2+16;const u=addUnit('idn_bambu',b.team,b.x+Math.cos(a)*rr,b.y+Math.sin(a)*rr);if(!u)continue;u._life=G.time+40;
+function merdeka(b,src){const tm=P(b.team);const n=ents.filter(e=>e.type==='unit'&&!e.dead&&e.team===b.team&&e._life&&e.kind==='idn_bambu').length;if(n>=16)return;b._mdT=G.time+30;
+ for(let i=0;i<4;i++){const a=Math.random()*6.28,rr=b.w*T/2+16;const u=addUnit('idn_bambu',b.team,b.x+Math.cos(a)*rr,b.y+Math.sin(a)*rr);if(!u)continue;u._life=G.time+40;
   if(src&&!src.dead&&src.type==='unit'&&canHit(UD.idn_bambu.tg,src))orderAttack(u,src);else if(src)orderMove(u,src.x,src.y,true);}
  if(tm.human)toast('🇮🇩 메르데카! 의용군이 달려왔어요');}
 
@@ -13002,14 +13061,13 @@ function tick025(){const now=G.time,pf=[];for(const p of G.pl)pf[p.id]=p.alive?p
  const trB=[],grB=[],mxB=[];
  for(const e of ents){if(e.dead||e.type!=='bld'||!e.built)continue;const f=pf[e.team];
   if(f==='tr'&&ROLE[e.kind]==='inf')trB.push(e);else if(f==='gr'&&ROLE[e.kind]==='def')grB.push(e);else if(f==='mx'&&ROLE[e.kind]==='air')mxB.push(e);}
- for(const b of trB)unitsNear(b.x,b.y,260,v=>{if(v.team===b.team)v._trT=now+0.6;});
  for(const b of grB)unitsNear(b.x,b.y,260,v=>{if(v.team===b.team)v._grT=now+0.6;});
  for(const b of mxB)unitsNear(b.x,b.y,320,v=>{if(v.team===b.team&&UD[v.kind].layer==='a'&&v.hp<v.maxhp)v.hp=Math.min(v.maxhp,v.hp+3);});
  for(const u of ents){if(u.type!=='unit'||u.dead||u.team<0)continue;const f=pf[u.team];if(!f)continue;const d=UD[u.kind];let sp=1,as=1;
   if(f==='br'&&u._brT>now){sp*=1.2;as*=1.5;}
   if(f==='nz'&&u._hkT>now)sp*=1.4;
   if(f==='vn'&&u._vnT>now)sp*=1.5;
-  if(f==='tr'&&u._trT>now)sp*=1.25;
+  if(f==='tr'&&d.trBand)sp*=1.1;
   if(f==='ma'){const n=night();if(n>0)sp*=1+0.15*n;}
   if(u.fxSp!==sp)u.fxSp=sp;if(u.asMul!==as)u.asMul=as;
   if(f==='ph'&&d.bio&&!d.worker&&u.hp<u.maxhp)u.hp=Math.min(u.maxhp,u.hp+u.maxhp*(now-(u._hitT||-99)>5?0.06:0.015)*0.25);
@@ -13027,7 +13085,7 @@ function tick60(){for(const p of G.pl){if(!p.alive||p.fac!=='sn')continue;const 
  if(A25>=0.25){A25=Math.min(A25-0.25,0.25);tick025();}
  if(A1>=1){A1=Math.min(A1-1,1);tick1();}
  if(A20>=20){A20-=20;tick20();}
- if(A60>=60){A60-=60;tick60();}}catch(e){console.error(e);}return r;};}
+ if(A60>=40){A60-=40;tick60();}}catch(e){console.error(e);}return r;};}
 // 새 판이 시작되면 주기 초기화
 {const _sg=typeof newGame==='function'?newGame:null;if(_sg){newGame=function(){A25=A1=A20=A60=0;return _sg.apply(this,arguments);};}}
 
